@@ -14,3 +14,6 @@ Igus Model Files
 	* Added a small plug to upper front torso with the nuclear/radiation/bio hazard symbol
 	* The head was split into more pieces. Added some more ribbing to the insides of the head. Also made some modifications to the camera mounts
 	* Added cable routes to toe covers
+
+## Licence
+These files are released under the Creative Commons licence (http://creativecommons.org/licenses/by-sa/3.0/legalcode).
