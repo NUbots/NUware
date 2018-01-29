@@ -35,12 +35,13 @@ LIBS:ADM6713RAKS
 LIBS:MPU6000
 LIBS:NUbots
 LIBS:STM32F746ZGT6
+LIBS:Header_Connectors
 LIBS:NUsense-cache
 EELAYER 25 0
 EELAYER END
 $Descr A3 16535 11693
 encoding utf-8
-Sheet 3 4
+Sheet 3 9
 Title ""
 Date ""
 Rev ""
@@ -704,11 +705,7 @@ Wire Wire Line
 Wire Wire Line
 	3800 6100 3800 5800
 Wire Wire Line
-	2850 6900 2700 6900
-Wire Wire Line
 	2700 6900 2700 7000
-Wire Wire Line
-	2600 7000 2850 7000
 Connection ~ 2700 7000
 Wire Wire Line
 	3800 5400 3800 5700
@@ -933,4 +930,74 @@ Connection ~ 3200 10100
 Wire Wire Line
 	1700 10100 3550 10100
 Connection ~ 3550 10100
+Text GLabel 5150 3200 0    60   Input ~ 0
+USART1_TX
+Text GLabel 5150 3300 0    60   Input ~ 0
+USART1_RX
+Text GLabel 6650 2900 2    60   Input ~ 0
+USART6_TX
+Text GLabel 6650 3000 2    60   Input ~ 0
+USART6_RX
+Text GLabel 6650 3300 2    60   Input ~ 0
+USART3_TX
+Text GLabel 6650 3400 2    60   Input ~ 0
+USART3_RX
+Text GLabel 6650 3500 2    60   Input ~ 0
+UART5_TX
+Text GLabel 12300 2500 0    60   Input ~ 0
+UART5_RX
+Text GLabel 12300 2800 0    60   Input ~ 0
+USART2_TX
+Text GLabel 12300 2900 0    60   Input ~ 0
+USART2_RX
+Text GLabel 12300 4000 0    60   Input ~ 0
+UART8_RX
+Text GLabel 12300 4100 0    60   Input ~ 0
+UART8_TX
+Text GLabel 12300 4700 0    60   Input ~ 0
+UART7_RX
+Text GLabel 12300 4800 0    60   Input ~ 0
+UART7_TX
+Text GLabel 5150 4600 0    60   Input ~ 0
+MPU_SCL
+Text GLabel 5150 4700 0    60   Input ~ 0
+MPU_SDA/SDI
+Text GLabel 5150 4800 0    60   Input ~ 0
+MPU_INT
+Text GLabel 5150 3600 0    60   Input ~ 0
+JTMS_SWDIO
+Text GLabel 5150 3700 0    60   Input ~ 0
+JTCK_SWCLK
+Text GLabel 5150 3800 0    60   Input ~ 0
+JTDI
+Text GLabel 5150 4300 0    60   Input ~ 0
+JTDO_SWO
+Text GLabel 5150 2600 0    60   Input ~ 0
+OTG_HS_ULPI_D
+Text GLabel 5150 4000 0    60   Input ~ 0
+OTG_HS_ULPI_D
+Text GLabel 5150 4100 0    60   Input ~ 0
+OTG_HS_ULPI_D
+Text GLabel 5150 4500 0    60   Input ~ 0
+OTG_HS_ULPI_D
+Text GLabel 5150 5000 0    60   Input ~ 0
+OTG_HS_ULPI_D
+Text GLabel 5150 5100 0    60   Input ~ 0
+OTG_HS_ULPI_D
+Text GLabel 5150 5200 0    60   Input ~ 0
+OTG_HS_ULPI_D
+Text GLabel 5150 5300 0    60   Input ~ 0
+OTG_HS_ULPI_D
+Text GLabel 5150 2800 0    60   Input ~ 0
+OTG_HS_ULPI_CK
+Text GLabel 6650 2300 2    60   Input ~ 0
+OTG_HS_UPLI_STP
+Text GLabel 6650 2500 2    60   Input ~ 0
+OTG_HS_ULPI_DIR
+Text GLabel 6650 2600 2    60   Input ~ 0
+OTG_HS_UPLI_NXT
+Wire Wire Line
+	2600 7000 2800 7000
+Wire Wire Line
+	2800 6900 2700 6900
 $EndSCHEMATC
