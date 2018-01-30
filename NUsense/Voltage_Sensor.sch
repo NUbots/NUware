@@ -169,10 +169,19 @@ Wire Wire Line
 Wire Wire Line
 	1600 1600 1900 1600
 Connection ~ 1800 1600
-Text GLabel 3750 1450 1    60   Input ~ 0
-VDD5o5V
 Connection ~ 3750 1600
 Connection ~ 3450 1700
 Text HLabel 4150 1700 2    60   Output ~ 0
 I_OUT
+$Comp
+L +5V #PWR?
+U 1 1 5A71C782
+P 3750 1450
+F 0 "#PWR?" H 3750 1300 50  0001 C CNN
+F 1 "+5V" H 3750 1590 50  0000 C CNN
+F 2 "" H 3750 1450 50  0001 C CNN
+F 3 "" H 3750 1450 50  0001 C CNN
+	1    3750 1450
+	1    0    0    -1  
+$EndComp
 $EndSCHEMATC

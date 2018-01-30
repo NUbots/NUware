@@ -211,7 +211,7 @@ Wire Wire Line
 Text HLabel 4200 2750 0    60   Output ~ 0
 MPU_SCL
 Text HLabel 4200 2850 0    60   Output ~ 0
-MPU_SDA?SDI
+MPU_SDA/SDI
 Text HLabel 7750 3250 2    60   Output ~ 0
 MPU_INT
 $EndSCHEMATC
