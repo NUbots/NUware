@@ -32,10 +32,10 @@ LIBS:atmel
 LIBS:contrib
 LIBS:valves
 LIBS:ADM6713RAKS
+LIBS:Header_Connectors
 LIBS:MPU6000
 LIBS:NUbots
 LIBS:STM32F746ZGT6
-LIBS:Header_Connectors
 LIBS:NUsense-cache
 EELAYER 25 0
 EELAYER END
@@ -258,8 +258,6 @@ F 3 "" H 4500 6000 50  0001 C CNN
 	1    4500 6000
 	0    -1   -1   0   
 $EndComp
-Text GLabel 3250 7700 0    60   Input ~ 0
-MCU_NRESET
 $Comp
 L R R?
 U 1 1 5A6BFE67
@@ -304,8 +302,6 @@ F 3 "" H 5350 7700 50  0001 C CNN
 	1    5350 7500
 	1    0    0    -1  
 $EndComp
-Text GLabel 5800 7500 2    60   Input ~ 0
-VDD3o3V
 $Comp
 L GND #PWR?
 U 1 1 5A6BFE84
@@ -328,10 +324,6 @@ F 3 "" H 6700 7300 50  0001 C CNN
 	1    6700 7300
 	1    0    0    -1  
 $EndComp
-Text GLabel 6700 7000 1    60   Input ~ 0
-VDD3o3V
-Text GLabel 9200 8200 1    60   Input ~ 0
-VDD3o3V_MCU
 $Comp
 L Ferrite_Bead L?
 U 1 1 5A6BFE92
@@ -376,8 +368,6 @@ F 3 "" H 8750 9450 50  0001 C CNN
 	1    8750 9450
 	1    0    0    -1  
 $EndComp
-Text GLabel 8250 8400 0    60   Input ~ 0
-VDD3o3V
 Text GLabel 8250 8850 0    60   Input ~ 0
 RTC_BAT
 $Comp
@@ -446,8 +436,6 @@ F 3 "" H 7200 9900 50  0001 C CNN
 	1    7200 9900
 	0    1    1    0   
 $EndComp
-Text GLabel 6900 9900 0    60   Input ~ 0
-VDD3o3V
 $Comp
 L GND #PWR?
 U 1 1 5A6BFEDA
@@ -681,8 +669,6 @@ F 3 "" H 1700 9950 50  0001 C CNN
 	1    1700 9950
 	-1   0    0    1   
 $EndComp
-Text GLabel 1300 9150 1    60   Input ~ 0
-VDD3o3V_MCU
 $Comp
 L GND #PWR?
 U 1 1 5A6BFF68
@@ -930,48 +916,6 @@ Connection ~ 3200 10100
 Wire Wire Line
 	1700 10100 3550 10100
 Connection ~ 3550 10100
-Text GLabel 5150 3200 0    60   Input ~ 0
-USART1_TX
-Text GLabel 5150 3300 0    60   Input ~ 0
-USART1_RX
-Text GLabel 6650 2900 2    60   Input ~ 0
-USART6_TX
-Text GLabel 6650 3000 2    60   Input ~ 0
-USART6_RX
-Text GLabel 6650 3300 2    60   Input ~ 0
-USART3_TX
-Text GLabel 6650 3400 2    60   Input ~ 0
-USART3_RX
-Text GLabel 6650 3500 2    60   Input ~ 0
-UART5_TX
-Text GLabel 12300 2500 0    60   Input ~ 0
-UART5_RX
-Text GLabel 12300 2800 0    60   Input ~ 0
-USART2_TX
-Text GLabel 12300 2900 0    60   Input ~ 0
-USART2_RX
-Text GLabel 12300 4000 0    60   Input ~ 0
-UART8_RX
-Text GLabel 12300 4100 0    60   Input ~ 0
-UART8_TX
-Text GLabel 12300 4700 0    60   Input ~ 0
-UART7_RX
-Text GLabel 12300 4800 0    60   Input ~ 0
-UART7_TX
-Text GLabel 5150 4600 0    60   Input ~ 0
-MPU_SCL
-Text GLabel 5150 4700 0    60   Input ~ 0
-MPU_SDA/SDI
-Text GLabel 5150 4800 0    60   Input ~ 0
-MPU_INT
-Text GLabel 5150 3600 0    60   Input ~ 0
-JTMS_SWDIO
-Text GLabel 5150 3700 0    60   Input ~ 0
-JTCK_SWCLK
-Text GLabel 5150 3800 0    60   Input ~ 0
-JTDI
-Text GLabel 5150 4300 0    60   Input ~ 0
-JTDO_SWO
 Text GLabel 5150 2600 0    60   Input ~ 0
 OTG_HS_ULPI_D
 Text GLabel 5150 4000 0    60   Input ~ 0
@@ -988,16 +932,108 @@ Text GLabel 5150 5200 0    60   Input ~ 0
 OTG_HS_ULPI_D
 Text GLabel 5150 5300 0    60   Input ~ 0
 OTG_HS_ULPI_D
-Text GLabel 5150 2800 0    60   Input ~ 0
-OTG_HS_ULPI_CK
-Text GLabel 6650 2300 2    60   Input ~ 0
-OTG_HS_UPLI_STP
-Text GLabel 6650 2500 2    60   Input ~ 0
-OTG_HS_ULPI_DIR
-Text GLabel 6650 2600 2    60   Input ~ 0
-OTG_HS_UPLI_NXT
 Wire Wire Line
 	2600 7000 2800 7000
 Wire Wire Line
 	2800 6900 2700 6900
+$Comp
+L +3.3V #PWR?
+U 1 1 5A6FCDF0
+P 6700 7000
+F 0 "#PWR?" H 6700 6850 50  0001 C CNN
+F 1 "+3.3V" H 6700 7140 50  0000 C CNN
+F 2 "" H 6700 7000 50  0001 C CNN
+F 3 "" H 6700 7000 50  0001 C CNN
+	1    6700 7000
+	1    0    0    -1  
+$EndComp
+$Comp
+L +3.3V #PWR?
+U 1 1 5A6FCE7A
+P 5800 7500
+F 0 "#PWR?" H 5800 7350 50  0001 C CNN
+F 1 "+3.3V" H 5800 7640 50  0000 C CNN
+F 2 "" H 5800 7500 50  0001 C CNN
+F 3 "" H 5800 7500 50  0001 C CNN
+	1    5800 7500
+	0    1    1    0   
+$EndComp
+$Comp
+L +3.3V #PWR?
+U 1 1 5A6FD08D
+P 6900 9900
+F 0 "#PWR?" H 6900 9750 50  0001 C CNN
+F 1 "+3.3V" H 6900 10040 50  0000 C CNN
+F 2 "" H 6900 9900 50  0001 C CNN
+F 3 "" H 6900 9900 50  0001 C CNN
+	1    6900 9900
+	0    -1   -1   0   
+$EndComp
+$Comp
+L +3.3V #PWR?
+U 1 1 5A6FD2DC
+P 8250 8400
+F 0 "#PWR?" H 8250 8250 50  0001 C CNN
+F 1 "+3.3V" H 8250 8540 50  0000 C CNN
+F 2 "" H 8250 8400 50  0001 C CNN
+F 3 "" H 8250 8400 50  0001 C CNN
+	1    8250 8400
+	0    -1   -1   0   
+$EndComp
+Text HLabel 5150 4800 0    60   Input ~ 0
+MPU_INT
+Text HLabel 5150 4700 0    60   Input ~ 0
+MPU_SDA/SDI
+Text HLabel 5150 4600 0    60   Input ~ 0
+MPU_SCL
+Text HLabel 3250 7700 0    60   Input ~ 0
+MCU_RESET
+Text HLabel 6650 2300 2    60   BiDi ~ 0
+OTG_HS_ULPI_STP
+Text HLabel 6650 2500 2    60   BiDi ~ 0
+OTG_HS_ULPI_DIR
+Text HLabel 6650 2600 2    60   BiDi ~ 0
+OTG_HS_ULPI_NXT
+Text HLabel 5150 2800 0    60   BiDi ~ 0
+OTG_HS_ULPI_CK
+Text Label 9200 8200 0    60   ~ 0
+VDD3o3V_MCU
+Text Label 1300 9150 0    60   ~ 0
+VDD3o3V_MCU
+Text HLabel 5150 4300 0    60   BiDi ~ 0
+JTD0_SW0
+Text HLabel 5150 3800 0    60   BiDi ~ 0
+JTDI
+Text HLabel 5150 3700 0    60   BiDi ~ 0
+JTCK_SWCLK
+Text HLabel 5150 3600 0    60   BiDi ~ 0
+JTMS_SWDIO
+Text HLabel 5150 3200 0    60   Output ~ 0
+USART1_TX
+Text HLabel 5150 3300 0    60   Input ~ 0
+USART1_RX
+Text HLabel 6650 2900 2    60   Output ~ 0
+USART6_TX
+Text HLabel 6650 3000 2    60   Input ~ 0
+USART6_RX
+Text HLabel 6650 3400 2    60   Input ~ 0
+USART3_RX
+Text HLabel 6650 3300 2    60   Output ~ 0
+USART3_TX
+Text HLabel 6650 3500 2    60   Output ~ 0
+UART5_TX
+Text HLabel 12300 2800 0    60   Output ~ 0
+USART2_TX
+Text HLabel 12300 2500 0    60   Input ~ 0
+UART5_RX
+Text HLabel 12300 4100 0    60   Output ~ 0
+UART8_TX
+Text HLabel 12300 2900 0    60   Input ~ 0
+USART2_RX
+Text HLabel 12300 4000 0    60   Input ~ 0
+UART8_RX
+Text HLabel 12300 4800 0    60   Output ~ 0
+UART7_TX
+Text HLabel 12300 4700 0    60   Input ~ 0
+UART7_RX
 $EndSCHEMATC

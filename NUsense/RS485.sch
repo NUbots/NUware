@@ -32,10 +32,10 @@ LIBS:atmel
 LIBS:contrib
 LIBS:valves
 LIBS:ADM6713RAKS
+LIBS:Header_Connectors
 LIBS:MPU6000
 LIBS:NUbots
 LIBS:STM32F746ZGT6
-LIBS:Header_Connectors
 LIBS:NUsense-cache
 EELAYER 25 0
 EELAYER END
@@ -62,8 +62,6 @@ F 3 "" H 4500 3700 60  0001 C CNN
 	1    4500 3700
 	1    0    0    -1  
 $EndComp
-Text GLabel 3750 2550 1    60   Input ~ 0
-VDD5o0V
 $Comp
 L R R?
 U 1 1 5A698BD3
@@ -108,8 +106,6 @@ F 3 "" H 5800 3750 50  0001 C CNN
 	1    5800 3750
 	1    0    0    -1  
 $EndComp
-Text GLabel 6100 3500 2    60   Input ~ 0
-VDD5o0V
 $Comp
 L R R?
 U 1 1 5A698C8E
@@ -132,20 +128,6 @@ F 3 "" H 6700 3200 50  0001 C CNN
 	1    6700 3200
 	0    -1   -1   0   
 $EndComp
-Text GLabel 3550 3600 0    60   Input ~ 0
-DXL_DIR_1
-Text GLabel 3550 3500 0    60   Input ~ 0
-DXL_TXD_1
-Text GLabel 3550 3200 0    60   Input ~ 0
-DXL_RXD_1
-Text GLabel 7200 3200 2    60   Input ~ 0
-DXL_485+_1
-Text GLabel 7200 3300 2    60   Input ~ 0
-DXL_485-_1
-Text GLabel 3550 4850 0    60   Input ~ 0
-DXL_485+_1
-Text GLabel 3550 4950 0    60   Input ~ 0
-DXL_485-_1
 $Comp
 L GND #PWR?
 U 1 1 5A6992FB
@@ -157,8 +139,6 @@ F 3 "" H 4200 5050 50  0001 C CNN
 	1    4200 5050
 	1    0    0    -1  
 $EndComp
-Text GLabel 3850 4450 1    60   Input ~ 0
-DXL_PWR
 $Comp
 L C C?
 U 1 1 5A699329
@@ -205,8 +185,6 @@ F 3 "" H 4350 8550 50  0001 C CNN
 	1    4350 8550
 	1    0    0    -1  
 $EndComp
-Text GLabel 4950 9150 3    60   Input ~ 0
-DXL_PWR
 $Comp
 L R R?
 U 1 1 5A699733
@@ -391,4 +369,44 @@ F 3 "" H 4700 4800 60  0001 C CNN
 	1    4700 4800
 	1    0    0    -1  
 $EndComp
+$Comp
+L +5V #PWR?
+U 1 1 5A6FDCF8
+P 3750 2550
+F 0 "#PWR?" H 3750 2400 50  0001 C CNN
+F 1 "+5V" H 3750 2690 50  0000 C CNN
+F 2 "" H 3750 2550 50  0001 C CNN
+F 3 "" H 3750 2550 50  0001 C CNN
+	1    3750 2550
+	1    0    0    -1  
+$EndComp
+Text HLabel 3550 3200 0    60   BiDi ~ 0
+DXL_RXD
+Text HLabel 3550 3500 0    60   BiDi ~ 0
+DXL_TXD
+Text HLabel 3550 3600 0    60   Input ~ 0
+DXL_DIR
+Text Label 3850 4450 1    60   ~ 0
+DXL_PWR
+Text Label 4950 9150 3    60   ~ 0
+DXL_PWR
+$Comp
+L +5V #PWR?
+U 1 1 5A6FED8C
+P 6100 3500
+F 0 "#PWR?" H 6100 3350 50  0001 C CNN
+F 1 "+5V" H 6100 3640 50  0000 C CNN
+F 2 "" H 6100 3500 50  0001 C CNN
+F 3 "" H 6100 3500 50  0001 C CNN
+	1    6100 3500
+	0    1    1    0   
+$EndComp
+Text Label 7200 3200 0    60   ~ 0
+DXL_485+
+Text Label 7200 3300 0    60   ~ 0
+DXL_485-
+Text Label 3550 4850 2    60   ~ 0
+DXL_485+
+Text Label 3550 4950 2    60   ~ 0
+DXL_485-
 $EndSCHEMATC

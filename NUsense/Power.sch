@@ -32,10 +32,10 @@ LIBS:atmel
 LIBS:contrib
 LIBS:valves
 LIBS:ADM6713RAKS
+LIBS:Header_Connectors
 LIBS:MPU6000
 LIBS:NUbots
 LIBS:STM32F746ZGT6
-LIBS:Header_Connectors
 LIBS:NUsense-cache
 EELAYER 25 0
 EELAYER END

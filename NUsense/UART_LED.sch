@@ -32,10 +32,10 @@ LIBS:atmel
 LIBS:contrib
 LIBS:valves
 LIBS:ADM6713RAKS
+LIBS:Header_Connectors
 LIBS:MPU6000
 LIBS:NUbots
 LIBS:STM32F746ZGT6
-LIBS:Header_Connectors
 LIBS:NUsense-cache
 EELAYER 25 0
 EELAYER END
@@ -51,8 +51,6 @@ Comment2 ""
 Comment3 ""
 Comment4 ""
 $EndDescr
-Text GLabel 2100 1800 0    60   Input ~ 0
-VDD3o3V
 $Comp
 L R R?
 U 1 1 5A6E5498
@@ -154,8 +152,6 @@ F 3 "" H 4800 1900 50  0001 C CNN
 	1    4800 1900
 	1    0    0    -1  
 $EndComp
-Text GLabel 4800 1250 1    60   Input ~ 0
-VDD3o3V
 Wire Wire Line
 	3800 1900 3900 1900
 Wire Wire Line
@@ -177,8 +173,30 @@ Wire Wire Line
 Connection ~ 4800 1350
 Wire Wire Line
 	4800 2050 4800 2250
-Text GLabel 2100 1450 0    60   Input ~ 0
+$Comp
+L +3.3V #PWR?
+U 1 1 5A6FD7BD
+P 4800 1250
+F 0 "#PWR?" H 4800 1100 50  0001 C CNN
+F 1 "+3.3V" H 4800 1390 50  0000 C CNN
+F 2 "" H 4800 1250 50  0001 C CNN
+F 3 "" H 4800 1250 50  0001 C CNN
+	1    4800 1250
+	1    0    0    -1  
+$EndComp
+$Comp
+L +3.3V #PWR?
+U 1 1 5A6FD880
+P 2100 1800
+F 0 "#PWR?" H 2100 1650 50  0001 C CNN
+F 1 "+3.3V" H 2100 1940 50  0000 C CNN
+F 2 "" H 2100 1800 50  0001 C CNN
+F 3 "" H 2100 1800 50  0001 C CNN
+	1    2100 1800
+	0    -1   -1   0   
+$EndComp
+Text HLabel 2100 1450 0    60   Input ~ 0
 USER_UART_RX
-Text GLabel 2100 1550 0    60   Input ~ 0
+Text HLabel 2100 1550 0    60   Output ~ 0
 USER_UART_TX
 $EndSCHEMATC

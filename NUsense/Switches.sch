@@ -32,10 +32,10 @@ LIBS:atmel
 LIBS:contrib
 LIBS:valves
 LIBS:ADM6713RAKS
+LIBS:Header_Connectors
 LIBS:MPU6000
 LIBS:NUbots
 LIBS:STM32F746ZGT6
-LIBS:Header_Connectors
 LIBS:NUsense-cache
 EELAYER 25 0
 EELAYER END
@@ -139,8 +139,6 @@ F 3 "" H 2650 1800 50  0001 C CNN
 	1    2650 1800
 	1    0    0    -1  
 $EndComp
-Text GLabel 2650 1400 1    60   Input ~ 0
-VDD3o3V
 Wire Wire Line
 	2650 1400 2650 1650
 Wire Wire Line
@@ -197,13 +195,9 @@ Wire Wire Line
 	4250 2000 4400 2000
 Wire Wire Line
 	4400 2000 4400 2150
-Text GLabel 4700 1800 2    60   Input ~ 0
-MCU_NRESET
 Connection ~ 4400 1800
 Text Notes 1950 3000 0    60   ~ 0
 System Reset
-Text GLabel 1350 4250 0    60   Input ~ 0
-BUZZER_SIG
 $Comp
 L GND #PWR?
 U 1 1 5A6A7F67
@@ -245,12 +239,36 @@ Wire Wire Line
 	1950 3850 2200 3850
 Wire Wire Line
 	1950 4650 1950 4450
-Text GLabel 1950 3650 1    60   Input ~ 0
-VDD3o3V
 Wire Wire Line
 	1950 3650 1950 3750
 Wire Wire Line
 	1950 3750 2200 3750
 Text Notes 1150 4750 0    60   ~ 0
 Buzzer
+$Comp
+L +3.3V #PWR?
+U 1 1 5A6FD90A
+P 2650 1400
+F 0 "#PWR?" H 2650 1250 50  0001 C CNN
+F 1 "+3.3V" H 2650 1540 50  0000 C CNN
+F 2 "" H 2650 1400 50  0001 C CNN
+F 3 "" H 2650 1400 50  0001 C CNN
+	1    2650 1400
+	1    0    0    -1  
+$EndComp
+$Comp
+L +3.3V #PWR?
+U 1 1 5A6FD934
+P 1950 3650
+F 0 "#PWR?" H 1950 3500 50  0001 C CNN
+F 1 "+3.3V" H 1950 3790 50  0000 C CNN
+F 2 "" H 1950 3650 50  0001 C CNN
+F 3 "" H 1950 3650 50  0001 C CNN
+	1    1950 3650
+	1    0    0    -1  
+$EndComp
+Text HLabel 1350 4250 0    60   Input ~ 0
+BUZZER_SIG
+Text HLabel 4700 1800 2    60   Output ~ 0
+MCU_RESET
 $EndSCHEMATC

@@ -32,10 +32,10 @@ LIBS:atmel
 LIBS:contrib
 LIBS:valves
 LIBS:ADM6713RAKS
+LIBS:Header_Connectors
 LIBS:MPU6000
 LIBS:NUbots
 LIBS:STM32F746ZGT6
-LIBS:Header_Connectors
 LIBS:NUsense-cache
 EELAYER 25 0
 EELAYER END
@@ -173,6 +173,6 @@ Text GLabel 3750 1450 1    60   Input ~ 0
 VDD5o5V
 Connection ~ 3750 1600
 Connection ~ 3450 1700
-Text GLabel 4150 1700 2    60   Input ~ 0
+Text HLabel 4150 1700 2    60   Output ~ 0
 I_OUT
 $EndSCHEMATC
