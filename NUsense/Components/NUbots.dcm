@@ -1,0 +1,39 @@
+EESchema-DOCLIB  Version 2.0
+#
+$CMP ACS724
+F Datasheets/ACS724-Datasheet.pdf
+$ENDCMP
+#
+$CMP ESDA14V2-2BF3
+F Datasheets/ESDA14V2-2BF3.pdf
+$ENDCMP
+#
+$CMP LD1086D2M33
+F Datasheets/ld1086d2m33.pdf
+$ENDCMP
+#
+$CMP MAX3443ECSA+
+F Datasheets/max3443ecsa+.pdf
+$ENDCMP
+#
+$CMP MPU6000
+F Datasheets/MPU-6000.pdf
+$ENDCMP
+#
+$CMP SM712
+F Datasheets/SM712.pdf
+$ENDCMP
+#
+$CMP STMPS2141STR
+F Datasheets/STMPS2151STR.pdf
+$ENDCMP
+#
+$CMP USB3300-EZK
+F Datasheets/USB3300.pdf
+$ENDCMP
+#
+$CMP bq76920
+F Datasheets/bq76920.pdf
+$ENDCMP
+#
+#End Doc Library

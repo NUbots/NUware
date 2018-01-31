@@ -1,3 +1,7 @@
 EESchema-DOCLIB  Version 2.0
 #
+$CMP STM32F746ZGT6
+F Datasheets/stm32f746zgt6.pdf
+$ENDCMP
+#
 #End Doc Library
