@@ -1304,4 +1304,10 @@ F 3 "" H 4500 6000 50  0001 C CNN
 $EndComp
 Text HLabel 12300 7100 0    60   Output ~ 0
 BUZZER_SIG
+Text HLabel 12300 3600 0    60   BiDi ~ 0
+I2C4_SDA
+Text HLabel 12300 3500 0    60   BiDi ~ 0
+I2C4_SCL
+Text HLabel 12300 3400 0    60   BiDi ~ 0
+I2C4_INT
 $EndSCHEMATC
