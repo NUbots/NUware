@@ -4,6 +4,10 @@ $CMP ACS724
 F Datasheets/ACS724-Datasheet.pdf
 $ENDCMP
 #
+$CMP AVRC5S_05D_050_050R
+F Datasheets/AVRC5S05Q050100R.pdf
+$ENDCMP
+#
 $CMP ESDA14V2-2BF3
 F Datasheets/ESDA14V2-2BF3.pdf
 $ENDCMP
@@ -26,6 +30,14 @@ $ENDCMP
 #
 $CMP STMPS2141STR
 F Datasheets/STMPS2151STR.pdf
+$ENDCMP
+#
+$CMP TPD2E1B06
+F Datasheets/tpd2e1b06.pdf
+$ENDCMP
+#
+$CMP TPD4S014
+F Datasheets/tpd4s014.pdf
 $ENDCMP
 #
 $CMP USB3300-EZK

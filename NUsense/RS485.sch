@@ -162,11 +162,15 @@ F 3 "" H 3850 5500 50  0001 C CNN
 	1    0    0    -1  
 $EndComp
 Wire Wire Line
-	3550 3600 4300 3600
+	3550 3600 4150 3600
+Wire Wire Line
+	4150 3600 4300 3600
 Wire Wire Line
 	4300 3500 3550 3500
 Wire Wire Line
-	3550 3200 4300 3200
+	3550 3200 3750 3200
+Wire Wire Line
+	3750 3200 4300 3200
 Wire Wire Line
 	4300 3300 4150 3300
 Wire Wire Line
@@ -182,7 +186,9 @@ Wire Wire Line
 Wire Wire Line
 	5200 3300 6550 3300
 Wire Wire Line
-	5200 3500 6100 3500
+	5200 3500 5800 3500
+Wire Wire Line
+	5800 3500 6100 3500
 Wire Wire Line
 	5800 3600 5800 3500
 Connection ~ 5800 3500
@@ -203,7 +209,9 @@ Wire Wire Line
 Wire Wire Line
 	3850 5500 3850 5400
 Wire Wire Line
-	3850 4450 3850 5100
+	3850 4450 3850 4750
+Wire Wire Line
+	3850 4750 3850 5100
 Wire Wire Line
 	3850 4750 4500 4750
 Connection ~ 3850 4750
@@ -233,9 +241,9 @@ F 3 "" H 3750 2550 50  0001 C CNN
 	1    3750 2550
 	1    0    0    -1  
 $EndComp
-Text HLabel 3550 3200 0    60   BiDi ~ 0
+Text HLabel 1950 3300 0    60   BiDi ~ 0
 DXL_RXD
-Text HLabel 3550 3500 0    60   BiDi ~ 0
+Text HLabel 1950 3400 0    60   BiDi ~ 0
 DXL_TXD
 Text HLabel 3550 3600 0    60   Input ~ 0
 DXL_DIR
@@ -260,4 +268,38 @@ Text Label 3550 4950 2    60   ~ 0
 DXL_485-
 Text HLabel 3850 4450 0    60   Input ~ 0
 DXL_PWR
+$Comp
+L AVRC5S_05D_050_050R U?
+U 1 1 5A72D5C4
+P 2150 3600
+F 0 "U?" H 2400 4050 60  0000 C CNN
+F 1 "AVRC5S_05D_050_050R" H 2450 3550 60  0000 C CNN
+F 2 "" H 2150 3600 60  0001 C CNN
+F 3 "" H 2150 3600 60  0001 C CNN
+	1    2150 3600
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	2850 3300 3550 3300
+Wire Wire Line
+	3550 3300 3550 3200
+Wire Wire Line
+	3550 3500 3550 3400
+Wire Wire Line
+	3550 3400 2850 3400
+Wire Wire Line
+	1950 3500 1850 3500
+Wire Wire Line
+	1850 3500 1850 3800
+$Comp
+L GND #PWR?
+U 1 1 5A72D76F
+P 1850 3800
+F 0 "#PWR?" H 1850 3550 50  0001 C CNN
+F 1 "GND" H 1850 3650 50  0000 C CNN
+F 2 "" H 1850 3800 50  0001 C CNN
+F 3 "" H 1850 3800 50  0001 C CNN
+	1    1850 3800
+	1    0    0    -1  
+$EndComp
 $EndSCHEMATC
