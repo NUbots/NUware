@@ -4,8 +4,18 @@ $CMP ACS724
 F Datasheets/ACS724-Datasheet.pdf
 $ENDCMP
 #
+$CMP AVRC5S
+D Amotech Multilayer Chip EMI and ESD filter
+F Datasheets/AVRC5S05Q050100R.pdf
+$ENDCMP
+#
 $CMP AVRC5S_05D_050_050R
 F Datasheets/AVRC5S05Q050100R.pdf
+$ENDCMP
+#
+$CMP DXL_PWR
+D general power-flag symbol
+K Power Flag Symbol
 $ENDCMP
 #
 $CMP ESDA14V2-2BF3
