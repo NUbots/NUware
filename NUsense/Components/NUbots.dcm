@@ -34,6 +34,16 @@ $CMP MPU6000
 F Datasheets/MPU-6000.pdf
 $ENDCMP
 #
+$CMP PWR_IN
+D general power-flag symbol
+K Power Flag Symbol
+$ENDCMP
+#
+$CMP PWR_POST_SW
+D general power-flag symbol
+K Power Flag Symbol
+$ENDCMP
+#
 $CMP SM712
 F Datasheets/SM712.pdf
 $ENDCMP

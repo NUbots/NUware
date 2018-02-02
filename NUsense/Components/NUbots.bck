@@ -13,6 +13,11 @@ $CMP AVRC5S_05D_050_050R
 F Datasheets/AVRC5S05Q050100R.pdf
 $ENDCMP
 #
+$CMP DXL_PWR
+D general power-flag symbol
+K Power Flag Symbol
+$ENDCMP
+#
 $CMP ESDA14V2-2BF3
 F Datasheets/ESDA14V2-2BF3.pdf
 $ENDCMP
@@ -27,6 +32,16 @@ $ENDCMP
 #
 $CMP MPU6000
 F Datasheets/MPU-6000.pdf
+$ENDCMP
+#
+$CMP PWR_IN
+D general power-flag symbol
+K Power Flag Symbol
+$ENDCMP
+#
+$CMP PWR_POST_SW
+D general power-flag symbol
+K Power Flag Symbol
 $ENDCMP
 #
 $CMP SM712
