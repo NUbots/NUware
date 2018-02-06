@@ -160,17 +160,6 @@ F 3 "" H 5850 7100 50  0001 C CNN
 	0    1    1    0   
 $EndComp
 $Comp
-L R R303
-U 1 1 5A6BFE6E
-P 6200 7250
-F 0 "R303" V 6280 7250 50  0000 C CNN
-F 1 "NC" V 6200 7250 50  0000 C CNN
-F 2 "Resistors_SMD:R_0805_HandSoldering" V 6130 7250 50  0001 C CNN
-F 3 "" H 6200 7250 50  0001 C CNN
-	1    6200 7250
-	0    1    1    0   
-$EndComp
-$Comp
 L R R301
 U 1 1 5A6BFE75
 P 4950 7800
@@ -201,17 +190,6 @@ F 1 "GND" H 4950 7950 50  0000 C CNN
 F 2 "" H 4950 8100 50  0001 C CNN
 F 3 "" H 4950 8100 50  0001 C CNN
 	1    4950 8100
-	1    0    0    -1  
-$EndComp
-$Comp
-L GND #PWR313
-U 1 1 5A6BFE8A
-P 6700 7300
-F 0 "#PWR313" H 6700 7050 50  0001 C CNN
-F 1 "GND" H 6700 7150 50  0000 C CNN
-F 2 "" H 6700 7300 50  0001 C CNN
-F 3 "" H 6700 7300 50  0001 C CNN
-	1    6700 7300
 	1    0    0    -1  
 $EndComp
 $Comp
@@ -421,12 +399,7 @@ Wire Wire Line
 Wire Wire Line
 	5700 7100 5050 7100
 Wire Wire Line
-	5050 6600 5050 7250
-Wire Wire Line
 	5050 6600 5150 6600
-Wire Wire Line
-	5050 7250 6050 7250
-Connection ~ 5050 7100
 Wire Wire Line
 	4950 6400 4950 7650
 Wire Wire Line
@@ -442,10 +415,6 @@ Wire Wire Line
 	6700 7100 6700 7000
 Wire Wire Line
 	6000 7100 6700 7100
-Wire Wire Line
-	6350 7250 6700 7250
-Wire Wire Line
-	6700 7250 6700 7300
 Wire Wire Line
 	8750 8400 9350 8400
 Wire Wire Line
@@ -1344,4 +1313,6 @@ F 3 "" H 5250 9200 50  0001 C CNN
 	1    0    0    -1  
 $EndComp
 Connection ~ 9200 8850
+Wire Wire Line
+	5050 7100 5050 6600
 $EndSCHEMATC

@@ -1150,4 +1150,6 @@ Wire Wire Line
 	1750 3650 1750 3700
 Wire Wire Line
 	2000 3650 2000 3700
+Text Notes 7700 1150 0    60   ~ 0
+PWM Fan controller
 $EndSCHEMATC

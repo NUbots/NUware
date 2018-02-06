@@ -250,4 +250,6 @@ Wire Wire Line
 Wire Wire Line
 	6950 2850 6950 2800
 Connection ~ 6600 2850
+Text Notes 5550 1950 0    60   ~ 0
+IMU
 $EndSCHEMATC

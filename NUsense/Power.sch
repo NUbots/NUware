@@ -876,4 +876,8 @@ To current sensor
 Wire Wire Line
 	6600 4600 6600 4500
 Connection ~ 6350 4600
+Text Notes 4100 4850 0    60   ~ 0
+Dynamixel Power
+Text Notes 10500 5350 0    60   ~ 0
+5V to 3.3V
 $EndSCHEMATC

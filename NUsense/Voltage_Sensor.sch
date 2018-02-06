@@ -620,4 +620,8 @@ Text HLabel 1600 3400 0    60   BiDi ~ 0
 BATT_-
 Wire Wire Line
 	5950 4400 5950 4450
+Text Notes 2000 4150 0    60   ~ 0
+Current Monitor
+Text Notes 7800 4850 0    60   ~ 0
+Voltage Monitor
 $EndSCHEMATC
