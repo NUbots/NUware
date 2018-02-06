@@ -653,11 +653,11 @@ F 3 "" H 8250 8400 50  0001 C CNN
 	1    8250 8400
 	0    -1   -1   0   
 $EndComp
-Text HLabel 5150 4800 0    60   Input ~ 0
+Text HLabel 12300 5900 0    60   Input ~ 0
 MPU_INT
-Text HLabel 5150 4700 0    60   Input ~ 0
+Text HLabel 12300 5800 0    60   Input ~ 0
 MPU_SDA/SDI
-Text HLabel 5150 4600 0    60   Input ~ 0
+Text HLabel 12300 5700 0    60   Input ~ 0
 MPU_SCL
 Text HLabel 3250 7700 0    60   Input ~ 0
 MCU_RESET
@@ -681,13 +681,13 @@ Text HLabel 5150 3700 0    60   BiDi ~ 0
 JTCK_SWCLK
 Text HLabel 5150 3600 0    60   BiDi ~ 0
 JTMS_SWDIO
-Text HLabel 5150 3200 0    60   Output ~ 0
+Text HLabel 5150 4600 0    60   Output ~ 0
 USART1_TX
-Text HLabel 5150 3300 0    60   Input ~ 0
+Text HLabel 5150 4700 0    60   Input ~ 0
 USART1_RX
-Text HLabel 6650 2900 2    60   Output ~ 0
+Text HLabel 13800 3700 2    60   Output ~ 0
 USART6_TX
-Text HLabel 6650 3000 2    60   Input ~ 0
+Text HLabel 13800 3200 2    60   Input ~ 0
 USART6_RX
 Text HLabel 6650 3400 2    60   Input ~ 0
 USART3_RX
@@ -1167,7 +1167,7 @@ Text HLabel 12300 3500 0    60   BiDi ~ 0
 I2C4_SCL
 Text HLabel 12300 3400 0    60   BiDi ~ 0
 VS_ALERT
-Text HLabel 6650 3100 2    60   Output ~ 0
+Text HLabel 12300 2700 0    60   Output ~ 0
 USART6_EN
 Text HLabel 12300 3000 0    60   Output ~ 0
 USART2_EN
@@ -1306,7 +1306,7 @@ Text HLabel 13800 3000 2    60   BiDi ~ 0
 GPIO_7
 Text HLabel 13800 3100 2    60   BiDi ~ 0
 GPIO_8
-Text HLabel 13800 3200 2    60   BiDi ~ 0
+Text HLabel 13800 3600 2    60   BiDi ~ 0
 GPIO_9
 Text HLabel 13800 3300 2    60   BiDi ~ 0
 GPIO_10
@@ -1314,4 +1314,16 @@ Text HLabel 13800 3400 2    60   BiDi ~ 0
 GPIO_11
 Text HLabel 13800 3500 2    60   BiDi ~ 0
 GPIO_12
+Text HLabel 5150 3100 0    60   Output ~ 0
+TIM1_CH1
+Text HLabel 5150 3200 0    60   Output ~ 0
+TIM1_CH2
+Text HLabel 5150 3300 0    60   Output ~ 0
+TIM1_CH3
+Text HLabel 6650 2900 2    60   Output ~ 0
+TIM8_CH1
+Text HLabel 6650 3000 2    60   Output ~ 0
+TIM8_CH2
+Text HLabel 6650 3100 2    60   Output ~ 0
+TIM8_CH3
 $EndSCHEMATC
