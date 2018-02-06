@@ -116,6 +116,7 @@ F49 "TIM1_CH3" O R 10450 4950 60
 F50 "TIM8_CH1" O R 10450 5050 60 
 F51 "TIM8_CH2" O R 10450 5150 60 
 F52 "TIM8_CH3" O R 10450 5250 60 
+F53 "USB_DATA" B L 7200 4450 60 
 $EndSheet
 $Sheet
 S 2350 4650 1850 1300
@@ -163,6 +164,7 @@ F4 "OTG_HS_ULPI_DIR" B R 4200 1450 60
 F5 "OTG_HS_ULPI_CK" B R 4200 1550 60 
 F6 "OTG_HS_OC" O R 4200 1650 60 
 F7 "USB_~ACK" I R 4200 1750 60 
+F8 "USB_DATA" B R 4200 1850 60 
 $EndSheet
 $Sheet
 S 2350 2850 1850 1300
@@ -180,7 +182,7 @@ $Comp
 L AVRC5S EFI102
 U 1 1 5A73E86C
 P 8950 9100
-F 0 "EFI102" H 9050 9630 60  0000 C CNN
+F 0 "EFI102" H 9100 9650 60  0000 C CNN
 F 1 "AVRC5S" H 9120 9550 60  0000 C CNN
 F 2 "Footprints:0805_NET_4" H 9100 9150 60  0001 C CNN
 F 3 "" H 9100 9150 60  0001 C CNN
@@ -191,7 +193,7 @@ $Comp
 L AVRC5S EFI103
 U 1 1 5A73EA25
 P 10550 9100
-F 0 "EFI103" H 10650 9630 60  0000 C CNN
+F 0 "EFI103" H 10700 9650 60  0000 C CNN
 F 1 "AVRC5S" H 10720 9550 60  0000 C CNN
 F 2 "Footprints:0805_NET_4" H 10700 9150 60  0001 C CNN
 F 3 "" H 10700 9150 60  0001 C CNN
@@ -202,43 +204,26 @@ $Comp
 L AVRC5S EFI101
 U 1 1 5A73EB9C
 P 7350 9100
-F 0 "EFI101" H 7450 9630 60  0000 C CNN
+F 0 "EFI101" H 7500 9650 60  0000 C CNN
 F 1 "AVRC5S" H 7520 9550 60  0000 C CNN
 F 2 "Footprints:0805_NET_4" H 7500 9150 60  0001 C CNN
 F 3 "" H 7500 9150 60  0001 C CNN
 	1    7350 9100
 	1    0    0    -1  
 $EndComp
-Wire Wire Line
-	10750 9400 10750 9300
-Wire Wire Line
-	7550 9400 10750 9400
-Wire Wire Line
-	7550 9400 7550 9300
-Wire Wire Line
-	9150 9300 9150 9500
-Connection ~ 9150 9400
 $Comp
-L GND #PWR1
+L GND #PWR101
 U 1 1 5A7404A8
 P 9150 9500
-F 0 "#PWR1" H 9150 9250 50  0001 C CNN
+F 0 "#PWR101" H 9150 9250 50  0001 C CNN
 F 1 "GND" H 9150 9350 50  0000 C CNN
 F 2 "" H 9150 9500 50  0001 C CNN
 F 3 "" H 9150 9500 50  0001 C CNN
 	1    9150 9500
 	1    0    0    -1  
 $EndComp
-Wire Wire Line
-	6800 9050 7150 9050
 Text Label 6800 8750 0    60   ~ 0
 DXL1_RX
-Wire Wire Line
-	7150 8750 6800 8750
-Wire Wire Line
-	7150 8850 6800 8850
-Wire Wire Line
-	7150 8950 6800 8950
 Text Label 6800 8850 0    60   ~ 0
 DXL1_TX
 Text Label 6800 8950 0    60   ~ 0
@@ -253,16 +238,8 @@ Text Label 8150 8950 2    60   ~ 0
 RX2
 Text Label 8150 9050 2    60   ~ 0
 TX2
-Wire Wire Line
-	8400 9050 8750 9050
 Text Label 8400 8750 0    60   ~ 0
 DXL3_RX
-Wire Wire Line
-	8750 8750 8400 8750
-Wire Wire Line
-	8750 8850 8400 8850
-Wire Wire Line
-	8750 8950 8400 8950
 Text Label 8400 8850 0    60   ~ 0
 DXL3_TX
 Text Label 8400 8950 0    60   ~ 0
@@ -283,80 +260,32 @@ Text Label 11350 8850 2    60   ~ 0
 TX5
 Text Label 10000 8750 0    60   ~ 0
 DXL5_RX
-Wire Wire Line
-	10350 8750 10000 8750
-Wire Wire Line
-	10350 8850 10000 8850
 Text Label 10000 8850 0    60   ~ 0
 DXL5_TX
 Text Label 12200 8450 0    60   ~ 0
 DXL5_RX
-Wire Wire Line
-	12200 8450 12600 8450
-Wire Wire Line
-	12200 8550 12600 8550
 Text Label 12200 8550 0    60   ~ 0
 DXL5_TX
 Text Label 10650 4000 2    60   ~ 0
 TX5
 Text Label 10650 4100 2    60   ~ 0
 RX5
-Wire Wire Line
-	10450 4000 10650 4000
-Wire Wire Line
-	10450 4100 10650 4100
 Text Label 10650 3600 2    60   ~ 0
 TX4
 Text Label 10650 3700 2    60   ~ 0
 RX4
-Wire Wire Line
-	10450 3600 10650 3600
-Wire Wire Line
-	10450 3700 10650 3700
 Text Label 10650 3200 2    60   ~ 0
 TX3
 Text Label 10650 3300 2    60   ~ 0
 RX3
-Wire Wire Line
-	10450 3200 10650 3200
-Wire Wire Line
-	10450 3300 10650 3300
 Text Label 10650 2850 2    60   ~ 0
 TX2
 Text Label 10650 2950 2    60   ~ 0
 RX2
-Wire Wire Line
-	10450 2850 10650 2850
-Wire Wire Line
-	10450 2950 10650 2950
 Text Label 10650 2450 2    60   ~ 0
 TX1
 Text Label 10650 2550 2    60   ~ 0
 RX1
-Wire Wire Line
-	10450 2450 10650 2450
-Wire Wire Line
-	10450 2550 10650 2550
-Wire Wire Line
-	9550 8750 9750 8750
-Wire Wire Line
-	9550 8850 9750 8850
-Wire Wire Line
-	9550 8950 9750 8950
-Wire Wire Line
-	9550 9050 9750 9050
-Wire Wire Line
-	11150 8750 11350 8750
-Wire Wire Line
-	11150 8850 11350 8850
-Wire Wire Line
-	7950 8750 8150 8750
-Wire Wire Line
-	7950 8850 8150 8850
-Wire Wire Line
-	7950 8950 8150 8950
-Wire Wire Line
-	7950 9050 8150 9050
 $Sheet
 S 12600 6550 1850 1300
 U 5A74FCE6
@@ -368,10 +297,6 @@ F4 "DXL_DIR" I L 12600 6850 60
 $EndSheet
 Text Label 12200 6650 0    60   ~ 0
 DXL4_RX
-Wire Wire Line
-	12200 6650 12600 6650
-Wire Wire Line
-	12200 6750 12600 6750
 Text Label 12200 6750 0    60   ~ 0
 DXL4_TX
 $Sheet
@@ -385,10 +310,6 @@ F4 "DXL_DIR" I L 12550 5050 60
 $EndSheet
 Text Label 12150 4850 0    60   ~ 0
 DXL3_RX
-Wire Wire Line
-	12150 4850 12550 4850
-Wire Wire Line
-	12150 4950 12550 4950
 Text Label 12150 4950 0    60   ~ 0
 DXL3_TX
 $Sheet
@@ -402,10 +323,6 @@ F4 "DXL_DIR" I L 12550 3250 60
 $EndSheet
 Text Label 12150 3050 0    60   ~ 0
 DXL2_RX
-Wire Wire Line
-	12150 3050 12550 3050
-Wire Wire Line
-	12150 3150 12550 3150
 Text Label 12150 3150 0    60   ~ 0
 DXL2_TX
 $Sheet
@@ -419,10 +336,6 @@ F4 "DXL_DIR" I L 12500 1500 60
 $EndSheet
 Text Label 12100 1300 0    60   ~ 0
 DXL1_RX
-Wire Wire Line
-	12100 1300 12500 1300
-Wire Wire Line
-	12100 1400 12500 1400
 Text Label 12100 1400 0    60   ~ 0
 DXL1_TX
 $Sheet
@@ -434,62 +347,30 @@ F2 "DXL_PWR_EN" I R 9600 6950 60
 F3 "BATT_+" B R 9600 7200 60 
 F4 "BATT_-" B R 9600 7300 60 
 $EndSheet
-Wire Wire Line
-	12100 1500 12500 1500
 Text Label 12100 1500 0    60   ~ 0
 DXL1_EN
-Wire Wire Line
-	12150 3250 12550 3250
 Text Label 12150 3250 0    60   ~ 0
 DXL2_EN
-Wire Wire Line
-	12150 5050 12550 5050
 Text Label 12150 5050 0    60   ~ 0
 DXL3_EN
-Wire Wire Line
-	12200 6850 12600 6850
 Text Label 12200 6850 0    60   ~ 0
 DXL4_EN
-Wire Wire Line
-	12200 8650 12600 8650
 Text Label 12200 8650 0    60   ~ 0
 DXL5_EN
 Text Label 10850 3050 2    60   ~ 0
 DXL2_EN
-Wire Wire Line
-	10450 3050 10850 3050
 Text Label 10850 2650 2    60   ~ 0
 DXL1_EN
-Wire Wire Line
-	10450 2650 10850 2650
 Text Label 10850 3400 2    60   ~ 0
 DXL3_EN
-Wire Wire Line
-	10450 3400 10850 3400
 Text Label 10850 3800 2    60   ~ 0
 DXL4_EN
-Wire Wire Line
-	10450 3800 10850 3800
 Text Label 10850 4200 2    60   ~ 0
 DXL5_EN
-Wire Wire Line
-	10450 4200 10850 4200
-Wire Wire Line
-	10450 4400 11050 4400
 Text Label 11050 4400 2    60   ~ 0
 DXL_PWR_EN
-Wire Wire Line
-	9600 6950 10300 6950
 Text Label 10300 6950 2    60   ~ 0
 DXL_PWR_EN
-Wire Wire Line
-	4200 3750 4650 3750
-Wire Wire Line
-	4200 3850 4650 3850
-Wire Wire Line
-	9600 7200 10250 7200
-Wire Wire Line
-	9600 7300 10250 7300
 Text Label 10250 7200 2    60   ~ 0
 BATT_+
 Text Label 10250 7300 2    60   ~ 0
@@ -550,6 +431,203 @@ Text Label 6600 4250 0    60   ~ 0
 USB_DIR
 Text Label 6600 4350 0    60   ~ 0
 USB_CK
+Text Label 4700 1650 2    60   ~ 0
+GPIO_1
+Text Label 4700 1750 2    60   ~ 0
+GPIO_2
+Text Label 4650 3000 2    60   ~ 0
+GPIO_3
+Text Label 4750 5350 2    60   ~ 0
+GPIO_4
+Text Label 4750 5450 2    60   ~ 0
+GPIO_5
+Text Label 4750 5550 2    60   ~ 0
+GPIO_6
+Text Label 4750 4950 2    60   ~ 0
+SW_START
+Text Label 4750 5050 2    60   ~ 0
+SW_MODE
+Text Label 1800 4850 0    60   ~ 0
+LED_TX
+Text Label 1800 4950 0    60   ~ 0
+LED_RX
+Text Label 1800 5050 0    60   ~ 0
+LED2
+Text Label 1800 5150 0    60   ~ 0
+LED3
+Text Label 1800 5250 0    60   ~ 0
+LED4
+Text Label 1800 5350 0    60   ~ 0
+LED5_R
+Text Label 1800 5450 0    60   ~ 0
+LED5_G
+Text Label 1800 5850 0    60   ~ 0
+LED6_B
+Text Label 1800 5650 0    60   ~ 0
+LED6_R
+Text Label 1800 5550 0    60   ~ 0
+LED5_B
+Text Label 1800 5750 0    60   ~ 0
+LED6_G
+Text Label 6600 4700 0    60   ~ 0
+GPIO_1
+Text Label 6600 4800 0    60   ~ 0
+GPIO_2
+Text Label 6600 4900 0    60   ~ 0
+GPIO_3
+Text Label 6600 5000 0    60   ~ 0
+GPIO_4
+Text Label 6600 5100 0    60   ~ 0
+GPIO_5
+Text Label 6600 5200 0    60   ~ 0
+GPIO_6
+Text Label 6600 5300 0    60   ~ 0
+SW_START
+Text Label 6600 5400 0    60   ~ 0
+SW_MODE
+Text Label 6600 5500 0    60   ~ 0
+LED_TX
+Text Label 6600 5600 0    60   ~ 0
+LED_RX
+Text Label 6600 5700 0    60   ~ 0
+LED2
+Text Label 6600 5800 0    60   ~ 0
+LED3
+Text Label 6600 5900 0    60   ~ 0
+LED4
+Text Label 11050 4750 2    60   ~ 0
+LED5_R
+Text Label 11050 4850 2    60   ~ 0
+LED5_G
+Text Label 11050 4950 2    60   ~ 0
+LED5_B
+Text Label 11050 5050 2    60   ~ 0
+LED6_R
+Text Label 11050 5150 2    60   ~ 0
+LED6_G
+Text Label 11050 5250 2    60   ~ 0
+LED6_B
+Wire Wire Line
+	10750 9400 10750 9300
+Wire Wire Line
+	7550 9400 10750 9400
+Wire Wire Line
+	7550 9400 7550 9300
+Wire Wire Line
+	9150 9300 9150 9500
+Connection ~ 9150 9400
+Wire Wire Line
+	6800 9050 7150 9050
+Wire Wire Line
+	7150 8750 6800 8750
+Wire Wire Line
+	7150 8850 6800 8850
+Wire Wire Line
+	7150 8950 6800 8950
+Wire Wire Line
+	8400 9050 8750 9050
+Wire Wire Line
+	8750 8750 8400 8750
+Wire Wire Line
+	8750 8850 8400 8850
+Wire Wire Line
+	8750 8950 8400 8950
+Wire Wire Line
+	10350 8750 10000 8750
+Wire Wire Line
+	10350 8850 10000 8850
+Wire Wire Line
+	12200 8450 12600 8450
+Wire Wire Line
+	12200 8550 12600 8550
+Wire Wire Line
+	10450 4000 10650 4000
+Wire Wire Line
+	10450 4100 10650 4100
+Wire Wire Line
+	10450 3600 10650 3600
+Wire Wire Line
+	10450 3700 10650 3700
+Wire Wire Line
+	10450 3200 10650 3200
+Wire Wire Line
+	10450 3300 10650 3300
+Wire Wire Line
+	10450 2850 10650 2850
+Wire Wire Line
+	10450 2950 10650 2950
+Wire Wire Line
+	10450 2450 10650 2450
+Wire Wire Line
+	10450 2550 10650 2550
+Wire Wire Line
+	9550 8750 9750 8750
+Wire Wire Line
+	9550 8850 9750 8850
+Wire Wire Line
+	9550 8950 9750 8950
+Wire Wire Line
+	9550 9050 9750 9050
+Wire Wire Line
+	11150 8750 11350 8750
+Wire Wire Line
+	11150 8850 11350 8850
+Wire Wire Line
+	7950 8750 8150 8750
+Wire Wire Line
+	7950 8850 8150 8850
+Wire Wire Line
+	7950 8950 8150 8950
+Wire Wire Line
+	7950 9050 8150 9050
+Wire Wire Line
+	12200 6650 12600 6650
+Wire Wire Line
+	12200 6750 12600 6750
+Wire Wire Line
+	12150 4850 12550 4850
+Wire Wire Line
+	12150 4950 12550 4950
+Wire Wire Line
+	12150 3050 12550 3050
+Wire Wire Line
+	12150 3150 12550 3150
+Wire Wire Line
+	12100 1300 12500 1300
+Wire Wire Line
+	12100 1400 12500 1400
+Wire Wire Line
+	12100 1500 12500 1500
+Wire Wire Line
+	12150 3250 12550 3250
+Wire Wire Line
+	12150 5050 12550 5050
+Wire Wire Line
+	12200 6850 12600 6850
+Wire Wire Line
+	12200 8650 12600 8650
+Wire Wire Line
+	10450 3050 10850 3050
+Wire Wire Line
+	10450 2650 10850 2650
+Wire Wire Line
+	10450 3400 10850 3400
+Wire Wire Line
+	10450 3800 10850 3800
+Wire Wire Line
+	10450 4200 10850 4200
+Wire Wire Line
+	10450 4400 11050 4400
+Wire Wire Line
+	9600 6950 10300 6950
+Wire Wire Line
+	4200 3750 4650 3750
+Wire Wire Line
+	4200 3850 4650 3850
+Wire Wire Line
+	9600 7200 10250 7200
+Wire Wire Line
+	9600 7300 10250 7300
 Wire Wire Line
 	4200 6900 4650 6900
 Wire Wire Line
@@ -648,44 +726,6 @@ Wire Wire Line
 	2350 5750 1800 5750
 Wire Wire Line
 	2350 5850 1800 5850
-Text Label 4700 1650 2    60   ~ 0
-GPIO_1
-Text Label 4700 1750 2    60   ~ 0
-GPIO_2
-Text Label 4650 3000 2    60   ~ 0
-GPIO_3
-Text Label 4750 5350 2    60   ~ 0
-GPIO_4
-Text Label 4750 5450 2    60   ~ 0
-GPIO_5
-Text Label 4750 5550 2    60   ~ 0
-GPIO_6
-Text Label 4750 4950 2    60   ~ 0
-SW_START
-Text Label 4750 5050 2    60   ~ 0
-SW_MODE
-Text Label 1800 4850 0    60   ~ 0
-LED_TX
-Text Label 1800 4950 0    60   ~ 0
-LED_RX
-Text Label 1800 5050 0    60   ~ 0
-LED2
-Text Label 1800 5150 0    60   ~ 0
-LED3
-Text Label 1800 5250 0    60   ~ 0
-LED4
-Text Label 1800 5350 0    60   ~ 0
-LED5_R
-Text Label 1800 5450 0    60   ~ 0
-LED5_G
-Text Label 1800 5850 0    60   ~ 0
-LED6_B
-Text Label 1800 5650 0    60   ~ 0
-LED6_R
-Text Label 1800 5550 0    60   ~ 0
-LED5_B
-Text Label 1800 5750 0    60   ~ 0
-LED6_G
 Wire Wire Line
 	7200 4700 6600 4700
 Wire Wire Line
@@ -712,32 +752,6 @@ Wire Wire Line
 	7200 5800 6600 5800
 Wire Wire Line
 	7200 5900 6600 5900
-Text Label 6600 4700 0    60   ~ 0
-GPIO_1
-Text Label 6600 4800 0    60   ~ 0
-GPIO_2
-Text Label 6600 4900 0    60   ~ 0
-GPIO_3
-Text Label 6600 5000 0    60   ~ 0
-GPIO_4
-Text Label 6600 5100 0    60   ~ 0
-GPIO_5
-Text Label 6600 5200 0    60   ~ 0
-GPIO_6
-Text Label 6600 5300 0    60   ~ 0
-SW_START
-Text Label 6600 5400 0    60   ~ 0
-SW_MODE
-Text Label 6600 5500 0    60   ~ 0
-LED_TX
-Text Label 6600 5600 0    60   ~ 0
-LED_RX
-Text Label 6600 5700 0    60   ~ 0
-LED2
-Text Label 6600 5800 0    60   ~ 0
-LED3
-Text Label 6600 5900 0    60   ~ 0
-LED4
 Wire Wire Line
 	10450 4750 11050 4750
 Wire Wire Line
@@ -750,16 +764,12 @@ Wire Wire Line
 	10450 5150 11050 5150
 Wire Wire Line
 	10450 5250 11050 5250
-Text Label 11050 4750 2    60   ~ 0
-LED5_R
-Text Label 11050 4850 2    60   ~ 0
-LED5_G
-Text Label 11050 4950 2    60   ~ 0
-LED5_B
-Text Label 11050 5050 2    60   ~ 0
-LED6_R
-Text Label 11050 5150 2    60   ~ 0
-LED6_G
-Text Label 11050 5250 2    60   ~ 0
-LED6_B
+Wire Wire Line
+	4200 1850 4700 1850
+Text Label 4250 1850 0    60   ~ 0
+USB_DATA
+Wire Wire Line
+	7200 4450 6600 4450
+Text Label 6600 4450 0    60   ~ 0
+USB_DATA
 $EndSCHEMATC
