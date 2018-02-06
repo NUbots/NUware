@@ -766,7 +766,7 @@ Wire Wire Line
 	10450 5250 11050 5250
 Wire Wire Line
 	4200 1850 4700 1850
-Text Label 4250 1850 0    60   ~ 0
+Text Label 4700 1850 2    60   ~ 0
 USB_DATA
 Wire Wire Line
 	7200 4450 6600 4450

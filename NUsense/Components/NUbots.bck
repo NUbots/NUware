@@ -64,6 +64,11 @@ $CMP USB3300-EZK
 F Datasheets/USB3300.pdf
 $ENDCMP
 #
+$CMP VDD_REF+
+D general power-flag symbol
+K Power Flag Symbol
+$ENDCMP
+#
 $CMP bq76920
 F Datasheets/bq76920.pdf
 $ENDCMP
