@@ -16,20 +16,17 @@
   *
   ******************************************************************************
   */
-// TODO: Develop a better error checking and management system
-// TODO: Write code for Interrupt Error ISR
-// TODO: Write function table for UART utilities
+
 /* Includes ------------------------------------------------------------------*/
 #include "usart.h"
 
 /* USER CODE BEGIN 0 */
-
+NUfsr_UART_IT_StateHandler huart1_ITh;
 /* USER CODE END 0 */
 
 UART_HandleTypeDef huart1;
-NUfsr_UART_IT_StateHandler huart1_ITh;
 
-/* USART1 init function */
+/* USART1 init functions */
 
 void MX_USART1_UART_Init(void)
 {
@@ -109,9 +106,7 @@ void HAL_UART_MspDeInit(UART_HandleTypeDef* uartHandle)
 
 /* USER CODE BEGIN 1 */
 
-/*
- * ISR
- */
+/* ISR */
 void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart)
 {
 	/* Tx Complete Signal */
@@ -124,17 +119,18 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 	huart1_ITh.Rx_State = Rx_FINISHED;
 }
 
-/*
- * Tx and Rx operations
- */
+/* Tx and Rx operations */
 HAL_StatusTypeDef NUfsr_UART_Transmit(UART_HandleTypeDef *huart, void *pData, uint16_t Byte_Size)
 {
 	// Error checking
 	if((huart == NULL) || (pData == NULL) || (Byte_Size == 0U))
 		return HAL_ERROR;
 
+	HAL_StatusTypeDef state;
+
 	// Wait for Rx poll
-	NUfsr_UART_Poll_Rx(huart, HAL_MAX_DELAY);
+	if((state = NUfsr_UART_Poll_Rx(huart, HAL_MAX_DELAY)) != HAL_OK)
+		return state;
 
 	// Update Tx state
 	huart1_ITh.Tx_State = Tx_NOT_FINISHED;
@@ -153,8 +149,11 @@ HAL_StatusTypeDef NUfsr_UART_Receive(UART_HandleTypeDef *huart, void *pData, uin
 	if((huart == NULL) || (pData == NULL) || (Byte_Size == 0U))
 		return HAL_ERROR;
 
+	HAL_StatusTypeDef state;
+
 	// Wait for Rx poll
-	NUfsr_UART_Poll_Tx(huart, HAL_MAX_DELAY);
+	if((state = NUfsr_UART_Poll_Tx(huart, HAL_MAX_DELAY)) != HAL_OK)
+		return state;
 
 	// Update Rx state
 	huart1_ITh.Rx_State = Tx_NOT_FINISHED;
@@ -165,9 +164,8 @@ HAL_StatusTypeDef NUfsr_UART_Receive(UART_HandleTypeDef *huart, void *pData, uin
 	// Begin transmission
 	return HAL_UART_Receive_IT(huart, (uint8_t*)pData, Byte_Size);
 }
-/*
- * Polling
- */
+
+/* Polling */
 HAL_StatusTypeDef NUfsr_UART_Poll_Tx(UART_HandleTypeDef *huart, uint32_t Timeout)
 {
 	// Error checking
@@ -216,9 +214,7 @@ HAL_StatusTypeDef NUfsr_UART_Poll_Rx(UART_HandleTypeDef *huart, uint32_t Timeout
 	return HAL_OK;
 }
 
-/*
- * Manual Polling
- */
+/* Manual Polling */
 bool NUfsr_UART_Tx_StatusComplete(UART_HandleTypeDef *huart)
 {
 	if(huart1_ITh.Tx_State == Tx_FINISHED)
@@ -229,7 +225,6 @@ bool NUfsr_UART_Tx_StatusComplete(UART_HandleTypeDef *huart)
 
 bool NUfsr_UART_Rx_StatusComplete(UART_HandleTypeDef *huart)
 {
-
 	if(huart1_ITh.Rx_State == Rx_FINISHED)
 		return true;
 

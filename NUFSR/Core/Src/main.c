@@ -27,13 +27,10 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include <stdio.h>
-#include <stdlib.h>
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
-
 /* USER CODE END PTD */
 
 /* Private define ------------------------------------------------------------*/
@@ -42,20 +39,16 @@
 
 /* Private macro -------------------------------------------------------------*/
 /* USER CODE BEGIN PM */
-
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
-
 /* USER CODE BEGIN PV */
-
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 static void MX_NVIC_Init(void);
 /* USER CODE BEGIN PFP */
-
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -69,7 +62,6 @@ static void MX_NVIC_Init(void);
 int main(void)
 {
   /* USER CODE BEGIN 1 */
-
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
@@ -78,14 +70,12 @@ int main(void)
   HAL_Init();
 
   /* USER CODE BEGIN Init */
-
   /* USER CODE END Init */
 
   /* Configure the system clock */
   SystemClock_Config();
 
   /* USER CODE BEGIN SysInit */
-
   /* USER CODE END SysInit */
 
   /* Initialize all configured peripherals */
@@ -98,19 +88,22 @@ int main(void)
   /* Initialize interrupts */
   MX_NVIC_Init();
   /* USER CODE BEGIN 2 */
-  //char msgOut[10] = "666 ";
 
+  // Write LED_OFF as default
   HAL_GPIO_WritePin(GPIOB, LED1_Pin, LED_OFF);
   HAL_GPIO_WritePin(GPIOB, LED2_Pin, LED_OFF);
+
+  /* Main cust var */
   char msg[12] = "The Sum Is: ";
   /* USER CODE END 2 */
-  /* Infinite loop */
+
   /* USER CODE BEGIN WHILE */
   while (1)
   {
 	  NUfsr_UART_Transmit(&huart1, (void*)msg, 12);
 	  NUfsr_UART_Receive(&huart1, (void*)msg, 4);
   }
+  /* USER CODE END WHILE */
 }
 /**
   * @brief System Clock Configuration

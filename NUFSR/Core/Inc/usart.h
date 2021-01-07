@@ -29,14 +29,11 @@ extern "C" {
 
 /* USER CODE BEGIN Includes */
 #include <stdbool.h>
-#include <stdlib.h>
 /* USER CODE END Includes */
 
 extern UART_HandleTypeDef huart1;
 
 /* USER CODE BEGIN Private defines */
-#define BASE_TEN 10
-#define MAX_INT_CHAR_SIZE 11	// 32 bit system, ie int => up to 10 numbers + (-)sign
 /* USER CODE END Private defines */
 
 void MX_USART1_UART_Init(void);
@@ -59,11 +56,7 @@ HAL_StatusTypeDef NUfsr_UART_Poll_Rx(UART_HandleTypeDef *huart, uint32_t Timeout
 bool NUfsr_UART_Tx_StatusComplete(UART_HandleTypeDef *huart);
 bool NUfsr_UART_Rx_StatusComplete(UART_HandleTypeDef *huart);
 
-// Data type conversions
-int NumChar(char* str);
-
 // Statuses and UART state enum's
-
 typedef volatile enum
 {
 	Tx_FINISHED = 0U,
@@ -82,7 +75,7 @@ typedef enum
 	Tx = !Rx
 }NUfsr_UART_DIR;
 
-// UART Handler structure using UART state enums
+// UART Handler structure using UART state structs
 typedef struct _NUfsr_UART_IT_StateHandler
 {
 	NUfsr_UART_Tx_ITController Tx_State;
