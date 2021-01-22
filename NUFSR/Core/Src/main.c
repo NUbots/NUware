@@ -24,6 +24,7 @@
 #include "usart.h"
 #include "usb.h"
 #include "gpio.h"
+#include "imu.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -42,6 +43,7 @@
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
+
 /* USER CODE BEGIN PV */
 /* USER CODE END PV */
 
@@ -89,22 +91,20 @@ int main(void)
   MX_NVIC_Init();
   /* USER CODE BEGIN 2 */
 
-  // Write LED_OFF as default
-  HAL_GPIO_WritePin(GPIOB, LED1_Pin, LED_OFF);
-  HAL_GPIO_WritePin(GPIOB, LED2_Pin, LED_OFF);
-
-  /* Main cust var */
-  char msg[12] = "The Sum Is: ";
   /* USER CODE END 2 */
 
+  /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-	  NUfsr_UART_Transmit(&huart1, (void*)msg, 12);
-	  NUfsr_UART_Receive(&huart1, (void*)msg, 4);
+
   }
-  /* USER CODE END WHILE */
+    /* USER CODE END WHILE */
+
+    /* USER CODE BEGIN 3 */
+  /* USER CODE END 3 */
 }
+
 /**
   * @brief System Clock Configuration
   * @retval None

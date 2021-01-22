@@ -6,7 +6,7 @@
   ******************************************************************************
   * @attention
   *
-  * <h2><center>&copy; Copyright (c) 2020 STMicroelectronics.
+  * <h2><center>&copy; Copyright (c) 2021 STMicroelectronics.
   * All rights reserved.</center></h2>
   *
   * This software component is licensed by ST under BSD 3-Clause license,
@@ -26,7 +26,7 @@ NUfsr_UART_IT_StateHandler huart1_ITh;
 
 UART_HandleTypeDef huart1;
 
-/* USART1 init functions */
+/* USART1 init function */
 
 void MX_USART1_UART_Init(void)
 {
@@ -58,20 +58,20 @@ void HAL_UART_MspInit(UART_HandleTypeDef* uartHandle)
   huart1_ITh.Tx_State = Tx_FINISHED;
   huart1_ITh.Rx_State = Rx_FINISHED;
   /* USER CODE END USART1_MspInit 0 */
-  /* USART1 clock enable */
-  	__HAL_RCC_USART1_CLK_ENABLE();
+    /* USART1 clock enable */
+    __HAL_RCC_USART1_CLK_ENABLE();
 
-	__HAL_RCC_GPIOA_CLK_ENABLE();
-	/**USART1 GPIO Configuration
-	PA9     ------> USART1_TX
-	PA10     ------> USART1_RX
-	*/
-	GPIO_InitStruct.Pin = DXL_P_Pin|DXL_N_Pin;
-	GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
-	GPIO_InitStruct.Pull = GPIO_NOPULL;
-	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
-	GPIO_InitStruct.Alternate = GPIO_AF7_USART1;
-	HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+    __HAL_RCC_GPIOA_CLK_ENABLE();
+    /**USART1 GPIO Configuration
+    PA9     ------> USART1_TX
+    PA10     ------> USART1_RX
+    */
+    GPIO_InitStruct.Pin = DXL_P_Pin|DXL_N_Pin;
+    GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+    GPIO_InitStruct.Pull = GPIO_NOPULL;
+    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
+    GPIO_InitStruct.Alternate = GPIO_AF7_USART1;
+    HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
   /* USER CODE BEGIN USART1_MspInit 1 */
 

@@ -76,6 +76,7 @@ void Error_Handler(void);
 #define FSR4_GPIO_Port GPIOA
 #define MPU_INT_Pin GPIO_PIN_8
 #define MPU_INT_GPIO_Port GPIOD
+#define MPU_INT_EXTI_IRQn EXTI9_5_IRQn
 #define MPU_NSS_Pin GPIO_PIN_6
 #define MPU_NSS_GPIO_Port GPIOC
 #define MPU_CLK_Pin GPIO_PIN_7
