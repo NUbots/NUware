@@ -2,9 +2,8 @@
 /*
  * NUbots NUfsr IMU command table
  * Author: Benjamin Young
- * File: Header, uses structs labeled as particular commands
- * 	which will contain the respective register address and an
- * 	enum of data option if the command has a read operation.
+ * File: Header, Defines all IMU commands and data options
+ * for ICM-20689.
  *
  ***********************************************************/
 /* Define to prevent recursive inclusion -------------------------------------*/
@@ -14,6 +13,7 @@
 /* Includes */
 #include "main.h"
 
+//---------------Address Byte Defines----------------//
 /* Common Defines */				/* 7 6 5 4 3 2 1 0 */
 #define IMU_READ 0x80;				/* 1 0 0 0 0 0 0 0 -> 0x80 */
 #define IMU_WRITE 0x00;				/* 0 0 0 0 0 0 0 0 -> 0x00 */
@@ -87,6 +87,402 @@
 #define YA_OFFSET_L 0x7B 			/* Y_Accel Low byte offset calculation */
 #define ZA_OFFSET_H 0x7D 			/* Z_Accel High byte offset calculation */
 #define ZA_OFFSET_L 0x7E 			/* Z_Accel Low byte offset calculation */
+
+//---------------Data Byte Defines----------------//
+
+// Blank data byte for packets
+#define BLANK 0x00;
+
+//-------------------------------------------
+// Self-Test R/W
+/*
+ * The value in this register indicates the self-test output generated
+ *	during manufacturing tests. This value is to be used to check
+ *	against subsequent self-test outputs performed by the end user
+ */
+
+//-------------------------------------------
+// GYRO Offset adjustment R/W
+/*
+ * This register is used to remove DC bias from the sensor output. The value in
+ * this register is added to the gyroscope sensor value before going into
+ * the sensor register.
+ */
+
+//-------------------------------------------
+// Sample rate Divider R/W
+/*
+ * Divides the internal sample rate (see register CONFIG) to generate the sample
+ * rate that controls sensor data output rate, FIFO sample rate.
+ * SAMPLE_RATE = INTERNAL_SAMPLE_RATE / (1 + SMPLRT_DIV)
+ * Where INTERNAL_SAMPLE_RATE = 1kHz
+ */
+
+//-------------------------------------------
+// Configuration R/W
+/*
+ * 7: Always set to 0
+ * 6: When set to ‘1’, when the FIFO is full, additional writes will not be written to FIFO.
+ * 	When set to ‘0’, when the FIFO is full, additional writes will be written to the FIFO,
+ * 	replacing the oldest data.
+ * 5-3: Enables the FSYNC pin data to be sampled (Pin is held at 0 by NUfsr design).
+ * 2-0: Digital Low Pas Filter Config: Refer to data sheet page 39
+ */
+// 6:
+#define CONFIG_FIFO_MODE_OVERFLOW_WAIT 0x40
+
+//-------------------------------------------
+// GYRO Configuration R/W
+/*
+ * 7-5: Gyro self-test
+ * 4-3: Gyro Full Scale select
+ * 2: RESERVED
+ * 1-0: FCHOICE_B
+ */
+// 7-5
+#define GYRO_CONFIG_X_SELF_TEST 0x80
+#define GYRO_CONFIG_Y_SELF_TEST 0x40
+#define GYRO_CONFIG_Z_SELF_TEST 0x20
+// 4-3
+#define GYRO_CONFIG_FS_SEL_250DPS 0x00
+#define GYRO_CONFIG_FS_SEL_500DPS 0x08
+#define GYRO_CONFIG_FS_SEL_1000DPS 0x10
+#define GYRO_CONFIG_FS_SEL_2000DPS 0x18
+// 1-0
+// Refer to IMU data-sheet
+
+//-------------------------------------------
+// ACCEL Configuration1 R/W
+/*
+ * 7-5: ACCEL self-test
+ * 4-3: ACCEL Full Scale select
+ * 2-0: RESERVED
+ */
+// 7-5
+#define ACCEL_CONFIG1_X_SELF_TEST 0x80
+#define ACCEL_CONFIG1_Y_SELF_TEST 0x40
+#define ACCEL_CONFIG1_Z_SELF_TEST 0x20
+// 4-3
+#define ACCEL_CONFIG1_FS_SEL_2G 0x00
+#define ACCEL_CONFIG1_FS_SEL_4G 0x08
+#define ACCEL_CONFIG1_FS_SEL_8G 0x10
+#define ACCEL_CONFIG1_FS_SEL_16G 0x18
+
+//-------------------------------------------
+// ACCEL Configuration2 R/W
+/*
+ * 7-6: FIFO Size
+ * 5-4: Averaging filter settings for Low Power Accelerometer mode:
+ * 3: FCHOICE_B: Used to bypass DLPF.
+ * 2-0: Accelerometer low pass filter setting.
+ */
+// 7-6
+#define ACCEL_CONFIG2_FIFO_SIZE_512B 0x00
+#define ACCEL_CONFIG2_FIFO_SIZE_1KB 0x40
+#define ACCEL_CONFIG2_FIFO_SIZE_2KB 0x80
+#define ACCEL_CONFIG2_FIFO_SIZE_4KB 0xC0
+// 5-4
+#define ACCEL_CONFIG2_DEC2_CFG_4SAMPLES 0x00
+#define ACCEL_CONFIG2_DEC2_CFG_8SAMPLES 0x10
+#define ACCEL_CONFIG2_DEC2_CFG_16SAMPLES 0x20
+#define ACCEL_CONFIG2_DEC2_CFG_32SAMPLES 0x30
+// 3
+#define ACCEL_CONFIG2_ACCEL_FCHOICE_B_TRUE 0x08
+#define ACCEL_CONFIG2_ACCEL_FCHOICE_B_FALSE 0x00
+// 2-0
+// Refer to data-sheet page 41
+
+//-------------------------------------------
+// Low power mode config R/W
+/*
+ * 7: When set to ‘1’ low-power gyroscope mode is enabled. Default
+ *	setting is ‘0’
+ * 6-4: Averaging filter configuration for low-power gyroscope mode.
+ *  Default setting is ‘000’. Refer to data-sheet page 42
+ * 3-0: RESERVED
+ */
+// 7
+#define LP_MODE_CFG_GYRO_CYCLE_TRUE 0x80
+
+//-------------------------------------------
+// Wake on motion threshold R/W
+/*
+ * 7-0: Wake on Motion Interrupt threshold for respective axis accelerometer.
+ */
+
+//-------------------------------------------
+// FIFO Enable R/W
+/*
+ * 7: 	1 – Write TEMP_OUT_H and TEMP_OUT_L to the FIFO at the sample rate; If
+ * 		enabled, buffering of data occurs even if data path is in standby.
+ * 		0 – Function is disabled
+ * 6: 	1 – Write GYRO_XOUT_H and GYRO_XOUT_L to the FIFO at the sample rate; If
+ * 		enabled, buffering of data occurs even if data path is in standby.
+ * 		0 – Function is disabled
+ * 5:   1 – Write GYRO_YOUT_H and GYRO_YOUT_L to the FIFO at the sample rate; If
+ * 		enabled, buffering of data occurs even if data path is in standby.
+ * 		0 – Function is disabled
+ * 4: 	1 – Write GYRO_ZOUT_H and GYRO_ZOUT_L to the FIFO at the sample rate; If
+ * 		enabled, buffering of data occurs even if data path is in standby.
+ * 		0 – function is disabled
+ * 3: 	1 – Write ACCEL_XOUT_H, ACCEL_XOUT_L, ACCEL_YOUT_H, ACCEL_YOUT_L,
+ * 		ACCEL_ZOUT_H, and ACCEL_ZOUT_L to the FIFO at the sample rate;
+ * 		0 – Function is disabled
+ * 2-0: RESERVED
+ */
+// 7
+#define FIFO_EN_TEMP_EN 0x80
+// 6
+#define FIFO_EN_XG_FIFO_EN 0x40
+// 5
+#define FIFO_EN_YG_FIFO_EN 0x20
+// 4
+#define FIFO_EN_ZG_FIFO_EN 0x10
+// 3
+#define FIFO_EN_ACCEL_FIFO_EN 0x08
+
+//-------------------------------------------
+// FSYNC INTERRUPT STATUS R to Clear
+/*
+ * This bit automatically sets to 1 when a FSYNC interrupt has been generated.
+ * The bit clears to 0 after the register has been read.
+ */
+
+//-------------------------------------------
+// – INT/DRDY PIN / BYPASS ENABLE CONFIGURATION R/W
+/*
+ * 7: 1 – The logic level for INT/DRDY pin is active low.
+ * 	  0 – The logic level for INT/DRDY pin is active high.
+ * 6: 1 – INT/DRDY pin is configured as open drain.
+ * 	  0 – INT/DRDY pin is configured as push-pull.
+ * 5: 1 – INT/DRDY pin level held until interrupt status is cleared.
+ * 	  0 – INT/DRDY pin indicates interrupt pulse’s width is 50us.
+ * 4: 1 – Interrupt status is cleared if any read operation is performed.
+ * 	  0 – Interrupt status is cleared only by reading INT_STATUS register
+ * 3: 1 – The logic level for the FSYNC pin as an interrupt is active low.
+ * 	  0 – The logic level for the FSYNC pin as an interrupt is active high.
+ * 2: 1 – The FSYNC pin will trigger an interrupt when it transitionsto the level
+ * 	  specified by FSYNC_INT_LEVEL.
+ * 	  0 – The FSYNC pin is disabled from causing an interrupt.
+ * 1-0: Reserved
+ */
+// 7
+#define INT_PIN_CFG_LEVEL_ACT_LOW 0x80
+// 6
+#define INT_PIN_CFG_OPEN_DRAIN 0x40
+// 5
+#define INT_PIN_CFG_LATCH_EN  0x20
+// 4
+#define INT_PIN_CFG_LEVEL_RD_CLEAR_TRUE 0x10
+// 3
+#define INT_PIN_CFG_FSYNC_LEVEL_ACT_LOW  0x08 // REMEMBER FSYNC IS HELD LOW BY DESIGN!!
+// 2
+#define INT_PIN_CFG_FSYNC_INT_MODE_EN 0x04
+
+//-------------------------------------------
+// INTERRUPT ENABLE R/W
+/*
+ * 7-5: 111 – Enable WoM interrupt on accelerometer.
+ * 	    000 – Disable WoM interrupt on accelerometer.
+ * 4: 1 – Enables a FIFO buffer overflow to generate an interrupt.
+ * 	  0 – Function is disabled.
+ * 3: RESERVED
+ * 2: Gyroscope Drive System Ready interrupt enable
+ * 1: DMP interrupt enable
+ * 0: Data ready interrupt enable
+ */
+// 7-5
+#define INT_ENABLE_WOM_EN 0xE0
+// 4
+#define INT_ENABLE_FIFO_OFLOW_EN 0x10
+// 2
+#define INT_ENABLE_GDRIVE_EN  0x04
+// 1
+#define INT_ENABLE_DMP_EN 0x02
+// 0
+#define INT_ENABLE_DATA_RDY_EN 0x01
+
+//-------------------------------------------
+// DMP INTERRUPT STATUS R to clear
+/*
+ * 7-6: RESERVED
+ * 5-0: DMP Interrupts
+ */
+
+//-------------------------------------------
+// INTERRUPT STATUS R to clear
+/*
+ * 7-5: Accelerometer WoM interrupt status. Cleared on Read.
+ * 	    111 – WoM interrupt on accelerometer
+ *
+ * 4:This bit automatically sets to 1 when a FIFO buffer overflow has been
+ * 	 generated. The bit clears to 0 after the register has been read.
+ * 3: RESERVED
+ * 2: Gyroscope Drive System Ready interrupt
+ * 1: DMP interrupt
+ * 0: This bit automatically sets to 1 when a Data Ready interrupt is generated. The
+ *    bit clears to 0 after the register has been read.
+ *
+ */
+
+//-------------------------------------------
+// ACCEL Measurements R
+
+//-------------------------------------------
+// TEMP Measurements R
+
+//-------------------------------------------
+// GYRO Measurements R
+
+//-------------------------------------------
+// SIGNAL PATH RESET R/W
+/*
+ * 7-2: Reserved
+ * 1: Reset accel digital signal path. Note: Sensor registers are not cleared. Use
+ * 	  SIG_COND_RST to clear sensor registers.
+ * 2: Reset temp digital signal path. Note: Sensor registers are not cleared. Use
+ * 	  SIG_COND_RST to clear sensor registers.
+ */
+// 1
+#define SIGNAL_PATH_RESET_ACCEL_RST 0x02
+// 0
+#define SIGNAL_PATH_RESET_TEMP_RST 0x01
+
+//-------------------------------------------
+// ACCELEROMETER INTELLIGENCE CONTROL R/W
+/*
+ * 7: This bit enables the Wake-on-Motion detection logic
+ * 6: 0 – Do not use
+ * 	  1 – Compare the current sample with the previous sample
+ * 5-0: RESERVED
+ */
+// 7
+#define ACCEL_INTEL_CTRL_ACCEL_INTEL_EN 0x80
+// 6
+#define ACCEL_INTEL_CTRL_ACCEL_INTEL_MODE_ON 0x40
+
+//-------------------------------------------
+// USER CONTROL R/W
+/*
+ * 7: Enable DMP.
+ * 6: 1 – Enable FIFO operation mode.
+ * 	  0 – Disable FIFO access from serial interface. To disable FIFO writes by DMA, use
+ * 	  FIFO_EN register. To disable possible FIFO writes from DMP, disable the DMP.
+ * 5: RESERVED
+ * 4: 1 – Disable I2C Slave module and put the serial interface in SPI mode only.
+ * 3: Reset DMP.
+ * 2: 1 – Reset FIFO module. Reset is asynchronous. This bit auto clears after one clock
+ * 	  cycle of the internal 20MHz clock.
+ * 1: RESERVED
+ * 0: 1 – Reset all gyro digital signal path, accel digital signal path, and temp digital signal
+ * 	  path. This bit also clears all the sensor registers.
+ */
+// 7
+#define USER_CTRL_DMP_EN 0x80
+// 6
+#define USER_CTRL_FIFO_EN 0x40
+// 4
+#define USER_CTRL_I2C_IF_DIS 0x10
+// 3
+#define USER_CTRL_DMP_RST 0x08
+// 2
+#define USER_CTRL_FIFO_RST 0x04
+// 0
+#define USER_CTRL_SIG_COND_RST 0x01
+
+//-------------------------------------------
+// POWER MANAGEMENT1 R/W
+/*
+ * 7: 1 – Reset the internal registers and restores the default settings. The bit
+ * 	  automatically clears to 0 once the reset is done.
+ * 6: 1 – The chip is set to sleep mode.
+ * 	  Note: The default value is 1; the chip comes up in Sleep mode
+ * 5: When set to 1, and SLEEP and STANDBY are not set to 1, the chip will cycle between
+ *    sleep and taking a single accelerometer sample at a rate determined by
+ * 	  SMPLRT_DIV
+ * 4: When set, the gyro drive and pll circuitry are enabled, but the sense paths are
+ * 	  disabled. This is a low power mode that allows quick enabling of the gyros.
+ * 3: When set to 1, this bit disables the temperature sensor.
+ * 2-0: Clock Select
+ */
+// 7
+#define PWR_MGMT_1_DEVICE_RESET 0x80
+// 6
+#define PWR_MGMT_1_SLUUP 0x40
+// 5
+#define PWR_MGMT_1_ACCEL_CYCLE 0x20
+// 4
+#define PWR_MGMT_1_GYRO_STANDBY 0x10
+// 3
+#define PWR_MGMT_1_TEMP_DIS 0x08
+// 2-0
+#define PWR_MGMT_1_CLKSEL_20MHZ 0x00
+#define PWR_MGMT_1_CLKSEL_AUTO 0x01
+#define PWR_MGMT_1_CLKSEL_OFF 0x07
+
+//-------------------------------------------
+// POWER MANAGEMENT2 R/W
+/*
+ * 7: 1 – Enable FIFO in low-power accelerometer mode. Default setting is 0.
+ * 6: 1 - Disable DMP execution in low-power accelerometer mode. Default setting is 0.
+ * 5: 1 – X accelerometer is disabled
+ * 	  0 – X accelerometer is on
+ * 4: 1 – Y accelerometer is disabled
+ * 	  0 – Y accelerometer is on
+ * 3: 1 – Z accelerometer is disabled
+ * 	  0 – Z accelerometer is on
+ * 2: 1 – X gyro is disabled
+ * 	  0 – X gyro is on
+ * 1: 1 – Y gyro is disabled
+ * 	  0 – Y gyro is on
+ * 0: 1 – Z gyro is disabled
+ * 	  0 – Z gyro is on
+ */
+// 7
+#define PWR_MGMT_2_FIFO_LP_EN 0x80
+// 6
+#define PWR_MGMT_2_DMP_LP_DIS 0x40
+// 5
+#define PWR_MGMT_2_STBY_XA 0x20
+// 4
+#define PWR_MGMT_2_STBY_YA 0x10
+// 3
+#define PWR_MGMT_2_STBY_ZA 0x08
+// 2
+#define PWR_MGMT_2_STBY_XG 0x04
+// 1
+#define PWR_MGMT_2_STBY_YG 0x02
+// 0
+#define PWR_MGMT_2_STBY_ZG 0x01
+
+//-------------------------------------------
+// FIFO COUNT REGISTERS R
+/*
+ * 7-5: RESERVED
+ * 4-0: High Bits [12:8], count indicates the number of written bytes in the FIFO.
+ * 		Reading this byte latches the data for both FIFO_COUNTH, and FIFO_COUNTL.
+ */
+/*
+ * 7-0: Low Bits [7:0].
+ */
+
+//-------------------------------------------
+// FIFO READ WRITE R/W
+/*
+ *	7-0: Read/Write command provides Read or Write operation for the FIFO.
+ */
+
+//-------------------------------------------
+// WHO AM I R
+/*
+ * 7-0: Register to indicate to user which device is being accessed.
+ */
+
+//-------------------------------------------
+// ACCEL OFFSET REG R/W
+/*
+ *	Refer to data-sheet page 50
+ */
 
 #endif //_IMU_H_
 
