@@ -13,85 +13,92 @@
 /* Includes */
 #include "main.h"
 
+//---------------Helpful Defines---------------------//
+//									/* 7 6 5 4 3 2 1 0 */
+#define BIT_0 0x01					/* 0 0 0 0 0 0 0 1 -> 0x01 */
+#define BIT_1 0x02					/* 0 0 0 0 0 0 1 0 -> 0x02 */
+#define BIT_2 0x04					/* 0 0 0 0 0 1 0 0 -> 0x04 */
+#define BIT_3 0x08					/* 0 0 0 0 1 0 0 0 -> 0x08 */
+#define BIT_4 0x10					/* 0 0 0 1 0 0 0 0 -> 0x10 */
+#define BIT_5 0x20					/* 0 0 1 0 0 0 0 0 -> 0x20 */
+#define BIT_6 0x40					/* 0 1 0 0 0 0 0 0 -> 0x40 */
+#define BIT_7 0x80					/* 1 0 0 0 0 0 0 0 -> 0x80 */
+#define BLANK 0x00
+
 //---------------Address Byte Defines----------------//
-/* Common Defines */				/* 7 6 5 4 3 2 1 0 */
-#define IMU_READ 0x80;				/* 1 0 0 0 0 0 0 0 -> 0x80 */
-#define IMU_WRITE 0x00;				/* 0 0 0 0 0 0 0 0 -> 0x00 */
+/* Common Defines */
+#define IMU_READ ((BIT_7) << (8))
+#define IMU_WRITE 0x0000
 
 /* Command Defines */				/* ADR Register Function */
 // Self Test
-#define IMU_SELF_TEST_X_GYRO 0x00	/* Gyro X Self test Reg */
-#define IMU_SELF_TEST_Y_GYRO 0x01	/* Gyro Y Self test Reg */
-#define IMU_SELF_TEST_Z_GYRO 0x02	/* Gyro Z Self test Reg */
-#define IMU_SELF_TEST_X_ACCEL 0x0D	/* Accel X Self test Reg */
-#define IMU_SELF_TEST_Y_ACCEL 0x0E	/* Accel Y Self test Reg */
-#define IMU_SELF_TEST_Z_ACCEL 0x0F	/* Accel Z Self test Reg */
+#define IMU_SELF_TEST_X_GYRO 0x0000	/* Gyro X Self test Reg */
+#define IMU_SELF_TEST_Y_GYRO 0x0100	/* Gyro Y Self test Reg */
+#define IMU_SELF_TEST_Z_GYRO 0x0200	/* Gyro Z Self test Reg */
+#define IMU_SELF_TEST_X_ACCEL 0x0D00/* Accel X Self test Reg */
+#define IMU_SELF_TEST_Y_ACCEL 0x0E00/* Accel Y Self test Reg */
+#define IMU_SELF_TEST_Z_ACCEL 0x0F00/* Accel Z Self test Reg */
 // Offset adjustment
-#define IMU_XG_OFFS_USRH 0x13		/* Gyro X Offset Adjustment Reg 15:8 */
-#define IMU_XG_OFFS_USRL 0x14		/* Gyro X Offset Adjustment Reg 7:0 */
-#define IMU_YG_OFFS_USRH 0x15		/* Gyro Y Offset Adjustment Reg 15:8 */
-#define IMU_YG_OFFS_USRL 0x16		/* Gyro Y Offset Adjustment Reg 7:0 */
-#define IMU_ZG_OFFS_USRH 0x17		/* Gyro Z Offset Adjustment Reg 15:8 */
-#define IMU_ZG_OFFS_USRL 0x18		/* Gyro Z Offset Adjustment Reg 7:0 */
+#define IMU_XG_OFFS_USRH 0x1300		/* Gyro X Offset Adjustment Reg 15:8 */
+#define IMU_XG_OFFS_USRL 0x1400		/* Gyro X Offset Adjustment Reg 7:0 */
+#define IMU_YG_OFFS_USRH 0x1500		/* Gyro Y Offset Adjustment Reg 15:8 */
+#define IMU_YG_OFFS_USRL 0x1600		/* Gyro Y Offset Adjustment Reg 7:0 */
+#define IMU_ZG_OFFS_USRH 0x1700		/* Gyro Z Offset Adjustment Reg 15:8 */
+#define IMU_ZG_OFFS_USRL 0x1800		/* Gyro Z Offset Adjustment Reg 7:0 */
 // Configuration
-#define SMPLRT_DIV 0x19				/* Sample Rate divider */
-#define CONFIG 0x1A					/* Configuration */
-#define GYRO_CONFIG 0x1B			/* Gyro Configuration */
-#define ACCEL_CONFIG 0x1C			/* Accel Configuration */
-#define ACCEL_CONFIG2 0x1D			/* Accel Configuration */
-#define LP_MODE_CFG 0x1E			/* Low Power Mode Config */
+#define SMPLRT_DIV 0x1900			/* Sample Rate divider */
+#define CONFIG 0x1A00				/* Configuration */
+#define GYRO_CONFIG 0x1B00			/* Gyro Configuration */
+#define ACCEL_CONFIG 0x1C00			/* Accel Configuration */
+#define ACCEL_CONFIG2 0x1D00		/* Accel Configuration */
+#define LP_MODE_CFG 0x1E00			/* Low Power Mode Config */
 // Interrupt Configuration
-#define ACCEL_WOM_X_THR 0x20		/* X-Axis Accel Wake-On Motion Threshold */
-#define ACCEL_WOM_Y_THR 0x21		/* Y-Axis Accel Wake-On Motion Threshold */
-#define ACCEL_WOM_Z_THR 0x22		/* Z-Axis Accel Wake-On Motion Threshold */
-#define FIFO_EN 0x23				/* FIFO Enable */
-#define FSYNC_INT 0x36				/* FSYNC Interrupt Status */
-#define INT_PIN_CFG 0x37			/* INT/DRDY PIN / BYPASS Enable Config */
-#define INT_ENABLE 0x38				/* Interrupt Enable */
-#define DMP_INT_STATUS 0x39			/* DMP Interrupt Status */
-#define INT_STATUS 0x3A				/* Interrupt Status */
+#define ACCEL_WOM_X_THR 0x2000		/* X-Axis Accel Wake-On Motion Threshold */
+#define ACCEL_WOM_Y_THR 0x2100		/* Y-Axis Accel Wake-On Motion Threshold */
+#define ACCEL_WOM_Z_THR 0x2200		/* Z-Axis Accel Wake-On Motion Threshold */
+#define FIFO_EN 0x2300				/* FIFO Enable */
+#define FSYNC_INT 0x3600			/* FSYNC Interrupt Status */
+#define INT_PIN_CFG 0x3700			/* INT/DRDY PIN / BYPASS Enable Config */
+#define INT_ENABLE 0x3800			/* Interrupt Enable */
+#define DMP_INT_STATUS 0x3900		/* DMP Interrupt Status */
+#define INT_STATUS 0x3A00			/* Interrupt Status */
 // Accelerometer Measurements
-#define ACCEL_XOUT_H 0x3B 			/* X_Accel High byte */
-#define ACCEL_XOUT_L 0x3C 			/* X_Accel Low byte */
-#define ACCEL_YOUT_H 0x3D 			/* Y_Accel High byte */
-#define ACCEL_YOUT_L 0x3E 			/* Y_Accel Low byte */
-#define ACCEL_ZOUT_H 0x3F 			/* Z_Accel High byte */
-#define ACCEL_ZOUT_L 0x40 			/* Z_Accel Low byte */
+#define ACCEL_XOUT_H 0x3B00 		/* X_Accel High byte */
+#define ACCEL_XOUT_L 0x3C00 		/* X_Accel Low byte */
+#define ACCEL_YOUT_H 0x3D00 		/* Y_Accel High byte */
+#define ACCEL_YOUT_L 0x3E00 		/* Y_Accel Low byte */
+#define ACCEL_ZOUT_H 0x3F00 		/* Z_Accel High byte */
+#define ACCEL_ZOUT_L 0x4000			/* Z_Accel Low byte */
 // Temperature Measurements
-#define TEMP_OUT_H 0x41				/* Temp High Byte */
-#define TEMP_OUT_L 0x42				/* Temp Low Byte */
+#define TEMP_OUT_H 0x4100			/* Temp High Byte */
+#define TEMP_OUT_L 0x4200			/* Temp Low Byte */
 // Gyroscope Measurements
-#define GYRO_XOUT_H 0x43 			/* X_GYRO High byte */
-#define GYRO_XOUT_L 0x44 			/* X_GYRO Low byte */
-#define GYRO_YOUT_H 0x45 			/* Y_GYRO High byte */
-#define GYRO_YOUT_L 0x46 			/* Y_GYRO Low byte */
-#define GYRO_ZOUT_H 0x47 			/* Z_GYRO High byte */
-#define GYRO_ZOUT_L 0x48 			/* Z_GYRO Low byte */
+#define GYRO_XOUT_H 0x4300 			/* X_GYRO High byte */
+#define GYRO_XOUT_L 0x4400 			/* X_GYRO Low byte */
+#define GYRO_YOUT_H 0x4500 			/* Y_GYRO High byte */
+#define GYRO_YOUT_L 0x4600 			/* Y_GYRO Low byte */
+#define GYRO_ZOUT_H 0x4700 			/* Z_GYRO High byte */
+#define GYRO_ZOUT_L 0x4800 			/* Z_GYRO Low byte */
 // Additional Options/Configurations
-#define SIGNAL_PATH_RESET 0x68 		/* Signal Path Reset */
-#define ACCEL_INTEL_CTRL 0x69 		/* Accel Intelligence Control */
-#define USER_CTRL 0x6A 				/* User Control */
+#define SIGNAL_PATH_RESET 0x6800 	/* Signal Path Reset */
+#define ACCEL_INTEL_CTRL 0x6900 	/* Accel Intelligence Control */
+#define USER_CTRL 0x6A00 			/* User Control */
 // Power Management
-#define PWR_MGMT_1 0x6B 			/* Power Management 1 */
-#define PWR_MGMT_2 0x6C 			/* Power Management 2 */
+#define PWR_MGMT_1 0x6B00 			/* Power Management 1 */
+#define PWR_MGMT_2 0x6C00 			/* Power Management 2 */
 // FIFO Commands
-#define FIFO_COUNTH 0x72			/* High FIFO count byte */
-#define FIFO_COUNTL 0x73			/* LOW FIFO count byte */
-#define FIFO_R_W 0x74 				/* FIFO buffer Read/Write 8 */
+#define FIFO_COUNTH 0x7200			/* High FIFO count byte */
+#define FIFO_COUNTL 0x7300			/* LOW FIFO count byte */
+#define FIFO_R_W 0x7400 			/* FIFO buffer Read/Write 8 */
 // WHO AM I
-#define WHO_AM_I 0x75 				/* Device Information Register */
+#define WHO_AM_I 0x7500 			/* Device Information Register */
 // ACCEL Offset Reg
-#define XA_OFFSET_H 0x77 			/* X_Accel High byte offset calculation */
-#define XA_OFFSET_L 0x78 			/* X_Accel Low byte offset calculation */
-#define YA_OFFSET_H 0x7A 			/* Y_Accel High byte offset calculation */
-#define YA_OFFSET_L 0x7B 			/* Y_Accel Low byte offset calculation */
-#define ZA_OFFSET_H 0x7D 			/* Z_Accel High byte offset calculation */
-#define ZA_OFFSET_L 0x7E 			/* Z_Accel Low byte offset calculation */
-
-//---------------Data Byte Defines----------------//
-
-// Blank data byte for packets
-#define BLANK 0x00;
+#define XA_OFFSET_H 0x7700 			/* X_Accel High byte offset calculation */
+#define XA_OFFSET_L 0x7800 			/* X_Accel Low byte offset calculation */
+#define YA_OFFSET_H 0x7A00 			/* Y_Accel High byte offset calculation */
+#define YA_OFFSET_L 0x7B00 			/* Y_Accel Low byte offset calculation */
+#define ZA_OFFSET_H 0x7D00 			/* Z_Accel High byte offset calculation */
+#define ZA_OFFSET_L 0x7E00 			/* Z_Accel Low byte offset calculation */
 
 //-------------------------------------------
 // Self-Test R/W
@@ -129,7 +136,7 @@
  * 2-0: Digital Low Pas Filter Config: Refer to data sheet page 39
  */
 // 6:
-#define CONFIG_FIFO_MODE_OVERFLOW_WAIT 0x40
+#define CONFIG_FIFO_MODE_OVERFLOW_WAIT BIT_6
 
 //-------------------------------------------
 // GYRO Configuration R/W
@@ -140,13 +147,13 @@
  * 1-0: FCHOICE_B
  */
 // 7-5
-#define GYRO_CONFIG_X_SELF_TEST 0x80
-#define GYRO_CONFIG_Y_SELF_TEST 0x40
-#define GYRO_CONFIG_Z_SELF_TEST 0x20
+#define GYRO_CONFIG_X_SELF_TEST BIT_7
+#define GYRO_CONFIG_Y_SELF_TEST BIT_6
+#define GYRO_CONFIG_Z_SELF_TEST BIT_5
 // 4-3
 #define GYRO_CONFIG_FS_SEL_250DPS 0x00
-#define GYRO_CONFIG_FS_SEL_500DPS 0x08
-#define GYRO_CONFIG_FS_SEL_1000DPS 0x10
+#define GYRO_CONFIG_FS_SEL_500DPS BIT_3
+#define GYRO_CONFIG_FS_SEL_1000DPS BIT_4
 #define GYRO_CONFIG_FS_SEL_2000DPS 0x18
 // 1-0
 // Refer to IMU data-sheet
@@ -159,13 +166,13 @@
  * 2-0: RESERVED
  */
 // 7-5
-#define ACCEL_CONFIG1_X_SELF_TEST 0x80
-#define ACCEL_CONFIG1_Y_SELF_TEST 0x40
-#define ACCEL_CONFIG1_Z_SELF_TEST 0x20
+#define ACCEL_CONFIG1_X_SELF_TEST BIT_7
+#define ACCEL_CONFIG1_Y_SELF_TEST BIT_6
+#define ACCEL_CONFIG1_Z_SELF_TEST BIT_5
 // 4-3
 #define ACCEL_CONFIG1_FS_SEL_2G 0x00
-#define ACCEL_CONFIG1_FS_SEL_4G 0x08
-#define ACCEL_CONFIG1_FS_SEL_8G 0x10
+#define ACCEL_CONFIG1_FS_SEL_4G BIT_3
+#define ACCEL_CONFIG1_FS_SEL_8G BIT_4
 #define ACCEL_CONFIG1_FS_SEL_16G 0x18
 
 //-------------------------------------------
@@ -178,16 +185,16 @@
  */
 // 7-6
 #define ACCEL_CONFIG2_FIFO_SIZE_512B 0x00
-#define ACCEL_CONFIG2_FIFO_SIZE_1KB 0x40
-#define ACCEL_CONFIG2_FIFO_SIZE_2KB 0x80
+#define ACCEL_CONFIG2_FIFO_SIZE_1KB BIT_6
+#define ACCEL_CONFIG2_FIFO_SIZE_2KB BIT_7
 #define ACCEL_CONFIG2_FIFO_SIZE_4KB 0xC0
 // 5-4
 #define ACCEL_CONFIG2_DEC2_CFG_4SAMPLES 0x00
-#define ACCEL_CONFIG2_DEC2_CFG_8SAMPLES 0x10
-#define ACCEL_CONFIG2_DEC2_CFG_16SAMPLES 0x20
+#define ACCEL_CONFIG2_DEC2_CFG_8SAMPLES BIT_4
+#define ACCEL_CONFIG2_DEC2_CFG_16SAMPLES BIT_5
 #define ACCEL_CONFIG2_DEC2_CFG_32SAMPLES 0x30
 // 3
-#define ACCEL_CONFIG2_ACCEL_FCHOICE_B_TRUE 0x08
+#define ACCEL_CONFIG2_ACCEL_FCHOICE_B_TRUE BIT_3
 #define ACCEL_CONFIG2_ACCEL_FCHOICE_B_FALSE 0x00
 // 2-0
 // Refer to data-sheet page 41
@@ -202,7 +209,7 @@
  * 3-0: RESERVED
  */
 // 7
-#define LP_MODE_CFG_GYRO_CYCLE_TRUE 0x80
+#define LP_MODE_CFG_GYRO_CYCLE_TRUE BIT_7
 
 //-------------------------------------------
 // Wake on motion threshold R/W
@@ -231,15 +238,15 @@
  * 2-0: RESERVED
  */
 // 7
-#define FIFO_EN_TEMP_EN 0x80
+#define FIFO_EN_TEMP_EN BIT_7
 // 6
-#define FIFO_EN_XG_FIFO_EN 0x40
+#define FIFO_EN_XG_FIFO_EN BIT_6
 // 5
-#define FIFO_EN_YG_FIFO_EN 0x20
+#define FIFO_EN_YG_FIFO_EN BIT_5
 // 4
-#define FIFO_EN_ZG_FIFO_EN 0x10
+#define FIFO_EN_ZG_FIFO_EN BIT_4
 // 3
-#define FIFO_EN_ACCEL_FIFO_EN 0x08
+#define FIFO_EN_ACCEL_FIFO_EN BIT_3
 
 //-------------------------------------------
 // FSYNC INTERRUPT STATUS R to Clear
@@ -267,17 +274,17 @@
  * 1-0: Reserved
  */
 // 7
-#define INT_PIN_CFG_LEVEL_ACT_LOW 0x80
+#define INT_PIN_CFG_LEVEL_ACT_LOW BIT_7
 // 6
-#define INT_PIN_CFG_OPEN_DRAIN 0x40
+#define INT_PIN_CFG_OPEN_DRAIN BIT_6
 // 5
-#define INT_PIN_CFG_LATCH_EN  0x20
+#define INT_PIN_CFG_LATCH_EN  BIT_5
 // 4
-#define INT_PIN_CFG_LEVEL_RD_CLEAR_TRUE 0x10
+#define INT_PIN_CFG_LEVEL_RD_CLEAR_TRUE BIT_4
 // 3
-#define INT_PIN_CFG_FSYNC_LEVEL_ACT_LOW  0x08 // REMEMBER FSYNC IS HELD LOW BY DESIGN!!
+#define INT_PIN_CFG_FSYNC_LEVEL_ACT_LOW  BIT_3 // REMEMBER FSYNC IS HELD LOW BY DESIGN!!
 // 2
-#define INT_PIN_CFG_FSYNC_INT_MODE_EN 0x04
+#define INT_PIN_CFG_FSYNC_INT_MODE_EN BIT_2
 
 //-------------------------------------------
 // INTERRUPT ENABLE R/W
@@ -294,13 +301,13 @@
 // 7-5
 #define INT_ENABLE_WOM_EN 0xE0
 // 4
-#define INT_ENABLE_FIFO_OFLOW_EN 0x10
+#define INT_ENABLE_FIFO_OFLOW_EN BIT_4
 // 2
-#define INT_ENABLE_GDRIVE_EN  0x04
+#define INT_ENABLE_GDRIVE_EN  BIT_2
 // 1
-#define INT_ENABLE_DMP_EN 0x02
+#define INT_ENABLE_DMP_EN BIT_1
 // 0
-#define INT_ENABLE_DATA_RDY_EN 0x01
+#define INT_ENABLE_DATA_RDY_EN BIT_0
 
 //-------------------------------------------
 // DMP INTERRUPT STATUS R to clear
@@ -344,9 +351,9 @@
  * 	  SIG_COND_RST to clear sensor registers.
  */
 // 1
-#define SIGNAL_PATH_RESET_ACCEL_RST 0x02
+#define SIGNAL_PATH_RESET_ACCEL_RST BIT_1
 // 0
-#define SIGNAL_PATH_RESET_TEMP_RST 0x01
+#define SIGNAL_PATH_RESET_TEMP_RST BIT_0
 
 //-------------------------------------------
 // ACCELEROMETER INTELLIGENCE CONTROL R/W
@@ -357,9 +364,9 @@
  * 5-0: RESERVED
  */
 // 7
-#define ACCEL_INTEL_CTRL_ACCEL_INTEL_EN 0x80
+#define ACCEL_INTEL_CTRL_ACCEL_INTEL_EN BIT_7
 // 6
-#define ACCEL_INTEL_CTRL_ACCEL_INTEL_MODE_ON 0x40
+#define ACCEL_INTEL_CTRL_ACCEL_INTEL_MODE_ON BIT_6
 
 //-------------------------------------------
 // USER CONTROL R/W
@@ -378,17 +385,17 @@
  * 	  path. This bit also clears all the sensor registers.
  */
 // 7
-#define USER_CTRL_DMP_EN 0x80
+#define USER_CTRL_DMP_EN BIT_7
 // 6
-#define USER_CTRL_FIFO_EN 0x40
+#define USER_CTRL_FIFO_EN BIT_6
 // 4
-#define USER_CTRL_I2C_IF_DIS 0x10
+#define USER_CTRL_I2C_IF_DIS BIT_4
 // 3
-#define USER_CTRL_DMP_RST 0x08
+#define USER_CTRL_DMP_RST BIT_3
 // 2
-#define USER_CTRL_FIFO_RST 0x04
+#define USER_CTRL_FIFO_RST BIT_2
 // 0
-#define USER_CTRL_SIG_COND_RST 0x01
+#define USER_CTRL_SIG_COND_RST BIT_0
 
 //-------------------------------------------
 // POWER MANAGEMENT1 R/W
@@ -406,18 +413,18 @@
  * 2-0: Clock Select
  */
 // 7
-#define PWR_MGMT_1_DEVICE_RESET 0x80
+#define PWR_MGMT_1_DEVICE_RESET BIT_7
 // 6
-#define PWR_MGMT_1_SLUUP 0x40
+#define PWR_MGMT_1_SLUUP BIT_6
 // 5
-#define PWR_MGMT_1_ACCEL_CYCLE 0x20
+#define PWR_MGMT_1_ACCEL_CYCLE BIT_5
 // 4
-#define PWR_MGMT_1_GYRO_STANDBY 0x10
+#define PWR_MGMT_1_GYRO_STANDBY BIT_4
 // 3
-#define PWR_MGMT_1_TEMP_DIS 0x08
+#define PWR_MGMT_1_TEMP_DIS BIT_3
 // 2-0
 #define PWR_MGMT_1_CLKSEL_20MHZ 0x00
-#define PWR_MGMT_1_CLKSEL_AUTO 0x01
+#define PWR_MGMT_1_CLKSEL_AUTO BIT_0
 #define PWR_MGMT_1_CLKSEL_OFF 0x07
 
 //-------------------------------------------
@@ -439,21 +446,21 @@
  * 	  0 – Z gyro is on
  */
 // 7
-#define PWR_MGMT_2_FIFO_LP_EN 0x80
+#define PWR_MGMT_2_FIFO_LP_EN BIT_7
 // 6
-#define PWR_MGMT_2_DMP_LP_DIS 0x40
+#define PWR_MGMT_2_DMP_LP_DIS BIT_6
 // 5
-#define PWR_MGMT_2_STBY_XA 0x20
+#define PWR_MGMT_2_STBY_XA BIT_5
 // 4
-#define PWR_MGMT_2_STBY_YA 0x10
+#define PWR_MGMT_2_STBY_YA BIT_4
 // 3
-#define PWR_MGMT_2_STBY_ZA 0x08
+#define PWR_MGMT_2_STBY_ZA BIT_3
 // 2
-#define PWR_MGMT_2_STBY_XG 0x04
+#define PWR_MGMT_2_STBY_XG BIT_2
 // 1
-#define PWR_MGMT_2_STBY_YG 0x02
+#define PWR_MGMT_2_STBY_YG BIT_1
 // 0
-#define PWR_MGMT_2_STBY_ZG 0x01
+#define PWR_MGMT_2_STBY_ZG BIT_0
 
 //-------------------------------------------
 // FIFO COUNT REGISTERS R
@@ -483,6 +490,7 @@
 /*
  *	Refer to data-sheet page 50
  */
+
 
 #endif //_IMU_H_
 

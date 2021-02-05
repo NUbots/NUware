@@ -24,10 +24,10 @@
 #include "usart.h"
 #include "usb.h"
 #include "gpio.h"
-#include "imu.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include "imu.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -91,17 +91,24 @@ int main(void)
   MX_NVIC_Init();
   /* USER CODE BEGIN 2 */
 
+  uint16_t pak_Out = IMU_READ + WHO_AM_I;
+  uint16_t pak_In = 0x0000;
+  /* Config */
+
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-
+	  HAL_SPI_TransmitReceive(&hspi1, (uint8_t*)&pak_Out, (uint8_t*)&pak_In, 1, HAL_MAX_DELAY);// Receive of 3
+	  HAL_Delay(100);
   }
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
+
   /* USER CODE END 3 */
 }
 
