@@ -91,10 +91,9 @@ int main(void)
   MX_NVIC_Init();
   /* USER CODE BEGIN 2 */
 
-  uint16_t pak_Out = IMU_READ + WHO_AM_I;
-  uint16_t pak_In = 0x0000;
-  /* Config */
-
+  NUfsr_IMU_Init();
+  uint16_t Rx = 0x0000;
+  uint16_t* Ptr_Rx = &Rx;
 
   /* USER CODE END 2 */
 
@@ -102,7 +101,8 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-	  HAL_SPI_TransmitReceive(&hspi1, (uint8_t*)&pak_Out, (uint8_t*)&pak_In, 1, HAL_MAX_DELAY);// Receive of 3
+	  NUfsr_IMU_TransmitReceive(ACCEL_XOUT_L | IMU_READ, 0x00, Ptr_Rx, 1);
+	  NUfsr_UART_Transmit(&huart1, (void*)Ptr_Rx, 1);
 	  HAL_Delay(100);
   }
     /* USER CODE END WHILE */

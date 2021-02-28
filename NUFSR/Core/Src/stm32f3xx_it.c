@@ -23,6 +23,7 @@
 #include "stm32f3xx_it.h"
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include "gpio.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -225,6 +226,9 @@ void EXTI9_5_IRQHandler(void)
 	/*********************************/
 	/* 	   ISR of MPU_INT Init	 	 */
 	/*********************************/
+	HAL_GPIO_TogglePin(GPIOB, LED1_Pin);
+	HAL_Delay(500);
+	HAL_GPIO_TogglePin(GPIOB, LED1_Pin);
 
 
   /* USER CODE END EXTI9_5_IRQn 0 */
