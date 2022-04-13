@@ -29,12 +29,13 @@ extern "C" {
 #include "main.h"
 
 /* USER CODE BEGIN Includes */
-#include <stdbool.h>
+
 /* USER CODE END Includes */
 
 extern UART_HandleTypeDef huart1;
 
 /* USER CODE BEGIN Private defines */
+
 /* USER CODE END Private defines */
 
 void MX_USART1_UART_Init(void);
@@ -54,8 +55,8 @@ HAL_StatusTypeDef NUfsr_UART_Poll_Tx(UART_HandleTypeDef *huart, uint32_t Timeout
 HAL_StatusTypeDef NUfsr_UART_Poll_Rx(UART_HandleTypeDef *huart, uint32_t Timeout);
 
 // Used for one-time status checks, can be used for manual polling
-bool NUfsr_UART_Tx_StatusComplete(UART_HandleTypeDef *huart);
-bool NUfsr_UART_Rx_StatusComplete(UART_HandleTypeDef *huart);
+uint32_t NUfsr_UART_Tx_StatusComplete(UART_HandleTypeDef *huart);
+uint32_t NUfsr_UART_Rx_StatusComplete(UART_HandleTypeDef *huart);
 
 // Statuses and UART state enum's
 typedef volatile enum
@@ -82,7 +83,6 @@ typedef struct _NUfsr_UART_IT_StateHandler
 	NUfsr_UART_Tx_ITController Tx_State;
 	NUfsr_UART_Rx_ITController Rx_State;
 }NUfsr_UART_IT_StateHandler;
-
 /* USER CODE END Prototypes */
 
 #ifdef __cplusplus

@@ -57,8 +57,7 @@
 /* USER CODE END 0 */
 
 /* External variables --------------------------------------------------------*/
-extern ADC_HandleTypeDef hadc1;
-extern SPI_HandleTypeDef hspi1;
+extern TIM_HandleTypeDef htim3;
 extern UART_HandleTypeDef huart1;
 /* USER CODE BEGIN EV */
 
@@ -203,57 +202,17 @@ void SysTick_Handler(void)
 /******************************************************************************/
 
 /**
-  * @brief This function handles ADC1 interrupt.
+  * @brief This function handles TIM3 global interrupt.
   */
-void ADC1_IRQHandler(void)
+void TIM3_IRQHandler(void)
 {
-  /* USER CODE BEGIN ADC1_IRQn 0 */
+  /* USER CODE BEGIN TIM3_IRQn 0 */
 
-  /* USER CODE END ADC1_IRQn 0 */
-  HAL_ADC_IRQHandler(&hadc1);
-  /* USER CODE BEGIN ADC1_IRQn 1 */
+  /* USER CODE END TIM3_IRQn 0 */
+  HAL_TIM_IRQHandler(&htim3);
+  /* USER CODE BEGIN TIM3_IRQn 1 */
 
-  /* USER CODE END ADC1_IRQn 1 */
-}
-
-/**
-  * @brief This function handles EXTI line[9:5] interrupts.
-  */
-void EXTI9_5_IRQHandler(void)
-{
-  /* USER CODE BEGIN EXTI9_5_IRQn 0 */
-
-	/*********************************/
-	/* 	   ISR of MPU_INT Init	 	 */
-	/*********************************/
-	HAL_GPIO_TogglePin(GPIOB, LED1_Pin);
-	HAL_Delay(500);
-	HAL_GPIO_TogglePin(GPIOB, LED1_Pin);
-
-
-  /* USER CODE END EXTI9_5_IRQn 0 */
-  HAL_GPIO_EXTI_IRQHandler(MPU_INT_Pin);
-  /* USER CODE BEGIN EXTI9_5_IRQn 1 */
-
-	/*********************************/
-	/* 	  	   ISR of MPU_INT  	 	 */
-	/*********************************/
-
-  /* USER CODE END EXTI9_5_IRQn 1 */
-}
-
-/**
-  * @brief This function handles SPI1 global interrupt.
-  */
-void SPI1_IRQHandler(void)
-{
-  /* USER CODE BEGIN SPI1_IRQn 0 */
-
-  /* USER CODE END SPI1_IRQn 0 */
-  HAL_SPI_IRQHandler(&hspi1);
-  /* USER CODE BEGIN SPI1_IRQn 1 */
-
-  /* USER CODE END SPI1_IRQn 1 */
+  /* USER CODE END TIM3_IRQn 1 */
 }
 
 /**

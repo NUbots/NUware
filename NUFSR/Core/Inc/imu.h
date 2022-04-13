@@ -497,7 +497,7 @@
 
 void NUfsr_IMU_Transmit(uint8_t adr, uint8_t dat, int byte_size);
 void NUfsr_IMU_Init();
-void NUfsr_IMU_TransmitReceive(uint8_t adr, uint8_t dat, uint16_t* dat_return, int byte_size);
+void NUfsr_IMU_TransmitReceive(uint8_t adr, uint8_t dat, uint8_t* dat_return, int byte_size);
 
 #endif //_IMU_H_
 

@@ -21,6 +21,7 @@
 #include "main.h"
 #include "adc.h"
 #include "spi.h"
+#include "tim.h"
 #include "usart.h"
 #include "gpio.h"
 
@@ -48,12 +49,12 @@
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
-static void MX_NVIC_Init(void);
 /* USER CODE BEGIN PFP */
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+extern UART_HandleTypeDef huart1;
 /* USER CODE END 0 */
 
 /**
@@ -83,26 +84,25 @@ int main(void)
   MX_GPIO_Init();
   MX_ADC1_Init();
   MX_SPI1_Init();
+  MX_TIM3_Init();
   MX_USART1_UART_Init();
-  MX_USB_PCD_Init();
-
-  /* Initialize interrupts */
-  MX_NVIC_Init();
   /* USER CODE BEGIN 2 */
 
   NUfsr_IMU_Init();
-  uint16_t Rx = 0x0000;
-  uint16_t* Ptr_Rx = &Rx;
-
+  uint8_t return_Data[2] = {1,2};
+  NUfsr_UART_Transmit(&huart1, return_Data, 2);
+  NUfsr_IMU_TransmitReceive(WHO_AM_I, 0x00, return_Data, 2);
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-	  NUfsr_IMU_TransmitReceive(ACCEL_XOUT_L | IMU_READ, 0x00, Ptr_Rx, 1);
-	  NUfsr_UART_Transmit(&huart1, (void*)Ptr_Rx, 1);
-	  HAL_Delay(100);
+	  NUfsr_UART_Transmit(&huart1, return_Data, 2);
+	  HAL_GPIO_TogglePin(GPIOB,LED1_Pin);
+	  HAL_GPIO_TogglePin(GPIOB,LED2_Pin);
+	  NUfsr_IMU_TransmitReceive(WHO_AM_I, 0x00, return_Data, 2);
+	  HAL_Delay(500);
   }
     /* USER CODE END WHILE */
 
@@ -148,27 +148,14 @@ void SystemClock_Config(void)
   {
     Error_Handler();
   }
-  PeriphClkInit.PeriphClockSelection = RCC_PERIPHCLK_USB|RCC_PERIPHCLK_USART1
-                              |RCC_PERIPHCLK_ADC1;
+  PeriphClkInit.PeriphClockSelection = RCC_PERIPHCLK_USART1|RCC_PERIPHCLK_ADC1;
   PeriphClkInit.Usart1ClockSelection = RCC_USART1CLKSOURCE_PCLK2;
-  PeriphClkInit.USBClockSelection = RCC_USBCLKSOURCE_PLL_DIV1_5;
   PeriphClkInit.Adc1ClockSelection = RCC_ADC1PCLK2_DIV2;
 
   if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInit) != HAL_OK)
   {
     Error_Handler();
   }
-}
-
-/**
-  * @brief NVIC Configuration.
-  * @retval None
-  */
-static void MX_NVIC_Init(void)
-{
-  /* USART1_IRQn interrupt configuration */
-  HAL_NVIC_SetPriority(USART1_IRQn, 0, 0);
-  HAL_NVIC_EnableIRQ(USART1_IRQn);
 }
 
 /* USER CODE BEGIN 4 */

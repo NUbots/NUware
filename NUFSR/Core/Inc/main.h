@@ -76,7 +76,6 @@ void Error_Handler(void);
 #define FSR4_GPIO_Port GPIOA
 #define MPU_INT_Pin GPIO_PIN_8
 #define MPU_INT_GPIO_Port GPIOD
-#define MPU_INT_EXTI_IRQn EXTI9_5_IRQn
 #define MPU_NSS_Pin GPIO_PIN_6
 #define MPU_NSS_GPIO_Port GPIOC
 #define MPU_CLK_Pin GPIO_PIN_7
@@ -85,8 +84,6 @@ void Error_Handler(void);
 #define MPU_MISO_GPIO_Port GPIOC
 #define MPU_MOSI_Pin GPIO_PIN_9
 #define MPU_MOSI_GPIO_Port GPIOC
-#define DXL_DIR_Pin GPIO_PIN_8
-#define DXL_DIR_GPIO_Port GPIOA
 #define DXL_P_Pin GPIO_PIN_9
 #define DXL_P_GPIO_Port GPIOA
 #define DXL_N_Pin GPIO_PIN_10
