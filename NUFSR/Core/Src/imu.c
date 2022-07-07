@@ -30,7 +30,7 @@ void NUfsr_IMU_Init()
 	// Implement series of commands to configure appropriate settings
 
 	// Ensure R/W registers are set from power-up
-	//HAL_Delay(100);
+    HAL_Delay(100);
 
 	// Ensure we are in SPI mode
 	NUfsr_IMU_Transmit(USER_CTRL, 0x1D, 2);
@@ -51,13 +51,13 @@ void NUfsr_IMU_Init()
 	NUfsr_IMU_Transmit(ACCEL_CONFIG, 0x00, 2);
 
 	// Int config
-	//NUfsr_IMU_Transmit(INT_PIN_CFG, 0x20, 2);
+	NUfsr_IMU_Transmit(INT_PIN_CFG, 0x20, 2);
 
 	// Interupt settings
-	//NUfsr_IMU_Transmit(INT_ENABLE, 0x01, 2);
+	NUfsr_IMU_Transmit(INT_ENABLE, 0x01, 2);
 
 	// Reset IMU int status
-	//NUfsr_IMU_Transmit(INT_STATUS | IMU_READ, 0x00, 2);
+	NUfsr_IMU_Transmit(INT_STATUS | IMU_READ, 0x00, 2);
 
 }
 
