@@ -500,9 +500,38 @@
 // Function List
 //-----------------------------------------------------------------------------
 
-void NUfsr_IMU_Transmit(uint8_t adr, uint8_t dat, int byte_size);
 void NUfsr_IMU_Init();
+void NUfsr_IMU_TransmitReceive_IT(uint8_t* dat, uint8_t* dat_return, int byte_size);
+void NUfsr_IMU_BlockingTransmit(uint8_t* dat, int byte_size);
+//Legacy functions:
+void NUfsr_IMU_Transmit(uint8_t adr, uint8_t dat, int byte_size);
 void NUfsr_IMU_TransmitReceive(uint8_t adr, uint8_t dat, uint16_t* dat_return, int byte_size);
+
+//-----------------------------------------------------------------------------
+// External variables
+//-----------------------------------------------------------------------------
+
+extern uint8_t SPI_flag;
+
+//-----------------------------------------------------------------------------
+// Structures
+//-----------------------------------------------------------------------------
+
+struct IMURawData {
+    uint8_t pad;
+    uint8_t ID;
+    struct {
+        int16_t x;
+        int16_t y;
+        int16_t z;
+    } accelerometer;
+    int16_t temperature;
+    struct {
+        int16_t x;
+        int16_t y;
+        int16_t z;
+    } gyroscope;
+};
 
 #endif //_IMU_H_
 

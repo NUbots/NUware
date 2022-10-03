@@ -46,6 +46,7 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
+uint8_t SPI_flag, INT_flag;
 
 /* USER CODE END PV */
 
@@ -67,6 +68,7 @@ void SystemClock_Config(void);
 int main(void)
 {
   /* USER CODE BEGIN 1 */
+	SPI_flag = 0; INT_flag = 0;
 
   /* USER CODE END 1 */
 
@@ -91,23 +93,36 @@ int main(void)
   MX_USB_DEVICE_Init();
   MX_SPI4_Init();
   /* USER CODE BEGIN 2 */
+
+  NUfsr_IMU_Init();
+
   //Confirm that the programme is running.
   HAL_GPIO_WritePin(BUZZER_SIG_GPIO_Port, BUZZER_SIG_Pin, GPIO_PIN_SET);
   HAL_Delay(500);
   HAL_GPIO_WritePin(BUZZER_SIG_GPIO_Port, BUZZER_SIG_Pin, GPIO_PIN_RESET);
 
   //Declare some variables.
-  uint16_t Rx = 0x0000;
-  uint16_t Rx_X = 0x0000;
-  uint16_t Rx_Y = 0x0000;
-  uint16_t Rx_Z = 0x0000;
-  uint16_t Rx_T = 0x0000;
-  uint16_t* Ptr_Rx = &Rx;
-  uint16_t* Ptr_Rx_X = &Rx_X;
-  uint16_t* Ptr_Rx_Y = &Rx_Y;
-  uint16_t* Ptr_Rx_Z = &Rx_Z;
-  uint16_t* Ptr_Rx_T = &Rx_T;
-  char buffer[64];
+  struct IMURawData raw_data;
+  uint8_t read_buffer[16] = {
+	  WHO_AM_I 		| IMU_READ,
+	  ACCEL_XOUT_H 	| IMU_READ,
+	  ACCEL_XOUT_L 	| IMU_READ,
+	  ACCEL_YOUT_H 	| IMU_READ,
+	  ACCEL_YOUT_L 	| IMU_READ,
+	  ACCEL_ZOUT_H 	| IMU_READ,
+	  ACCEL_ZOUT_L 	| IMU_READ,
+	  TEMP_OUT_H 	| IMU_READ,
+	  TEMP_OUT_L 	| IMU_READ,
+	  GYRO_XOUT_H 	| IMU_READ,
+	  GYRO_XOUT_L 	| IMU_READ,
+	  GYRO_YOUT_H 	| IMU_READ,
+	  GYRO_YOUT_L 	| IMU_READ,
+	  GYRO_ZOUT_H 	| IMU_READ,
+	  GYRO_ZOUT_L 	| IMU_READ,
+	  0x00
+  };
+  uint8_t reset_buffer[2] = {INT_STATUS | IMU_READ, 0x00};
+  char str_buffer[64];
 
   /* USER CODE END 2 */
 
@@ -116,50 +131,37 @@ int main(void)
   //Wait for five seconds as a buffer.
   HAL_Delay(5000);
 
-  //Read the self-test registers.
-  HAL_GPIO_WritePin(MPU_NSS_GPIO_Port, MPU_NSS_Pin, GPIO_PIN_RESET);
-  NUfsr_IMU_TransmitReceive(IMU_SELF_TEST_X_ACCEL 	| IMU_READ, 0x00, Ptr_Rx_X, 1);
-  NUfsr_IMU_TransmitReceive(IMU_SELF_TEST_Y_ACCEL 	| IMU_READ, 0x00, Ptr_Rx_Y, 1);
-  NUfsr_IMU_TransmitReceive(IMU_SELF_TEST_Z_ACCEL 	| IMU_READ, 0x00, Ptr_Rx_Z, 1);
-  HAL_GPIO_WritePin(MPU_NSS_GPIO_Port, MPU_NSS_Pin, GPIO_PIN_SET);
-
-  //Print the values of the self-test.
-  sprintf(buffer, "ST:\t%d\t%d\t%d\r\n", *Ptr_Rx_X, *Ptr_Rx_Y, *Ptr_Rx_Z);
-  CDC_Transmit_HS((uint8_t*)buffer, strlen(buffer));
+  //Send the first packet.
+  NUfsr_IMU_TransmitReceive_IT(read_buffer, (uint8_t*)&raw_data, 16);
 
   while (1)
   {
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-	  //Ask who it is, read all three accelerometers, the temperature, and ask who it is again.
-	  HAL_GPIO_WritePin(MPU_NSS_GPIO_Port, MPU_NSS_Pin, GPIO_PIN_RESET);
 
-	  NUfsr_IMU_TransmitReceive(WHO_AM_I 		| IMU_READ, 0x00, Ptr_Rx, 1);
-	  sprintf(buffer, "IMU:\t%x", *Ptr_Rx);
-	  CDC_Transmit_HS((uint8_t*)buffer, strlen(buffer));
+	  //If a packet has been received, then parse it.
+	  if (SPI_flag == 1) {
+		  sprintf(str_buffer,
+				  "%x\t"
+				  "%d\t%d\t%d\t"
+				  "%d\t%d\t%d\t"
+				  "%d\t"
+				  "%d\r\n",
+				  raw_data.ID,
+				  raw_data.accelerometer.x,raw_data.accelerometer.y,raw_data.accelerometer.z,
+				  raw_data.gyroscope.x,raw_data.gyroscope.y,raw_data.gyroscope.z,
+				  raw_data.temperature,
+				  INT_flag);
+		  CDC_Transmit_HS((uint8_t*)str_buffer, strlen(str_buffer));
+		  NUfsr_IMU_TransmitReceive_IT(read_buffer, (uint8_t*)&raw_data, 16);
 
-	  NUfsr_IMU_TransmitReceive(ACCEL_XOUT_H 	| IMU_READ, 0x00, Ptr_Rx, 2);
-	  sprintf(buffer, "\t%d", *Ptr_Rx);
-	  CDC_Transmit_HS((uint8_t*)buffer, strlen(buffer));
+		  NUfsr_IMU_BlockingTransmit(reset_buffer, 2);
 
-	  NUfsr_IMU_TransmitReceive(ACCEL_YOUT_H 	| IMU_READ, 0x00, Ptr_Rx, 2);
-	  sprintf(buffer, "\t%d", *Ptr_Rx);
-	  CDC_Transmit_HS((uint8_t*)buffer, strlen(buffer));
-
-	  NUfsr_IMU_TransmitReceive(ACCEL_ZOUT_H 	| IMU_READ, 0x00, Ptr_Rx, 2);
-	  sprintf(buffer, "\t%d", *Ptr_Rx);
-	  CDC_Transmit_HS((uint8_t*)buffer, strlen(buffer));
-
-	  NUfsr_IMU_TransmitReceive(TEMP_OUT_H 		| IMU_READ, 0x00, Ptr_Rx, 2);
-	  sprintf(buffer, "\t%d", *Ptr_Rx);
-	  CDC_Transmit_HS((uint8_t*)buffer, strlen(buffer));
-
-	  NUfsr_IMU_TransmitReceive(WHO_AM_I 		| IMU_READ, 0x00, Ptr_Rx, 1);
-	  sprintf(buffer, "\t%x\r\n", *Ptr_Rx);
-	  CDC_Transmit_HS((uint8_t*)buffer, strlen(buffer));
-
-	  HAL_GPIO_WritePin(MPU_NSS_GPIO_Port, MPU_NSS_Pin, GPIO_PIN_SET);
+		  //Reset the flags.
+		  SPI_flag = 0;
+		  INT_flag = 0;
+	  }
 
 	  //Wait for one second and repeat.
 	  HAL_Delay(1000);
@@ -219,6 +221,12 @@ void SystemClock_Config(void)
 }
 
 /* USER CODE BEGIN 4 */
+
+void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
+{
+	if (GPIO_Pin == GPIO_PIN_10)
+		INT_flag = 1;
+}
 
 /* USER CODE END 4 */
 
