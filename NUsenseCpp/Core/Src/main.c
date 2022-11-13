@@ -25,6 +25,9 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include "settings.h"
+#include "rs485.h"
+#include "usbd_cdc_if.h"
 
 /* USER CODE END Includes */
 
@@ -97,13 +100,75 @@ int main(void)
   MX_USART6_UART_Init();
   /* USER CODE BEGIN 2 */
 
+#ifdef FIRST_BUZZ
+  //Confirm that the programme is running.
+  HAL_GPIO_WritePin(BUZZER_SIG_GPIO_Port, BUZZER_SIG_Pin, GPIO_PIN_SET);
+  HAL_Delay(500);
+  HAL_GPIO_WritePin(BUZZER_SIG_GPIO_Port, BUZZER_SIG_Pin, GPIO_PIN_RESET);
+#endif
+
+#ifdef DXL_PWR
+  // Set the Dynamixel power on.
+  HAL_GPIO_WritePin(DXL_PWR_EN_GPIO_Port, DXL_PWR_EN_Pin, GPIO_PIN_SET);
+#endif
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
+
+#ifdef TEST_UART
+  char test_uart_char;
+  UART_HandleTypeDef* p_test_huart = &huart1;
+  uint16_t test_uart_it_rx_mask = UART1_RX;
+  uint16_t test_uart_it_tx_mask = UART1_TX;
+#if TEST_UART == 2
+  p_test_huart = &huart2; test_uart_it_rx_mask = UART2_RX; test_uart_it_rx_mask = UART2_TX;
+#endif
+#if TEST_UART == 3
+  p_test_huart = &huart3; test_uart_it_rx_mask = UART3_RX; test_uart_it_rx_mask = UART3_TX;
+#endif
+#if TEST_UART == 4
+  p_test_huart = &huart4; test_uart_it_rx_mask = UART4_RX; test_uart_it_rx_mask = UART4_TX;
+#endif
+#if TEST_UART == 5
+  p_test_huart = &huart5; test_uart_it_rx_mask = UART5_RX; test_uart_it_rx_mask = UART5_TX;
+#endif
+#if TEST_UART == 6
+  p_test_huart = &huart6; test_uart_it_rx_mask = UART6_RX; test_uart_it_rx_mask = UART6_TX;
+#endif
+  // Wait for the first packet.
+  RS485_Receive_IT(p_test_huart, (uint8_t*)&test_uart_char, 1);
+#endif
+
+#ifdef TEST_USB
+  char test_usb_str_buffer[] = "NUsense = nuisance!";
+#endif
+
   while (1)
   {
     /* USER CODE END WHILE */
+#ifdef TEST_UART
+	// Echo whatever is received on the test UART.
+	// If a packet has been received, then receive the next one.
+	if (uart_it_flags & test_uart_it_rx_mask) {
+		RS485_Transmit_IT(p_test_huart, (uint8_t*)&test_uart_char, 1);
+		uart_it_flags &= ~test_uart_it_rx_mask;
+	}
+	// If a packet has been sent, then send the next one.
+	if (uart_it_flags & test_uart_it_tx_mask) {
+		RS485_Receive_IT(p_test_huart, (uint8_t*)&test_uart_char, 1);
+		uart_it_flags &= ~test_uart_it_tx_mask;
+	}
+#endif
+
+#ifdef TEST_USB
+	CDC_Transmit_HS((uint8_t*)test_usb_str_buffer, strlen(test_usb_str_buffer));
+#endif
+
+#ifdef TEST_IMU
+
+#endif
 
     /* USER CODE BEGIN 3 */
   }

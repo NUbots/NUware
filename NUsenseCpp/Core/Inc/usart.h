@@ -46,6 +46,22 @@ extern UART_HandleTypeDef huart6;
 
 /* USER CODE BEGIN Private defines */
 
+extern uint16_t uart_it_flags;
+
+// Masks for the flags for each UART interface:
+#define UART1_RX 0x0001U
+#define UART1_TX 0x0002U
+#define UART2_RX 0x0004U
+#define UART2_TX 0x0008U
+#define UART3_RX 0x0010U
+#define UART3_TX 0x0020U
+#define UART4_RX 0x0040U
+#define UART4_TX 0x0080U
+#define UART5_RX 0x0100U
+#define UART5_TX 0x0200U
+#define UART6_RX 0x0300U
+#define UART6_TX 0x0400U
+
 /* USER CODE END Private defines */
 
 void MX_UART4_Init(void);
