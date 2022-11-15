@@ -139,6 +139,7 @@ int main(void)
 #endif
   // Wait for the first packet.
   RS485_Receive_IT(p_test_huart, (uint8_t*)&test_uart_char, 1);
+  //RS485_Receive(p_test_huart, (uint8_t*)&test_uart_char, 1, HAL_MAX_DELAY);
 #endif
 
 #ifdef TEST_USB
@@ -155,11 +156,13 @@ int main(void)
 		RS485_Transmit_IT(p_test_huart, (uint8_t*)&test_uart_char, 1);
 		uart_it_flags &= ~test_uart_it_rx_mask;
 	}
+	//RS485_Transmit(p_test_huart, (uint8_t*)&test_uart_char, 1, HAL_MAX_DELAY);
 	// If a packet has been sent, then send the next one.
 	if (uart_it_flags & test_uart_it_tx_mask) {
 		RS485_Receive_IT(p_test_huart, (uint8_t*)&test_uart_char, 1);
 		uart_it_flags &= ~test_uart_it_tx_mask;
 	}
+	//RS485_Receive(p_test_huart, (uint8_t*)&test_uart_char, 1, HAL_MAX_DELAY);
 #endif
 
 #ifdef TEST_USB
