@@ -46,7 +46,7 @@ extern UART_HandleTypeDef huart6;
 
 /* USER CODE BEGIN Private defines */
 
-extern uint16_t uart_it_flags;
+extern volatile uint16_t uart_it_flags;
 
 // Masks for the flags for each UART interface:
 #define UART1_RX 0x0001U

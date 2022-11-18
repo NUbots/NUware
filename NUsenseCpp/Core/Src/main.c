@@ -118,7 +118,10 @@ int main(void)
   /* USER CODE BEGIN WHILE */
 
 #ifdef TEST_UART
-  char test_uart_char;
+  // This example in interrupt-mode is not the most efficient one.
+  // It freezes when it is bombarded with characters with no other delay in the main loop.
+  // This bug needs further investigation.
+  char test_uart_char = 'x';
   UART_HandleTypeDef* p_test_huart = &huart1;
   uint16_t test_uart_it_rx_mask = UART1_RX;
   uint16_t test_uart_it_tx_mask = UART1_TX;
@@ -143,7 +146,7 @@ int main(void)
 #endif
 
 #ifdef TEST_USB
-  char test_usb_str_buffer[] = "NUsense = nuisance!";
+  char test_usb_str_buffer[] = "NUsense = nuisance!\r\n";
 #endif
 
   while (1)
@@ -155,6 +158,9 @@ int main(void)
 	if (uart_it_flags & test_uart_it_rx_mask) {
 		RS485_Transmit_IT(p_test_huart, (uint8_t*)&test_uart_char, 1);
 		uart_it_flags &= ~test_uart_it_rx_mask;
+		//HAL_GPIO_WritePin(BUZZER_SIG_GPIO_Port, BUZZER_SIG_Pin, GPIO_PIN_SET);
+		//HAL_Delay(500);
+		//HAL_GPIO_WritePin(BUZZER_SIG_GPIO_Port, BUZZER_SIG_Pin, GPIO_PIN_RESET);
 	}
 	//RS485_Transmit(p_test_huart, (uint8_t*)&test_uart_char, 1, HAL_MAX_DELAY);
 	// If a packet has been sent, then send the next one.

@@ -15,7 +15,7 @@
 
 #define TEST_UART 1
 
-//#define TEST_USB
+#define TEST_USB
 
 //#define TEST_IMU
 

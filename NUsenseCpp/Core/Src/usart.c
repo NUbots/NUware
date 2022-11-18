@@ -22,7 +22,8 @@
 
 /* USER CODE BEGIN 0 */
 // Higher-level interrupt flags for easier set-up.
-uint16_t uart_it_flags;
+// Maybe be neater to have it as a static variable with a getter.
+volatile uint16_t uart_it_flags;
 
 /* USER CODE END 0 */
 
