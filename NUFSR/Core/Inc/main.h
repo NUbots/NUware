@@ -84,6 +84,8 @@ void Error_Handler(void);
 #define MPU_MISO_GPIO_Port GPIOC
 #define MPU_MOSI_Pin GPIO_PIN_9
 #define MPU_MOSI_GPIO_Port GPIOC
+#define DXL_DIR_Pin GPIO_PIN_8
+#define DXL_DIR_GPIO_Port GPIOA
 #define DXL_P_Pin GPIO_PIN_9
 #define DXL_P_GPIO_Port GPIOA
 #define DXL_N_Pin GPIO_PIN_10

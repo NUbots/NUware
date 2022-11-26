@@ -83,6 +83,8 @@ typedef struct _NUfsr_UART_IT_StateHandler
 	NUfsr_UART_Tx_ITController Tx_State;
 	NUfsr_UART_Rx_ITController Rx_State;
 }NUfsr_UART_IT_StateHandler;
+
+extern NUfsr_UART_IT_StateHandler huart1_ITh;
 /* USER CODE END Prototypes */
 
 #ifdef __cplusplus

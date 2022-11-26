@@ -28,6 +28,8 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "imu.h"
+#include "stdio.h"
+#include "string.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -89,19 +91,32 @@ int main(void)
   /* USER CODE BEGIN 2 */
 
   NUfsr_IMU_Init();
-  uint8_t return_Data[2] = {1,2};
-  NUfsr_UART_Transmit(&huart1, return_Data, 2);
-  NUfsr_IMU_TransmitReceive(WHO_AM_I, 0x00, return_Data, 2);
+ // uint8_t return_Data[2] = {1,2};
+  char str_buffer[64];
+  uint16_t return_Data = 0x0000;
+  uint16_t* p_return_data = &return_Data;
+  //NUfsr_UART_Transmit(&huart1, return_Data, 1);
+ // HAL_GPIO_WritePin(DXL_DIR_GPIO_Port, DXL_DIR_Pin, GPIO_PIN_SET);
+  //HAL_UART_Transmit(&huart1, (uint8_t*)&return_Data, 1, HAL_MAX_DELAY);
+  HAL_GPIO_WritePin(MPU_NSS_GPIO_Port, MPU_NSS_Pin, GPIO_PIN_RESET);
+  NUfsr_IMU_TransmitReceive(WHO_AM_I | IMU_READ, 0x00, (uint8_t*)p_return_data, 1);
+  HAL_GPIO_WritePin(MPU_NSS_GPIO_Port, MPU_NSS_Pin, GPIO_PIN_SET);
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-	  NUfsr_UART_Transmit(&huart1, return_Data, 2);
+	  if (huart1_ITh.Tx_State == Tx_FINISHED){
+		  sprintf(str_buffer, "IMU: %x\r\n", *(char*)p_return_data);
+		  NUfsr_UART_Transmit(&huart1, str_buffer, strlen(str_buffer));
+	  }
+	  	  //HAL_UART_Transmit(&huart1, (uint8_t*)&return_Data, 1, HAL_MAX_DELAY);
 	  HAL_GPIO_TogglePin(GPIOB,LED1_Pin);
 	  HAL_GPIO_TogglePin(GPIOB,LED2_Pin);
-	  NUfsr_IMU_TransmitReceive(WHO_AM_I, 0x00, return_Data, 2);
+	  HAL_GPIO_WritePin(MPU_NSS_GPIO_Port, MPU_NSS_Pin, GPIO_PIN_RESET);
+	  NUfsr_IMU_TransmitReceive(WHO_AM_I | IMU_READ, 0x00, (uint8_t*)p_return_data, 1);
+	  HAL_GPIO_WritePin(MPU_NSS_GPIO_Port, MPU_NSS_Pin, GPIO_PIN_SET);
 	  HAL_Delay(500);
   }
     /* USER CODE END WHILE */
@@ -113,7 +128,7 @@ int main(void)
 
 /**
   * @brief System Clock Configuration
-  * @retval None
+  * @retval None++++++++++++
   */
 void SystemClock_Config(void)
 {
@@ -135,6 +150,7 @@ void SystemClock_Config(void)
   {
     Error_Handler();
   }
+
   /** Initializes the CPU, AHB and APB buses clocks
   */
   RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
@@ -193,4 +209,3 @@ void assert_failed(uint8_t *file, uint32_t line)
   /* USER CODE END 6 */
 }
 #endif /* USE_FULL_ASSERT */
-
