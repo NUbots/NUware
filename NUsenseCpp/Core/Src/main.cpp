@@ -28,6 +28,7 @@
 #include "settings.h"
 #include "rs485.h"
 #include "usbd_cdc_if.h"
+#include "imu.h"
 
 /* USER CODE END Includes */
 
@@ -149,6 +150,35 @@ int main(void)
   char test_usb_str_buffer[] = "NUsense = nuisance!\r\n";
 #endif
 
+#ifdef TEST_IMU
+  //uint8_t test_imu_rx[2] = {0x00U, 0x00U};
+  uint8_t test_imu_rx[16];
+  struct IMURawData test_imu_raw_data;
+  char test_imu_str[256];
+
+  uint8_t test_imu_addresses[16] = {
+  	  WHO_AM_I,
+  	  ACCEL_XOUT_L,
+  	  ACCEL_XOUT_H,
+  	  ACCEL_YOUT_L,
+  	  ACCEL_YOUT_H,
+  	  ACCEL_ZOUT_L,
+  	  ACCEL_ZOUT_H,
+  	  TEMP_OUT_L,
+  	  TEMP_OUT_H,
+  	  GYRO_XOUT_L,
+  	  GYRO_XOUT_H,
+  	  GYRO_YOUT_L,
+  	  GYRO_YOUT_H,
+  	  GYRO_ZOUT_L,
+  	  GYRO_ZOUT_H,
+	  WHO_AM_I
+  };
+
+  NU_IMU_Init();
+  //NU_IMU_WriteReg(XA_OFFSET_H, 0xAB);
+#endif
+
   while (1)
   {
     /* USER CODE END WHILE */
@@ -176,7 +206,31 @@ int main(void)
 #endif
 
 #ifdef TEST_IMU
+	NU_IMU_ReadReg(ACCEL_XOUT_H, &test_imu_rx[1]);
+	NU_IMU_ReadReg(ACCEL_XOUT_L, &test_imu_rx[0]);
 
+	NU_IMU_ReadSlowly(test_imu_addresses, (uint8_t*)&test_imu_raw_data, 16);
+
+	sprintf(test_imu_str, "IMU:\tACC_X\t:%d\t"
+			"ID:\t%x\t"
+			"ACC_X:\t%d\tACC_Y:\t%d\tACC_Z:\t%d\t"
+			"TEMP:\t%d\t"
+			"GYR_X:\t%d\tGYR_Y:\t%d\tGYR_Z:\t%d\t"
+			"ID:\t%x\r\n",
+			*(int16_t*)test_imu_rx,
+			test_imu_raw_data.ID,
+			test_imu_raw_data.accelerometer.x,
+			test_imu_raw_data.accelerometer.y,
+			test_imu_raw_data.accelerometer.z,
+			test_imu_raw_data.temperature,
+			test_imu_raw_data.gyroscope.x,
+			test_imu_raw_data.gyroscope.y,
+			test_imu_raw_data.gyroscope.z,
+			test_imu_raw_data.ID_2
+			);
+	CDC_Transmit_HS((uint8_t*)test_imu_str, strlen(test_imu_str));
+
+	HAL_Delay(1000);
 #endif
 
     /* USER CODE BEGIN 3 */
