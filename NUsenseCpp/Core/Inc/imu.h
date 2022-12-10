@@ -18,6 +18,7 @@
 /* Includes */
 #include "main.h"
 #include "spi.h"
+#include "settings.h"
 
 //---------------Helpful Defines---------------------//
 //									/* 7 6 5 4 3 2 1 0 */
@@ -31,6 +32,17 @@
 #define BIT_7 0x80					/* 1 0 0 0 0 0 0 0 -> 0x80 */
 #define BLANK 0x00
 
+// From Table-1, Table-2, and Table-3 from the datasheet.
+#define ACCEL_SENSITIVTY_2G			16384 	// LSB/g
+#define ACCEL_SENSITIVTY_4G			8192 	// LSB/g
+#define ACCEL_SENSITIVTY_8G			4096 	// LSB/g
+#define ACCEL_SENSITIVTY_16G		2048 	// LSB/g
+#define TEMP_SENSITIVITY			326.8	// LSB/degC
+#define GYRO_SENSITIVITY_250DPS		131		// LSB/(deg/s)
+#define GYRO_SENSITIVITY_500DPS		65.5	// LSB/(deg/s)
+#define GYRO_SENSITIVITY_1000DPS	32.8	// LSB/(deg/s)
+#define GYRO_SENSITIVITY_2000DPS	16.4	// LSB/(deg/s)
+
 //---------------Address Byte Defines----------------//
 /* Common Defines */
 #define IMU_READ 0x80
@@ -38,19 +50,19 @@
 
 /* Command Defines */				/* ADR Register Function */
 // Self Test
-#define IMU_SELF_TEST_X_GYRO 0x00	/* Gyro X Self test Reg */
-#define IMU_SELF_TEST_Y_GYRO 0x01	/* Gyro Y Self test Reg */
-#define IMU_SELF_TEST_Z_GYRO 0x02	/* Gyro Z Self test Reg */
-#define IMU_SELF_TEST_X_ACCEL 0x0D/* Accel X Self test Reg */
-#define IMU_SELF_TEST_Y_ACCEL 0x0E/* Accel Y Self test Reg */
-#define IMU_SELF_TEST_Z_ACCEL 0x0F/* Accel Z Self test Reg */
+#define SELF_TEST_X_GYRO 0x00	/* Gyro X Self test Reg */
+#define SELF_TEST_Y_GYRO 0x01	/* Gyro Y Self test Reg */
+#define SELF_TEST_Z_GYRO 0x02	/* Gyro Z Self test Reg */
+#define SELF_TEST_X_ACCEL 0x0D/* Accel X Self test Reg */
+#define SELF_TEST_Y_ACCEL 0x0E/* Accel Y Self test Reg */
+#define SELF_TEST_Z_ACCEL 0x0F/* Accel Z Self test Reg */
 // Offset adjustment
-#define IMU_XG_OFFS_USRH 0x13		/* Gyro X Offset Adjustment Reg 15:8 */
-#define IMU_XG_OFFS_USRL 0x14		/* Gyro X Offset Adjustment Reg 7:0 */
-#define IMU_YG_OFFS_USRH 0x15		/* Gyro Y Offset Adjustment Reg 15:8 */
-#define IMU_YG_OFFS_USRL 0x16		/* Gyro Y Offset Adjustment Reg 7:0 */
-#define IMU_ZG_OFFS_USRH 0x17		/* Gyro Z Offset Adjustment Reg 15:8 */
-#define IMU_ZG_OFFS_USRL 0x18		/* Gyro Z Offset Adjustment Reg 7:0 */
+#define XG_OFFS_USRH 0x13		/* Gyro X Offset Adjustment Reg 15:8 */
+#define XG_OFFS_USRL 0x14		/* Gyro X Offset Adjustment Reg 7:0 */
+#define YG_OFFS_USRH 0x15		/* Gyro Y Offset Adjustment Reg 15:8 */
+#define YG_OFFS_USRL 0x16		/* Gyro Y Offset Adjustment Reg 7:0 */
+#define ZG_OFFS_USRH 0x17		/* Gyro Z Offset Adjustment Reg 15:8 */
+#define ZG_OFFS_USRL 0x18		/* Gyro Z Offset Adjustment Reg 7:0 */
 // Configuration
 #define SMPLRT_DIV 0x19			/* Sample Rate divider */
 #define CONFIG 0x1A 				/* Configuration */
@@ -498,6 +510,18 @@
  */
 
 //-----------------------------------------------------------------------------
+// Chosen scales
+//-----------------------------------------------------------------------------
+
+#define ACCEL_SENSITIVITY_CHOSEN	ACCEL_SENSITIVTY_4G
+#define ACCEL_CONFIG1_FS_SEL_CHOSEN	ACCEL_CONFIG1_FS_SEL_4G
+
+#define ROOM_TEMP_OFFSET 0 // raw integer, zero corresponds to 25 deg C
+
+#define GYRO_SENSITIVITY_CHOSEN		GYRO_SENSITIVITY_500DPS
+#define GYRO_CONFIG_FS_SEL_CHOSEN	GYRO_CONFIG_FS_SEL_500DPS
+
+//-----------------------------------------------------------------------------
 // Function List
 //-----------------------------------------------------------------------------
 
@@ -550,6 +574,15 @@ void NU_IMU_ReadBurst(uint8_t* addrs, uint8_t* data, uint16_t length);
 void NU_IMU_ReadSlowly(uint8_t* addrs, uint8_t* data, uint16_t length);
 
 /*
+ * Brief:		converts raw integers into floating decimals.
+ * Note:		accelerometer values are in g's, and gyroscope values are in dps.
+ * Arguments:	the raw data to be converted from,
+ * 				the converted data,
+ * Returns:		none
+ */
+void NU_IMU_ConvertRawData(struct IMURawData* raw_data, struct IMUConvertedData* converted_data);
+
+/*
  * Brief:		used for blocking to get the next byte from the IMU.
  * Note:		may not be needed strictly.
  * Arguments:	the data to be sent,
@@ -598,6 +631,21 @@ struct IMURawData {
         int16_t z;
     } gyroscope;
     uint8_t ID_2;
+};
+
+struct IMUConvertedData {
+	uint8_t ID;
+	struct {
+		float x;
+		float y;
+		float z;
+	} accelerometer;
+	float temperature;
+	struct {
+		float x;
+		float y;
+		float z;
+	} gyroscope;
 };
 
 #endif //_IMU_H_

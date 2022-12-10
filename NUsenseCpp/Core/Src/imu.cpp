@@ -8,9 +8,6 @@
  * Ported from NUfsr to NUsense for testing.
  */
 
-// TODO: Set up a return system for error checking
-// TODO: properly comment/document file contents
-
 #include "imu.h"
 
 /*
@@ -35,11 +32,11 @@ void NU_IMU_Init()
 	// Turn on all sensors.
 	NU_IMU_WriteReg(PWR_MGMT_2, 	0x00);
 
-	// Choose 500 dps.
-	NU_IMU_WriteReg(GYRO_CONFIG, 	GYRO_CONFIG_FS_SEL_500DPS);
+	// Set the full-scale for the gyroscope.
+	NU_IMU_WriteReg(GYRO_CONFIG, 	GYRO_CONFIG_FS_SEL_CHOSEN);
 
-	// Choose 4 g.
-	NU_IMU_WriteReg(ACCEL_CONFIG, 	ACCEL_CONFIG1_FS_SEL_4G);
+	// Set the full-scale for the accelerometer.
+	NU_IMU_WriteReg(ACCEL_CONFIG, 	ACCEL_CONFIG1_FS_SEL_CHOSEN);
 
 	// Set the accelerometer's LPF to 218 Hz and the lowest number of samples.
 	NU_IMU_WriteReg(ACCEL_CONFIG2, 	ACCEL_CONFIG2_DEC2_CFG_4SAMPLES
@@ -51,6 +48,31 @@ void NU_IMU_Init()
 
 	// Set the sample-rate to 1 kHz.
 	NU_IMU_WriteReg(SMPLRT_DIV, 	0x00);
+
+	// Set the offset for gyroscope's x-axis to 90/4 = 22.
+	NU_IMU_WriteReg(XG_OFFS_USRH, 	0x00);
+	NU_IMU_WriteReg(XG_OFFS_USRL, 	0x16);
+
+	// Set the offset for gyroscope's y-axis to -406/4 = -101.
+	NU_IMU_WriteReg(YG_OFFS_USRH, 	0xFF);
+	NU_IMU_WriteReg(YG_OFFS_USRL, 	0x9B);
+
+	// Set the offset for gyroscope's z-axis to -61/4 = -15.
+	NU_IMU_WriteReg(ZG_OFFS_USRH, 	0xFF);
+	NU_IMU_WriteReg(ZG_OFFS_USRL, 	0xF1);
+	/*
+	// Set the offset for accelerometer's x-axis to 0, for now.
+	NU_IMU_WriteReg(XA_OFFSET_H, 	0x00);
+	NU_IMU_WriteReg(XA_OFFSET_L, 	0x02);
+
+	// Set the offset for accelerometer's y-axis to 0, for now.
+	NU_IMU_WriteReg(YA_OFFSET_H, 	0x00);
+	NU_IMU_WriteReg(YA_OFFSET_L, 	0x02);
+
+	// Set the offset for accelerometer's z-axis to 0, for now.
+	NU_IMU_WriteReg(ZA_OFFSET_H, 	0x00);
+	NU_IMU_WriteReg(ZA_OFFSET_L, 	0x02);
+	*/
 
 	/*
 	// From NUFSR branch:
@@ -175,6 +197,37 @@ void NU_IMU_ReadSlowly(uint8_t* addrs, uint8_t* data, uint16_t length)
 		HAL_GPIO_WritePin(MPU_NSS_GPIO_Port, MPU_NSS_Pin, GPIO_PIN_SET);
 		data[i+1] = rx_data[1];
 	}
+}
+
+/*
+ * Brief:		converts raw integers into floating decimals.
+ * Note:		accelerometer values are in g's, and gyroscope values are in dps.
+ * Arguments:	the raw data to be converted from,
+ * 				the converted data,
+ * Returns:		none
+ */
+void NU_IMU_ConvertRawData(struct IMURawData* raw_data, struct IMUConvertedData* converted_data) {
+	/*
+	converted_data->ID = raw_data->ID;
+	converted_data->accelerometer.x = (float)(raw_data->accelerometer.x)*4.0/32767.0;
+	converted_data->accelerometer.y = (float)(raw_data->accelerometer.y)*4.0/32767.0;
+	converted_data->accelerometer.z = (float)(raw_data->accelerometer.z)*4.0/32767.0;
+	converted_data->temperature = (float)raw_data->temperature/100.0;
+	converted_data->gyroscope.x = (float)(raw_data->gyroscope.x)*500.0/32767.0;
+	converted_data->gyroscope.y = (float)(raw_data->gyroscope.y)*500.0/32767.0;
+	converted_data->gyroscope.z = (float)(raw_data->gyroscope.z)*500.0/32767.0;
+	*/
+
+	converted_data->ID = raw_data->ID;
+	converted_data->accelerometer.x = (float)(raw_data->accelerometer.x)/ACCEL_SENSITIVTY_4G;
+	converted_data->accelerometer.y = (float)(raw_data->accelerometer.y)/ACCEL_SENSITIVTY_4G;
+	converted_data->accelerometer.z = (float)(raw_data->accelerometer.z)/ACCEL_SENSITIVTY_4G;
+	// from Section-11.23 from the datasheet
+	converted_data->temperature = ((float)raw_data->temperature-ROOM_TEMP_OFFSET)/TEMP_SENSITIVITY + 25.0;
+	converted_data->gyroscope.x = (float)(raw_data->gyroscope.x)/GYRO_SENSITIVITY_500DPS;
+	converted_data->gyroscope.y = (float)(raw_data->gyroscope.y)/GYRO_SENSITIVITY_500DPS;
+	converted_data->gyroscope.z = (float)(raw_data->gyroscope.z)/GYRO_SENSITIVITY_500DPS;
+
 }
 
 /*

@@ -19,5 +19,4 @@
 
 #define TEST_IMU
 
-
 #endif /* INC_SETTINGS_H_ */

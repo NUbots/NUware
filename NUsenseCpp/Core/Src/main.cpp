@@ -113,11 +113,6 @@ int main(void)
   HAL_GPIO_WritePin(DXL_PWR_EN_GPIO_Port, DXL_PWR_EN_Pin, GPIO_PIN_SET);
 #endif
 
-  /* USER CODE END 2 */
-
-  /* Infinite loop */
-  /* USER CODE BEGIN WHILE */
-
 #ifdef TEST_UART
   // This example in interrupt-mode is not the most efficient one.
   // It freezes when it is bombarded with characters with no other delay in the main loop.
@@ -154,6 +149,7 @@ int main(void)
   //uint8_t test_imu_rx[2] = {0x00U, 0x00U};
   uint8_t test_imu_rx[16];
   struct IMURawData test_imu_raw_data;
+  struct IMUConvertedData test_imu_converted_data;
   char test_imu_str[256];
 
   uint8_t test_imu_addresses[16] = {
@@ -179,9 +175,12 @@ int main(void)
   //NU_IMU_WriteReg(XA_OFFSET_H, 0xAB);
 #endif
 
+  /* USER CODE END 2 */
+
+  /* Infinite loop */
+  /* USER CODE BEGIN WHILE */
   while (1)
   {
-    /* USER CODE END WHILE */
 #ifdef TEST_UART
 	// Echo whatever is received on the test UART.
 	// If a packet has been received, then receive the next one.
@@ -211,7 +210,7 @@ int main(void)
 
 	NU_IMU_ReadSlowly(test_imu_addresses, (uint8_t*)&test_imu_raw_data, 16);
 
-	sprintf(test_imu_str, "IMU:\tACC_X\t:%d\t"
+	/*sprintf(test_imu_str, "IMU:\tACC_X\t:%d\t"
 			"ID:\t%x\t"
 			"ACC_X:\t%d\tACC_Y:\t%d\tACC_Z:\t%d\t"
 			"TEMP:\t%d\t"
@@ -227,11 +226,38 @@ int main(void)
 			test_imu_raw_data.gyroscope.y,
 			test_imu_raw_data.gyroscope.z,
 			test_imu_raw_data.ID_2
+			);*/
+
+	NU_IMU_ConvertRawData(&test_imu_raw_data, &test_imu_converted_data);
+
+	sprintf(test_imu_str, "IMU:\t"
+			"ID:\t%x\t"
+			"ACC (g):\t%.3f\t%.3f\t%.3f\t"
+			"TEMP (deg C):\t%.3f\t"
+			"GYR (dps):\t%.3f\t%.3f\t%.3f\t"
+			"Raw:\t%d\t%d\t%d\t%d\t%d\t%d\t%d\r\n",
+			test_imu_converted_data.ID,
+			test_imu_converted_data.accelerometer.x,
+			test_imu_converted_data.accelerometer.y,
+			test_imu_converted_data.accelerometer.z,
+			test_imu_converted_data.temperature,
+			test_imu_converted_data.gyroscope.x,
+			test_imu_converted_data.gyroscope.y,
+			test_imu_converted_data.gyroscope.z,
+			test_imu_raw_data.accelerometer.x,
+			test_imu_raw_data.accelerometer.y,
+			test_imu_raw_data.accelerometer.z,
+			test_imu_raw_data.temperature,
+			test_imu_raw_data.gyroscope.x,
+			test_imu_raw_data.gyroscope.y,
+			test_imu_raw_data.gyroscope.z
 			);
+
 	CDC_Transmit_HS((uint8_t*)test_imu_str, strlen(test_imu_str));
 
 	HAL_Delay(1000);
 #endif
+    /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
   }
