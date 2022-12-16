@@ -20,7 +20,7 @@ void NU_IMU_Init()
 {
 	// Select the first PLL as the clock and do a soft reset.
 	// This may fix the problem of the power-up sequence in Section-4.19 of the IMU's datasheet.
-	NU_IMU_WriteReg(PWR_MGMT_1, 	PWR_MGMT_1_CLKSEL_AUTO);
+	//NU_IMU_WriteReg(PWR_MGMT_1, 	PWR_MGMT_1_CLKSEL_AUTO);
 	NU_IMU_WriteReg(PWR_MGMT_1, 	PWR_MGMT_1_DEVICE_RESET | PWR_MGMT_1_CLKSEL_AUTO);
 	HAL_Delay(1);
 	NU_IMU_WriteReg(PWR_MGMT_1, 	PWR_MGMT_1_CLKSEL_AUTO);

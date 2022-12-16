@@ -26,8 +26,9 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "settings.h"
-#include "rs485.h"
 #include "usbd_cdc_if.h"
+#include "rs485_c.h"
+#include "RS485.h"
 #include "imu.h"
 
 /* USER CODE END Includes */
@@ -117,8 +118,9 @@ int main(void)
   // This example in interrupt-mode is not the most efficient one.
   // It freezes when it is bombarded with characters with no other delay in the main loop.
   // This bug needs further investigation.
+  RS485 rs_link = RS485(TEST_UART);
   char test_uart_char = 'x';
-  UART_HandleTypeDef* p_test_huart = &huart1;
+  //UART_HandleTypeDef* p_test_huart = &huart1;
   uint16_t test_uart_it_rx_mask = UART1_RX;
   uint16_t test_uart_it_tx_mask = UART1_TX;
 #if TEST_UART == 2
@@ -137,8 +139,9 @@ int main(void)
   p_test_huart = &huart6; test_uart_it_rx_mask = UART6_RX; test_uart_it_rx_mask = UART6_TX;
 #endif
   // Wait for the first packet.
-  RS485_Receive_IT(p_test_huart, (uint8_t*)&test_uart_char, 1);
+  //RS485_Receive_IT(p_test_huart, (uint8_t*)&test_uart_char, 1);
   //RS485_Receive(p_test_huart, (uint8_t*)&test_uart_char, 1, HAL_MAX_DELAY);
+  rs_link.receive_int((uint8_t*)&test_uart_char, 1);
 #endif
 
 #ifdef TEST_USB
@@ -184,20 +187,11 @@ int main(void)
 #ifdef TEST_UART
 	// Echo whatever is received on the test UART.
 	// If a packet has been received, then receive the next one.
-	if (uart_it_flags & test_uart_it_rx_mask) {
-		RS485_Transmit_IT(p_test_huart, (uint8_t*)&test_uart_char, 1);
-		uart_it_flags &= ~test_uart_it_rx_mask;
-		//HAL_GPIO_WritePin(BUZZER_SIG_GPIO_Port, BUZZER_SIG_Pin, GPIO_PIN_SET);
-		//HAL_Delay(500);
-		//HAL_GPIO_WritePin(BUZZER_SIG_GPIO_Port, BUZZER_SIG_Pin, GPIO_PIN_RESET);
-	}
-	//RS485_Transmit(p_test_huart, (uint8_t*)&test_uart_char, 1, HAL_MAX_DELAY);
+	if (rs_link.get_receive_flag())
+		rs_link.transmit_int((uint8_t*)&test_uart_char, 1);
 	// If a packet has been sent, then send the next one.
-	if (uart_it_flags & test_uart_it_tx_mask) {
-		RS485_Receive_IT(p_test_huart, (uint8_t*)&test_uart_char, 1);
-		uart_it_flags &= ~test_uart_it_tx_mask;
-	}
-	//RS485_Receive(p_test_huart, (uint8_t*)&test_uart_char, 1, HAL_MAX_DELAY);
+	if (rs_link.get_transmit_flag())
+		rs_link.receive_int((uint8_t*)&test_uart_char, 1);
 #endif
 
 #ifdef TEST_USB
