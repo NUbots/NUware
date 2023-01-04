@@ -21,6 +21,11 @@
 #include "settings.h"
 
 //---------------Helpful Defines---------------------//
+
+// Masks for the flags for each SPI interface, in this case only one:
+#define SPI4_RX 0x40U
+#define SPI4_TX 0x80U
+
 //									/* 7 6 5 4 3 2 1 0 */
 #define BIT_0 0x01					/* 0 0 0 0 0 0 0 1 -> 0x01 */
 #define BIT_1 0x02					/* 0 0 0 0 0 0 1 0 -> 0x02 */
@@ -526,76 +531,100 @@
 //-----------------------------------------------------------------------------
 
 /*
- * Brief:		begins the IMU for simple polling.
- * Note:
- * Arguments:	none
- * Returns:		none
+ * @brief		begins the IMU for simple polling.
+ * @note
+ * @param		none
+ * @return		none
  */
 void NU_IMU_Init();
 
 /*
- * Brief:		writes a byte to a register.
- * Note:		uses polling, should only be used for beginning.
- * Arguments:	the register's address,
- * 				the byte to be sent,
- * Returns:		none
+ * @brief		writes a byte to a register.
+ * @note		uses polling, should only be used for beginning.
+ * @param		the register's address,
+ * @param		the byte to be sent,
+ * @return		none
  */
 void NU_IMU_WriteReg(uint8_t addr, uint8_t data);
 
 /*
- * Brief:		reads a byte from a register.
- * Note:		uses polling, should only be used for testing and debugging.
- * Arguments:	the register's address,
- * 				a pointer to the byte to be read,
- * Returns:		none
+ * @brief		reads a byte from a register.
+ * @note		uses polling, should only be used for testing and debugging.
+ * @param		the register's address,
+ * @param		a pointer to the byte to be read,
+ * @return		none
  */
 void NU_IMU_ReadReg(uint8_t addr, uint8_t* data);
 
 /*
- * Brief:		reads multiple registers in a burst.
- * Note:		Do not use yet! Burst-reading seems not to work with this particular IMU chip.
- * 				Wait for a better function using the FIFO and DMA.
- * Arguments:	an array of the registers' addresses in order to be read,
- * 				an array of the bytes to be read, the first of which is padding,
- * 				the length, i.e. the number of registers to be read,
- * Returns:		none
+ * @brief		reads multiple consecutive registers in a burst.
+ * @note		Use this as a temporary replacement of the FIFO.
+ * 				This uses DMA.
+ * @param		the address of the first register to be read,
+ * @param		an array of the bytes to be read,
+ * @param		the length, i.e. the number of registers to be read,
+ * @return		none
  */
-void NU_IMU_ReadBurst(uint8_t* addrs, uint8_t* data, uint16_t length);
+void NU_IMU_ReadBurst(uint8_t addrs, uint8_t* data, uint16_t length);
 
 /*
- * Brief:		reads multiple registers in turns as a temporary solution.
- * Note:		Use this instead! yes, it is slow and inefficient, but it works.
- * 				Wait for a better function using the FIFO and DMA.
- * Arguments:	an array of the registers' addresses in order to be read,
- * 				an array of the bytes to be read, the first of which is padding,
- * 				the length, i.e. the number of registers to be read,
- * Returns:		none
+ * @brief		reads multiple registers in turns as a temporary solution.
+ * @note		Yes, it is slow and inefficient, but it works. This is intended as a naive back-up.
+ * @param		an array of the registers' addresses in order to be read,
+ * @param		an array of the bytes to be read, the first of which is padding,
+ * @param		the length, i.e. the number of registers to be read,
+ * @return		none
  */
 void NU_IMU_ReadSlowly(uint8_t* addrs, uint8_t* data, uint16_t length);
 
 /*
- * Brief:		converts raw integers into floating decimals.
- * Note:		accelerometer values are in g's, and gyroscope values are in dps.
- * Arguments:	the raw data to be converted from,
- * 				the converted data,
- * Returns:		none
+ * @brief		reads the fifo.
+ * @note		Does not work yet.
+ * @param		an array of the bytes to be read, the first of which is padding,
+ * @param		the length, i.e. the number of registers to be read,
+ * @return		none
  */
-void NU_IMU_ConvertRawData(struct IMURawData* raw_data, struct IMUConvertedData* converted_data);
+void NU_IMU_ReadFifo(uint8_t* data, uint16_t length);
 
 /*
- * Brief:		used for blocking to get the next byte from the IMU.
- * Note:		may not be needed strictly.
- * Arguments:	the data to be sent,
- * 				the number of bytes,
- * Returns:		none
+ * @brief		converts raw integers into floating decimals.
+ * @note		accelerometer values are in g's, and gyroscope values are in dps.
+ * @param		the raw data to be converted from,
+ * @param		the converted data,
+ * @return		none
+ */
+void NU_IMU_ConvertRawData(struct NU_IMU_raw_data* raw_data, struct NU_IMU_converted_data* converted_data);
+
+/*
+ * @brief		checks for the interrupt-flags for the receiving to be done.
+ * @param		none,
+ * @retval		#true if the receiving was done, i.e. something has been received,
+ * @retval		#false if nothing has not been received yet,
+ */
+bool NU_IMU_CheckForReceive();
+
+/*
+ * @brief		checks for the interrupt-flags for the transmitting to be done.
+ * @param		none,
+ * @retval		#true if the transmitting was done,
+ * @retval		#false if not everything has been transmitted yet,
+ */
+bool NU_IMU_CheckForTransmit();
+
+/*
+ * @brief		used for blocking to get the next byte from the IMU.
+ * @note		may not be needed strictly.
+ * @param		the data to be sent,
+ * @param		the number of bytes,
+ * @return		none
  */
 void NU_IMU_TransmitReceive_IT(uint8_t* tx_data, uint8_t* rx_data, uint16_t length);
 
 /*
- * Brief:		used for blocking to get the next byte from the IMU.
- * Note:		may not be needed strictly.
- * Arguments:	the data
- * Returns:		none
+ * @brief		used for blocking to get the next byte from the IMU.
+ * @note		may not be needed strictly.
+ * @param		the data
+ * @return		none
  */
 void NU_IMU_BlockingTransmit(uint8_t* data, uint16_t length);
 
@@ -616,9 +645,8 @@ extern uint8_t INT_flag;
 // Structures
 //-----------------------------------------------------------------------------
 
-struct IMURawData {
+struct NU_IMU_raw_data {
     uint8_t pad;
-    uint8_t ID;
     struct {
         int16_t x;
         int16_t y;
@@ -630,10 +658,9 @@ struct IMURawData {
         int16_t y;
         int16_t z;
     } gyroscope;
-    uint8_t ID_2;
 };
 
-struct IMUConvertedData {
+struct NU_IMU_converted_data {
 	uint8_t ID;
 	struct {
 		float x;

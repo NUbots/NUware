@@ -149,33 +149,15 @@ int main(void)
 #endif
 
 #ifdef TEST_IMU
-  //uint8_t test_imu_rx[2] = {0x00U, 0x00U};
-  uint8_t test_imu_rx[16];
-  struct IMURawData test_imu_raw_data;
-  struct IMUConvertedData test_imu_converted_data;
+  int16_t test_imu_acc;
+  uint16_t test_imu_count;
+  uint8_t test_imu_flags;
+  uint8_t test_imu_rx[14];
+  struct NU_IMU_raw_data test_imu_raw_data;
+  struct NU_IMU_converted_data test_imu_converted_data;
   char test_imu_str[256];
 
-  uint8_t test_imu_addresses[16] = {
-  	  WHO_AM_I,
-  	  ACCEL_XOUT_L,
-  	  ACCEL_XOUT_H,
-  	  ACCEL_YOUT_L,
-  	  ACCEL_YOUT_H,
-  	  ACCEL_ZOUT_L,
-  	  ACCEL_ZOUT_H,
-  	  TEMP_OUT_L,
-  	  TEMP_OUT_H,
-  	  GYRO_XOUT_L,
-  	  GYRO_XOUT_H,
-  	  GYRO_YOUT_L,
-  	  GYRO_YOUT_H,
-  	  GYRO_ZOUT_L,
-  	  GYRO_ZOUT_H,
-	  WHO_AM_I
-  };
-
   NU_IMU_Init();
-  //NU_IMU_WriteReg(XA_OFFSET_H, 0xAB);
 #endif
 
   /* USER CODE END 2 */
@@ -199,38 +181,28 @@ int main(void)
 #endif
 
 #ifdef TEST_IMU
-	NU_IMU_ReadReg(ACCEL_XOUT_H, &test_imu_rx[1]);
-	NU_IMU_ReadReg(ACCEL_XOUT_L, &test_imu_rx[0]);
+	//NU_IMU_ReadSlowly(test_imu_addresses, (uint8_t*)&test_imu_raw_data, 16);
+	//NU_IMU_ReadFifo(test_imu_rx, 14);
+	//NU_IMU_ReadFifo(test_imu_rx, 4);
+	//NU_IMU_ReadBurst(ACCEL_XOUT_H, test_imu_rx, 14);
 
-	NU_IMU_ReadSlowly(test_imu_addresses, (uint8_t*)&test_imu_raw_data, 16);
+	NU_IMU_ReadBurst(ACCEL_XOUT_H, test_imu_rx, 14);
 
-	/*sprintf(test_imu_str, "IMU:\tACC_X\t:%d\t"
-			"ID:\t%x\t"
-			"ACC_X:\t%d\tACC_Y:\t%d\tACC_Z:\t%d\t"
-			"TEMP:\t%d\t"
-			"GYR_X:\t%d\tGYR_Y:\t%d\tGYR_Z:\t%d\t"
-			"ID:\t%x\r\n",
-			*(int16_t*)test_imu_rx,
-			test_imu_raw_data.ID,
-			test_imu_raw_data.accelerometer.x,
-			test_imu_raw_data.accelerometer.y,
-			test_imu_raw_data.accelerometer.z,
-			test_imu_raw_data.temperature,
-			test_imu_raw_data.gyroscope.x,
-			test_imu_raw_data.gyroscope.y,
-			test_imu_raw_data.gyroscope.z,
-			test_imu_raw_data.ID_2
-			);*/
+	test_imu_raw_data.accelerometer.x = ((uint16_t)test_imu_rx[ 0] << 8) | test_imu_rx[ 1];
+	test_imu_raw_data.accelerometer.y = ((uint16_t)test_imu_rx[ 2] << 8) | test_imu_rx[ 3];
+	test_imu_raw_data.accelerometer.z = ((uint16_t)test_imu_rx[ 4] << 8) | test_imu_rx[ 5];
+	test_imu_raw_data.temperature =		((uint16_t)test_imu_rx[ 6] << 8) | test_imu_rx[ 7];
+	test_imu_raw_data.gyroscope.x = 	((uint16_t)test_imu_rx[ 8] << 8) | test_imu_rx[ 9];
+	test_imu_raw_data.gyroscope.y = 	((uint16_t)test_imu_rx[10] << 8) | test_imu_rx[11];
+	test_imu_raw_data.gyroscope.z = 	((uint16_t)test_imu_rx[12] << 8) | test_imu_rx[13];
 
 	NU_IMU_ConvertRawData(&test_imu_raw_data, &test_imu_converted_data);
 
 	sprintf(test_imu_str, "IMU:\t"
-			"ID:\t%x\t"
 			"ACC (g):\t%.3f\t%.3f\t%.3f\t"
 			"TEMP (deg C):\t%.3f\t"
 			"GYR (dps):\t%.3f\t%.3f\t%.3f\t"
 			"Raw:\t%d\t%d\t%d\t%d\t%d\t%d\t%d\r\n",
-			test_imu_converted_data.ID,
 			test_imu_converted_data.accelerometer.x,
 			test_imu_converted_data.accelerometer.y,
 			test_imu_converted_data.accelerometer.z,
@@ -249,7 +221,7 @@ int main(void)
 
 	CDC_Transmit_HS((uint8_t*)test_imu_str, strlen(test_imu_str));
 
-	HAL_Delay(1000);
+	HAL_Delay(100);
 #endif
     /* USER CODE END WHILE */
 

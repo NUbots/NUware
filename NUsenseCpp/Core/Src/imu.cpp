@@ -10,24 +10,37 @@
 
 #include "imu.h"
 
+static volatile uint8_t spi_int_flags;
+
+void HAL_SPI_RxCpltCallback(SPI_HandleTypeDef * hspi) {
+	if (hspi == &hspi4) spi_int_flags |= SPI4_RX;
+}
+
+void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef * hspi) {
+	if (hspi == &hspi4) spi_int_flags |= SPI4_TX;
+}
+
 /*
- * Brief:		begins the IMU for simple polling.
- * Note:
- * Arguments:	none
- * Returns:		none
+ * @brief		begins the IMU for simple polling.
+ * @note
+ * @param		none
+ * @return		none
  */
 void NU_IMU_Init()
 {
 	// Select the first PLL as the clock and do a soft reset.
 	// This may fix the problem of the power-up sequence in Section-4.19 of the IMU's datasheet.
 	//NU_IMU_WriteReg(PWR_MGMT_1, 	PWR_MGMT_1_CLKSEL_AUTO);
-	NU_IMU_WriteReg(PWR_MGMT_1, 	PWR_MGMT_1_DEVICE_RESET | PWR_MGMT_1_CLKSEL_AUTO);
+	NU_IMU_WriteReg(PWR_MGMT_1, 	PWR_MGMT_1_DEVICE_RESET
+									| PWR_MGMT_1_CLKSEL_AUTO);
 	HAL_Delay(1);
 	NU_IMU_WriteReg(PWR_MGMT_1, 	PWR_MGMT_1_CLKSEL_AUTO);
 
 	// Make sure that we are in SPI-mode.
-	NU_IMU_WriteReg(USER_CTRL, 		USER_CTRL_I2C_IF_DIS | USER_CTRL_DMP_RST
-									| USER_CTRL_FIFO_RST | USER_CTRL_SIG_COND_RST);
+	NU_IMU_WriteReg(USER_CTRL, 		USER_CTRL_I2C_IF_DIS
+									| USER_CTRL_DMP_RST
+									| USER_CTRL_FIFO_EN
+									| USER_CTRL_SIG_COND_RST);
 
 	// Turn on all sensors.
 	NU_IMU_WriteReg(PWR_MGMT_2, 	0x00);
@@ -44,7 +57,7 @@ void NU_IMU_Init()
 									| 0x00);
 
 	// Set the gyroscope's LPF to 250 Hz.
-	NU_IMU_WriteReg(CONFIG, 		0x00);
+	NU_IMU_WriteReg(CONFIG, 		CONFIG_FIFO_MODE_OVERFLOW_WAIT);
 
 	// Set the sample-rate to 1 kHz.
 	NU_IMU_WriteReg(SMPLRT_DIV, 	0x00);
@@ -74,53 +87,21 @@ void NU_IMU_Init()
 	NU_IMU_WriteReg(ZA_OFFSET_L, 	0x02);
 	*/
 
-	/*
-	// From NUFSR branch:
-	// Ensure that R/W registers are set from power-up.
-    HAL_Delay(100);
-
-	// Reset the device.
-	NUfsr_IMU_Transmit(PWR_MGMT_1, 0x80, 2);
-	HAL_Delay(10);
-
-	// Turn off sleep mode.
-	NUfsr_IMU_Transmit(PWR_MGMT_1, 0x00, 2);
-
-	// Enable all axes.
-	NUfsr_IMU_Transmit(PWR_MGMT_2, 0x00, 2);
-
-	// Ensure that it is in SPI mode.
-	NUfsr_IMU_Transmit(USER_CTRL, 0x10, 2);
-
-	// Configure settings.
-	NUfsr_IMU_Transmit(CONFIG, 0x00, 2);
-
-	// Gyro Config:
-	// 0x00?
-	NUfsr_IMU_Transmit(GYRO_CONFIG, 0x08, 2);
-
-	// Accel Config:
-	// 0x00?
-	NUfsr_IMU_Transmit(ACCEL_CONFIG, 0x08, 2);
-
-	// Int config:
-	NUfsr_IMU_Transmit(INT_PIN_CFG, 0x20, 2);
-
-	// Interupt settings:
-	NUfsr_IMU_Transmit(INT_ENABLE, 0x01, 2);
-
-	// Reset the IMU interrupt status.
-	NUfsr_IMU_Transmit(INT_STATUS | IMU_READ, 0x00, 2);
-	*/
-
+	// Write all sensors' values in the FIFO.
+	NU_IMU_WriteReg(FIFO_EN, 	//FIFO_EN_TEMP_EN
+								FIFO_EN_XG_FIFO_EN //|
+								//FIFO_EN_YG_FIFO_EN |
+								//FIFO_EN_ZG_FIFO_EN |
+								//FIFO_EN_ACCEL_FIFO_EN
+	);
 }
 
 /*
- * Brief:		writes a byte to a register.
- * Note:		uses polling, should only be used for beginning.
- * Arguments:	the register's address,
- * 				the byte to be sent,
- * Returns:		none
+ * @brief		writes a byte to a register.
+ * @note		uses polling, should only be used for beginning.
+ * @param		the register's address,
+ * @param		the byte to be sent,
+ * @return		none
  */
 void NU_IMU_WriteReg(uint8_t addr, uint8_t data)
 {
@@ -132,11 +113,11 @@ void NU_IMU_WriteReg(uint8_t addr, uint8_t data)
 }
 
 /*
- * Brief:		reads a byte from a register.
- * Note:		uses polling, should only be used for testing and debugging.
- * Arguments:	the register's address,
- * 				a pointer to the byte to be read,
- * Returns:		none
+ * @brief		reads a byte from a register.
+ * @note		uses polling, should only be used for testing and debugging.
+ * @param		the register's address,
+ * @param		a pointer to the byte to be read,
+ * @return		none
  */
 void NU_IMU_ReadReg(uint8_t addr, uint8_t* data)
 {
@@ -151,39 +132,44 @@ void NU_IMU_ReadReg(uint8_t addr, uint8_t* data)
 }
 
 /*
- * Brief:		reads multiple registers in a burst.
- * Note:		Do not use yet! Burst-reading seems not to work with this particular IMU chip.
- * 				Wait for a better function using the FIFO and DMA.
- * Arguments:	an array of the registers' addresses in order to be read,
- * 				an array of the bytes to be read, the first of which is padding,
- * 				the length, i.e. the number of registers to be read,
- * Returns:		none
+ * @brief		reads multiple consecutive registers in a burst.
+ * @note		Use this as a temporary replacement of the FIFO.
+ * @param		the address of the first register to be read,
+ * @param		an array of the bytes to be read,
+ * @param		the length, i.e. the number of registers to be read,
+ * @return		none
  */
-void NU_IMU_ReadBurst(uint8_t* addrs, uint8_t* data, uint16_t length)
+void NU_IMU_ReadBurst(uint8_t addrs, uint8_t* data, uint16_t length)
 {
 	uint8_t packet[length+1];
+	uint8_t rx_data[length+1];
 
 	for (int i = 0; i < length+1; i++) {
-		data[i] = 0xAA;
-		if (i < length)
-			packet[i] = addrs[i] | IMU_READ;
+		rx_data[i] = 0xAA;
+		if (i == 0)
+			packet[i] = addrs | IMU_READ;
 		else
 			packet[i] = 0x00;
 	}
 
 	HAL_GPIO_WritePin(MPU_NSS_GPIO_Port, MPU_NSS_Pin, GPIO_PIN_RESET);
-	HAL_SPI_TransmitReceive(&hspi4, packet, data, length+1, HAL_MAX_DELAY);
+	HAL_SPI_TransmitReceive(&hspi4, packet, rx_data, length+1, HAL_MAX_DELAY);
+	//HAL_SPI_Transmit_DMA(&hspi4, packet, length+1);
+	//HAL_SPI_Receive_DMA(&hspi4, rx_data, length+1);
+	//HAL_SPI_TransmitReceive_IT(&hspi4, packet, rx_data, length+1);
 	HAL_GPIO_WritePin(MPU_NSS_GPIO_Port, MPU_NSS_Pin, GPIO_PIN_SET);
+
+	for (int i = 0; i < length; i++)
+		data[i] = rx_data[i + 1];
 }
 
 /*
- * Brief:		reads multiple registers in turns as a temporary solution.
- * Note:		Use this instead! yes, it is slow and inefficient, but it works.
- * 				Wait for a better function using the FIFO and DMA.
- * Arguments:	an array of the registers' addresses in order to be read,
- * 				an array of the bytes to be read, the first of which is padding,
- * 				the length, i.e. the number of registers to be read,
- * Returns:		none
+ * @brief		reads multiple registers in turns as a temporary solution.
+ * @note		Yes, it is slow and inefficient, but it works. This is intended as a naive back-up.
+ * @param		an array of the registers' addresses in order to be read,
+ * @param		an array of the bytes to be read, the first of which is padding,
+ * @param		the length, i.e. the number of registers to be read,
+ * @return		none
  */
 void NU_IMU_ReadSlowly(uint8_t* addrs, uint8_t* data, uint16_t length)
 {
@@ -200,13 +186,45 @@ void NU_IMU_ReadSlowly(uint8_t* addrs, uint8_t* data, uint16_t length)
 }
 
 /*
- * Brief:		converts raw integers into floating decimals.
- * Note:		accelerometer values are in g's, and gyroscope values are in dps.
- * Arguments:	the raw data to be converted from,
- * 				the converted data,
- * Returns:		none
+ * @brief		reads the fifo.
+ * @note		Does not work yet.
+ * @param		an array of the bytes to be read, the first of which is padding,
+ * @param		the length, i.e. the number of registers to be read,
+ * @return		none
  */
-void NU_IMU_ConvertRawData(struct IMURawData* raw_data, struct IMUConvertedData* converted_data) {
+void NU_IMU_ReadFifo(uint8_t* data, uint16_t length)
+{
+	uint8_t packet[length+1];
+	uint8_t rx_data[length+1];
+
+	for (int i = 0; i < length+1; i++) {
+		rx_data[i] = 0xFE;
+		if (i == 0)
+			packet[i] = FIFO_R_W | IMU_READ;
+		else
+			packet[i] = 0x00;
+	}
+
+	HAL_GPIO_WritePin(MPU_NSS_GPIO_Port, MPU_NSS_Pin, GPIO_PIN_RESET);
+	HAL_SPI_TransmitReceive(&hspi4, packet, rx_data, length+1, HAL_MAX_DELAY);
+	HAL_GPIO_WritePin(MPU_NSS_GPIO_Port, MPU_NSS_Pin, GPIO_PIN_SET);
+
+	NU_IMU_ReadReg(USER_CTRL, &rx_data[0]);
+	rx_data[0] |= USER_CTRL_FIFO_RST;
+	NU_IMU_WriteReg(USER_CTRL, rx_data[0]);
+
+	for (int i = 0; i < length; i++)
+		data[i] = rx_data[i + 1];
+}
+
+/*
+ * @brief		converts raw integers into floating decimals.
+ * @note		accelerometer values are in g's, and gyroscope values are in dps.
+ * @param		the raw data to be converted from,
+ * @param		the converted data,
+ * @return		none
+ */
+void NU_IMU_ConvertRawData(struct NU_IMU_raw_data* raw_data, struct NU_IMU_converted_data* converted_data) {
 	/*
 	converted_data->ID = raw_data->ID;
 	converted_data->accelerometer.x = (float)(raw_data->accelerometer.x)*4.0/32767.0;
@@ -218,7 +236,6 @@ void NU_IMU_ConvertRawData(struct IMURawData* raw_data, struct IMUConvertedData*
 	converted_data->gyroscope.z = (float)(raw_data->gyroscope.z)*500.0/32767.0;
 	*/
 
-	converted_data->ID = raw_data->ID;
 	converted_data->accelerometer.x = (float)(raw_data->accelerometer.x)/ACCEL_SENSITIVTY_4G;
 	converted_data->accelerometer.y = (float)(raw_data->accelerometer.y)/ACCEL_SENSITIVTY_4G;
 	converted_data->accelerometer.z = (float)(raw_data->accelerometer.z)/ACCEL_SENSITIVTY_4G;
@@ -231,11 +248,39 @@ void NU_IMU_ConvertRawData(struct IMURawData* raw_data, struct IMUConvertedData*
 }
 
 /*
- * Brief:		used for blocking to get the next byte from the IMU.
- * Note:		may not be needed strictly.
- * Arguments:	the data to be sent,
- * 				the number of bytes,
- * Returns:		none
+ * @brief		checks for the interrupt-flags for the receiving to be done.
+ * @param		none,
+ * @retval		#true if the receiving was done, i.e. something has been received,
+ * @retval		#false if nothing has not been received yet,
+ */
+bool NU_IMU_CheckForReceive() {
+	if (spi_int_flags & SPI4_RX) {
+		spi_int_flags &= ~SPI4_RX;
+		return true;
+	} else
+		return false;
+}
+
+/*
+ * @brief		checks for the interrupt-flags for the transmitting to be done.
+ * @param		none,
+ * @retval		#true if the transmitting was done,
+ * @retval		#false if not everything has been transmitted yet,
+ */
+bool NU_IMU_CheckForTransmit() {
+	if (spi_int_flags & SPI4_TX) {
+		spi_int_flags &= ~SPI4_TX;
+		return true;
+	} else
+		return false;
+}
+
+/*
+ * @brief		used for blocking to get the next byte from the IMU.
+ * @note		may not be needed strictly.
+ * @param		the data to be sent,
+ * @param		the number of bytes,
+ * @return		none
  */
 void NU_IMU_TransmitReceive_IT(uint8_t* tx_data, uint8_t* rx_data, uint16_t length)
 {
@@ -244,10 +289,10 @@ void NU_IMU_TransmitReceive_IT(uint8_t* tx_data, uint8_t* rx_data, uint16_t leng
 }
 
 /*
- * Brief:		used for blocking to get the next byte from the IMU.
- * Note:		may not be needed strictly.
- * Arguments:	the data
- * Returns:		none
+ * @brief		used for blocking to get the next byte from the IMU.
+ * @note		may not be needed strictly.
+ * @param		the data
+ * @return		none
  */
 void NU_IMU_BlockingTransmit(uint8_t* data, uint16_t length)
 {
