@@ -115,51 +115,50 @@ int main(void)
 #endif
 
 #ifdef TEST_UART
-  // This example in interrupt-mode is not the most efficient one.
-  // It freezes when it is bombarded with characters with no other delay in the main loop.
-  // This bug needs further investigation.
-  RS485 rs_link = RS485(TEST_UART);
-  char test_uart_char = 'x';
-  //UART_HandleTypeDef* p_test_huart = &huart1;
-  uint16_t test_uart_it_rx_mask = UART1_RX;
-  uint16_t test_uart_it_tx_mask = UART1_TX;
+		  // This example in interrupt-mode is not the most efficient one.
+		  // It freezes when it is bombarded with characters with no other delay in the main loop.
+		  // This bug needs further investigation.
+		  RS485 test_uart_link = RS485(TEST_UART);
+		  char test_uart_c = 'x';
+		  //UART_HandleTypeDef* p_test_huart = &huart1;
+		  uint16_t test_uart_it_rx_mask = UART1_RX;
+		  uint16_t test_uart_it_tx_mask = UART1_TX;
 #if TEST_UART == 2
-  p_test_huart = &huart2; test_uart_it_rx_mask = UART2_RX; test_uart_it_rx_mask = UART2_TX;
+	  	  p_huart = &huart2; it_rx_mask = UART2_RX; it_tx_mask = UART2_TX;
 #endif
 #if TEST_UART == 3
-  p_test_huart = &huart3; test_uart_it_rx_mask = UART3_RX; test_uart_it_rx_mask = UART3_TX;
+	  	  p_huart = &huart3; it_rx_mask = UART3_RX; it_tx_mask = UART3_TX;
 #endif
 #if TEST_UART == 4
-  p_test_huart = &huart4; test_uart_it_rx_mask = UART4_RX; test_uart_it_rx_mask = UART4_TX;
+	  	  p_huart = &huart4; it_rx_mask = UART4_RX; it_tx_mask = UART4_TX;
 #endif
 #if TEST_UART == 5
-  p_test_huart = &huart5; test_uart_it_rx_mask = UART5_RX; test_uart_it_rx_mask = UART5_TX;
+	  	  p_huart = &huart5; it_rx_mask = UART5_RX; it_tx_mask = UART5_TX;
 #endif
 #if TEST_UART == 6
-  p_test_huart = &huart6; test_uart_it_rx_mask = UART6_RX; test_uart_it_rx_mask = UART6_TX;
+	  	  p_huart = &huart6; it_rx_mask = UART6_RX; it_tx_mask = UART6_TX;
+#endif
+#endif
+
+#ifdef TEST_USB
+	  char test_usb_str_buffer[] = "NUsense = nuisance!\r\n";
+#endif
+
+#ifdef TEST_IMU
+	  int16_t test_imu_acc;
+	  uint16_t test_imu_count;
+	  uint8_t test_imu_flags;
+	  uint8_t test_imu_rx[14];
+	  struct NU_IMU_raw_data test_imu_raw_data;
+	  struct NU_IMU_converted_data test_imu_converted_data;
+	  char test_imu_str[256];
+
+	  NU_IMU_Init();
 #endif
   // Wait for the first packet.
   //RS485_Receive_IT(p_test_huart, (uint8_t*)&test_uart_char, 1);
   //RS485_Receive(p_test_huart, (uint8_t*)&test_uart_char, 1, HAL_MAX_DELAY);
-  rs_link.receive_int((uint8_t*)&test_uart_char, 1);
-#endif
-
-#ifdef TEST_USB
-  char test_usb_str_buffer[] = "NUsense = nuisance!\r\n";
-#endif
-
-#ifdef TEST_IMU
-  int16_t test_imu_acc;
-  uint16_t test_imu_count;
-  uint8_t test_imu_flags;
-  uint8_t test_imu_rx[14];
-  struct NU_IMU_raw_data test_imu_raw_data;
-  struct NU_IMU_converted_data test_imu_converted_data;
-  char test_imu_str[256];
-
-  NU_IMU_Init();
-#endif
-
+  test_uart_link.receive_int((uint8_t*)&test_uart_c, 1);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -169,11 +168,11 @@ int main(void)
 #ifdef TEST_UART
 	// Echo whatever is received on the test UART.
 	// If a packet has been received, then receive the next one.
-	if (rs_link.get_receive_flag())
-		rs_link.transmit_int((uint8_t*)&test_uart_char, 1);
+	if (test_uart_link.get_receive_flag())
+		test_uart_link.transmit_int((uint8_t*)&test_uart_c, 1);
 	// If a packet has been sent, then send the next one.
-	if (rs_link.get_transmit_flag())
-		rs_link.receive_int((uint8_t*)&test_uart_char, 1);
+	if (test_uart_link.get_transmit_flag())
+		test_uart_link.receive_int((uint8_t*)&test_uart_c, 1);
 #endif
 
 #ifdef TEST_USB
