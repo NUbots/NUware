@@ -60,7 +60,7 @@ public:
 	 * @param		the timeout in milliseconds, use HAL_MAX_DELAY for indefinite polling,
 	 * @return		the status of the UART,
 	 */
-	status receive(uint8_t* data, uint16_t length, uint32_t timeout);
+	status receive_poll(uint8_t* data, uint16_t length, uint32_t timeout);
 	/*
 	 * @brief		wraps the UART receive-function for RS485 hardware flow-control in interrupt-mode.
 	 * @note		The DXL direction pin is reset during this function.
@@ -68,7 +68,17 @@ public:
 	 * @param		the number of bytes, i.e. the length of the data,
 	 * @return		the status of the UART,
 	 */
-	status receive_int(uint8_t* data, uint16_t length);
+	status receive_it(uint8_t* data, uint16_t length);
+
+	/*
+	 * @brief		wraps the UART receive-function for RS485 hardware flow-control in dma-mode.
+	 * @note		The DXL direction pin is reset during this function.
+	 * @param		the bytes to be sent,
+	 * @param		the number of bytes, i.e. the length of the data,
+	 * @return		the status of the UART,
+	 */
+	status receive(uint8_t* data, uint16_t length);
+
 	/*
 	 * @brief		checks for the interrupt-flags for the receiving to be done.
 	 * @param		none,
@@ -84,7 +94,7 @@ public:
 	 * @param		the timeout in milliseconds, use HAL_MAX_DELAY for indefinite polling,
 	 * @return		the status of the UART,
 	 */
-	status transmit(const uint8_t* data, uint16_t length, uint32_t timeout);
+	status transmit_poll(const uint8_t* data, uint16_t length, uint32_t timeout);
 	/*
 	 * @brief		wraps the UART transmit-function for RS485 hardware flow-control in interrupt-mode.
 	 * @note		The DXL direction pin is set during this function.
@@ -92,7 +102,17 @@ public:
 	 * @param		the number of bytes, i.e. the length of the data,
 	 * @return		the status of the UART,
 	 */
-	status transmit_int(const uint8_t* data, uint16_t length);
+	status transmit_it(const uint8_t* data, uint16_t length);
+
+	/*
+	 * @brief		wraps the UART transmit-function for RS485 hardware flow-control in dma-mode.
+	 * @note		The DXL direction pin is set during this function.
+	 * @param		the bytes to be sent,
+	 * @param		the number of bytes, i.e. the length of the data,
+	 * @return		the status of the UART,
+	 */
+	status transmit(const uint8_t* data, uint16_t length);
+
 	/*
 	 * @brief		checks for the interrupt-flags for the transmitting to be done.
 	 * @param		none,
@@ -108,9 +128,9 @@ private:
 	// The GPIO pin of the direction-pin:
 	uint16_t gpio_pin;
 	// The mask for the given UART interface's interrupt for receiving:
-	uint16_t int_rx_mask;
+	uint16_t it_rx_mask;
 	// The mask for the given UART interface's interrupt for transmitting:
-	uint16_t int_tx_mask;
+	uint16_t it_tx_mask;
 };
 
 #endif /* SRC_RS485_H_ */

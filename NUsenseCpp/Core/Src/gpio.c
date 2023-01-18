@@ -49,17 +49,17 @@ void MX_GPIO_Init(void)
   __HAL_RCC_GPIOD_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(DXL_DIR4_GPIO_Port, DXL_DIR4_Pin, GPIO_PIN_SET);
+  HAL_GPIO_WritePin(DXL_DIR4_GPIO_Port, DXL_DIR4_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(MPU_NSS_GPIO_Port, MPU_NSS_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOD, DXL_DIR3_Pin|DXL_DIR1_Pin|DXL_DIR6_Pin|DXL_DIR5_Pin
-                          |DXL_DIR2_Pin, GPIO_PIN_SET);
+                          |DXL_DIR2_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOB, DXL_PWR_EN_Pin|BUZZER_SIG_Pin, GPIO_PIN_SET);
+  HAL_GPIO_WritePin(GPIOB, DXL_PWR_EN_Pin|BUZZER_SIG_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin : PtPin */
   GPIO_InitStruct.Pin = DXL_DIR4_Pin;

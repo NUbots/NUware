@@ -18,6 +18,7 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include "dma.h"
 #include "spi.h"
 #include "usart.h"
 #include "usb_device.h"
@@ -99,6 +100,7 @@ int main(void)
   MX_USART1_UART_Init();
   MX_USART2_UART_Init();
   MX_USART3_UART_Init();
+  MX_DMA_Init();
   MX_USART6_UART_Init();
   /* USER CODE BEGIN 2 */
 
@@ -120,24 +122,7 @@ int main(void)
 		  // This bug needs further investigation.
 		  RS485 test_uart_link = RS485(TEST_UART);
 		  char test_uart_c = 'x';
-		  //UART_HandleTypeDef* p_test_huart = &huart1;
-		  uint16_t test_uart_it_rx_mask = UART1_RX;
-		  uint16_t test_uart_it_tx_mask = UART1_TX;
-#if TEST_UART == 2
-	  	  p_huart = &huart2; it_rx_mask = UART2_RX; it_tx_mask = UART2_TX;
-#endif
-#if TEST_UART == 3
-	  	  p_huart = &huart3; it_rx_mask = UART3_RX; it_tx_mask = UART3_TX;
-#endif
-#if TEST_UART == 4
-	  	  p_huart = &huart4; it_rx_mask = UART4_RX; it_tx_mask = UART4_TX;
-#endif
-#if TEST_UART == 5
-	  	  p_huart = &huart5; it_rx_mask = UART5_RX; it_tx_mask = UART5_TX;
-#endif
-#if TEST_UART == 6
-	  	  p_huart = &huart6; it_rx_mask = UART6_RX; it_tx_mask = UART6_TX;
-#endif
+		  //char test_usb_str_buffer[] = "NUsense = nuisance!\r\n";
 #endif
 
 #ifdef TEST_USB
@@ -156,9 +141,7 @@ int main(void)
 	  NU_IMU_Init();
 #endif
   // Wait for the first packet.
-  //RS485_Receive_IT(p_test_huart, (uint8_t*)&test_uart_char, 1);
-  //RS485_Receive(p_test_huart, (uint8_t*)&test_uart_char, 1, HAL_MAX_DELAY);
-  test_uart_link.receive_int((uint8_t*)&test_uart_c, 1);
+  test_uart_link.receive_it((uint8_t*)&test_uart_c, 1);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -167,12 +150,13 @@ int main(void)
   {
 #ifdef TEST_UART
 	// Echo whatever is received on the test UART.
-	// If a packet has been received, then receive the next one.
-	if (test_uart_link.get_receive_flag())
-		test_uart_link.transmit_int((uint8_t*)&test_uart_c, 1);
-	// If a packet has been sent, then send the next one.
-	if (test_uart_link.get_transmit_flag())
-		test_uart_link.receive_int((uint8_t*)&test_uart_c, 1);
+	// If a packet has been received, then send back the character and receive the next one.
+	if (test_uart_link.get_receive_flag()) {
+		test_uart_link.transmit_it((uint8_t*)&test_uart_c, 1);
+		//test_uart_link.transmit((uint8_t*)test_usb_str_buffer, 21);
+		test_uart_link.receive_it((uint8_t*)&test_uart_c, 1);
+	}
+
 #endif
 
 #ifdef TEST_USB
