@@ -31,6 +31,7 @@
 #include "rs485_c.h"
 #include "RS485.h"
 #include "imu.h"
+#include "Port.h"
 
 /* USER CODE END Includes */
 
@@ -117,31 +118,40 @@ int main(void)
 #endif
 
 #ifdef TEST_UART
-		  // This example in interrupt-mode is not the most efficient one.
-		  // It freezes when it is bombarded with characters with no other delay in the main loop.
-		  // This bug needs further investigation.
-		  RS485 test_uart_link = RS485(TEST_UART);
-		  char test_uart_c = 'x';
-		  //char test_usb_str_buffer[] = "NUsense = nuisance!\r\n";
+  // This example in interrupt-mode is not the most efficient one.
+  // It freezes when it is bombarded with characters with no other delay in the
+  // main loop.
+  // This bug needs further investigation.
+  RS485 test_uart_link = RS485(TEST_UART);
+  char test_uart_c = 'x';
+  //char test_usb_str_buffer[] = "NUsense = nuisance!\r\n";
+  // Wait for the first packet.
+  test_uart_link.receive_it((uint8_t*)&test_uart_c, 1);
 #endif
 
 #ifdef TEST_USB
-	  char test_usb_str_buffer[] = "NUsense = nuisance!\r\n";
+  char test_usb_str_buffer[] = "NUsense = nuisance!\r\n";
 #endif
 
 #ifdef TEST_IMU
-	  int16_t test_imu_acc;
-	  uint16_t test_imu_count;
-	  uint8_t test_imu_flags;
-	  uint8_t test_imu_rx[14];
-	  struct NU_IMU_raw_data test_imu_raw_data;
-	  struct NU_IMU_converted_data test_imu_converted_data;
-	  char test_imu_str[256];
+  int16_t test_imu_acc;
+  uint16_t test_imu_count;
+  uint8_t test_imu_flags;
+  uint8_t test_imu_rx[14];
+  struct NU_IMU_raw_data test_imu_raw_data;
+  struct NU_IMU_converted_data test_imu_converted_data;
+  char test_imu_str[256];
 
-	  NU_IMU_Init();
+  NU_IMU_Init();
 #endif
-  // Wait for the first packet.
-  test_uart_link.receive_it((uint8_t*)&test_uart_c, 1);
+
+#ifdef TEST_PORT
+  //char test_port_str_buffer[] = "NUsense = nuisance!\r\n";
+  char test_port_str_buffer[64];
+  int16_t test_port_byte = 0xAA;
+  Port test_port(1);
+  test_port.begin_rx();
+#endif
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -150,7 +160,8 @@ int main(void)
   {
 #ifdef TEST_UART
 	// Echo whatever is received on the test UART.
-	// If a packet has been received, then send back the character and receive the next one.
+	// If a packet has been received, then send back the character and receive
+	// the next one.
 	if (test_uart_link.get_receive_flag()) {
 		test_uart_link.transmit_it((uint8_t*)&test_uart_c, 1);
 		//test_uart_link.transmit((uint8_t*)test_usb_str_buffer, 21);
@@ -205,6 +216,19 @@ int main(void)
 	CDC_Transmit_HS((uint8_t*)test_imu_str, strlen(test_imu_str));
 
 	HAL_Delay(100);
+#endif
+
+#ifdef TEST_PORT
+	test_port_byte = test_port.read();
+	if (test_port_byte != NO_BYTE_READ) {
+		sprintf(test_port_str_buffer, "NUsense = nuisance! %c\r\n", (uint8_t)test_port_byte);
+		test_port.write((uint8_t*)test_port_str_buffer, strlen(test_port_str_buffer));
+	}
+	// Always check both interrupts at the end of the context in which one is
+	// using this class.
+	test_port.check_rx();
+	test_port.check_tx();
+	HAL_Delay(1);
 #endif
     /* USER CODE END WHILE */
 
