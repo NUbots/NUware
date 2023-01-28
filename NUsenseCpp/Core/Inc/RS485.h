@@ -5,7 +5,7 @@
  *      Author: Clayton
  */
 
-#include "main.h" 		// needed for the GPIO labels,
+#include "main.h" 		// needed for the GPIO labels and explicit types,
 #include "usart.h" 		// needed for UART handles,
 #include "settings.h" 	// needed for buzz during test,
 #include "gpio.h"
