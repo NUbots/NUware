@@ -712,6 +712,7 @@ void HAL_UART_MspDeInit(UART_HandleTypeDef* uartHandle)
  * @param		the handle for the interrupted UART,
  * @return		nothing
  */
+///*
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef* handle) {
 	if (handle == &huart1) uart_it_flags |= UART1_RX;
 	else if (handle == &huart2) uart_it_flags |= UART2_RX;
@@ -728,5 +729,6 @@ void HAL_UART_TxCpltCallback(UART_HandleTypeDef* handle) {
 	else if (handle == &huart5) uart_it_flags |= UART5_TX;
 	else if (handle == &huart6) uart_it_flags |= UART6_TX;
 }
+//*/
 
 /* USER CODE END 1 */

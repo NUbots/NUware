@@ -10,13 +10,15 @@
 #ifndef INC_SETTINGS_H_
 #define INC_SETTINGS_H_
 
-#define FIRST_BUZZ
+//#define FIRST_BUZZ
 //#define DXL_PWR
 
-#define TEST_UART 1
+//#define TEST_UART 1
 
 //#define TEST_USB
 
 //#define TEST_IMU
+
+#define TEST_PORT
 
 #endif /* INC_SETTINGS_H_ */
