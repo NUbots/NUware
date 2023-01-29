@@ -13,12 +13,12 @@
 //#define FIRST_BUZZ
 //#define DXL_PWR
 
-//#define TEST_UART 1
+#define TEST_UART 1
 
 //#define TEST_USB
 
 //#define TEST_IMU
 
-#define TEST_PORT
+//#define TEST_PORT
 
 #endif /* INC_SETTINGS_H_ */

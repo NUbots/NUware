@@ -90,9 +90,18 @@ int main(void)
 
   /* USER CODE BEGIN SysInit */
 
+  /* NOTE: make sure that MX_DMA_Init is called before everything else. CubeMX
+   * has a strange habit of doing things in the wrong order. This is a known
+   * bug, that has not been updated strangely enough in version 6.6.0. It
+   * should not matter too much anyway; CubeMX should not change the order here
+   * given that it also has another strange habit of ignoring main.cpp and
+   * creating and overwriting main.c instead despite CubeIDE knowing that this
+   * is a C++ project! Oh CubeMX ...
+   */
   /* USER CODE END SysInit */
 
   /* Initialize all configured peripherals */
+  MX_DMA_Init();
   MX_GPIO_Init();
   MX_USB_DEVICE_Init();
   MX_SPI4_Init();
@@ -101,7 +110,6 @@ int main(void)
   MX_USART1_UART_Init();
   MX_USART2_UART_Init();
   MX_USART3_UART_Init();
-  MX_DMA_Init();
   MX_USART6_UART_Init();
   /* USER CODE BEGIN 2 */
 
@@ -118,15 +126,16 @@ int main(void)
 #endif
 
 #ifdef TEST_UART
-  // This example in interrupt-mode is not the most efficient one.
-  // It freezes when it is bombarded with characters with no other delay in the
-  // main loop.
-  // This bug needs further investigation.
+  /* This example in interrupt-mode is not the most efficient one. It freezes
+   * when it is bombarded with characters with no other delay in the main loop.
+   * This bug needs further investigation.
+   * Update: I think that this has been fixed now that DMA is working although
+   * it is safer to keep an eye out for it.
+   */
   RS485 test_uart_link = RS485(TEST_UART);
   char test_uart_c = 'x';
-  //char test_usb_str_buffer[] = "NUsense = nuisance!\r\n";
   // Wait for the first packet.
-  test_uart_link.receive_it((uint8_t*)&test_uart_c, 1);
+  test_uart_link.receive((uint8_t*)&test_uart_c, 1);
 #endif
 
 #ifdef TEST_USB
@@ -163,9 +172,8 @@ int main(void)
 	// If a packet has been received, then send back the character and receive
 	// the next one.
 	if (test_uart_link.get_receive_flag()) {
-		test_uart_link.transmit_it((uint8_t*)&test_uart_c, 1);
-		//test_uart_link.transmit((uint8_t*)test_usb_str_buffer, 21);
-		test_uart_link.receive_it((uint8_t*)&test_uart_c, 1);
+		test_uart_link.transmit((uint8_t*)&test_uart_c, 1);
+		test_uart_link.receive((uint8_t*)&test_uart_c, 1);
 	}
 
 #endif

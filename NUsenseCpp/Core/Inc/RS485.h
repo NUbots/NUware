@@ -53,16 +53,19 @@ public:
 	 */
 	virtual ~RS485();
 	/*
-	 * @brief		wraps the UART receive-function for RS485 hardware flow-control in polling-mode.
+	 * @brief		wraps the UART receive-function for RS485 hardware
+	 * 				flow-control in polling-mode.
 	 * @note		The DXL direction pin is reset during this function.
 	 * @param		the bytes to be sent,
 	 * @param		the number of bytes, i.e. the length of the data,
-	 * @param		the timeout in milliseconds, use HAL_MAX_DELAY for indefinite polling,
+	 * @param		the timeout in milliseconds, use HAL_MAX_DELAY for
+	 * 				indefinite polling,
 	 * @return		the status of the UART,
 	 */
 	status receive_poll(uint8_t* data, uint16_t length, uint32_t timeout);
 	/*
-	 * @brief		wraps the UART receive-function for RS485 hardware flow-control in interrupt-mode.
+	 * @brief		wraps the UART receive-function for RS485 hardware
+	 * 				flow-control in interrupt-mode.
 	 * @note		The DXL direction pin is reset during this function.
 	 * @param		the bytes to be sent,
 	 * @param		the number of bytes, i.e. the length of the data,
@@ -71,7 +74,8 @@ public:
 	status receive_it(uint8_t* data, uint16_t length);
 
 	/*
-	 * @brief		wraps the UART receive-function for RS485 hardware flow-control in dma-mode.
+	 * @brief		wraps the UART receive-function for RS485 hardware
+	 * 				flow-control in dma-mode.
 	 * @note		The DXL direction pin is reset during this function.
 	 * @param		the bytes to be sent,
 	 * @param		the number of bytes, i.e. the length of the data,
@@ -82,21 +86,25 @@ public:
 	/*
 	 * @brief		checks for the interrupt-flags for the receiving to be done.
 	 * @param		none,
-	 * @retval		#true if the receiving was done, i.e. something has been received,
+	 * @retval		#true if the receiving was done, i.e. something has been
+	 * 				received,
 	 * @retval		#false if nothing has not been received yet,
 	 */
 	bool get_receive_flag();
 	/*
-	 * @brief		wraps the UART transmit-function for RS485 hardware flow-control in polling-mode.
+	 * @brief		wraps the UART transmit-function for RS485 hardware
+	 * 				flow-control in polling-mode.
 	 * @note		The DXL direction pin is set during this function.
 	 * @param		the bytes to be sent,
 	 * @param		the number of bytes, i.e. the length of the data,
-	 * @param		the timeout in milliseconds, use HAL_MAX_DELAY for indefinite polling,
+	 * @param		the timeout in milliseconds, use HAL_MAX_DELAY for
+	 * 				indefinite polling,
 	 * @return		the status of the UART,
 	 */
 	status transmit_poll(const uint8_t* data, uint16_t length, uint32_t timeout);
 	/*
-	 * @brief		wraps the UART transmit-function for RS485 hardware flow-control in interrupt-mode.
+	 * @brief		wraps the UART transmit-function for RS485 hardware
+	 * 				flow-control in interrupt-mode.
 	 * @note		The DXL direction pin is set during this function.
 	 * @param		the bytes to be sent,
 	 * @param		the number of bytes, i.e. the length of the data,
@@ -105,8 +113,11 @@ public:
 	status transmit_it(const uint8_t* data, uint16_t length);
 
 	/*
-	 * @brief		wraps the UART transmit-function for RS485 hardware flow-control in dma-mode.
+	 * @brief		wraps the UART transmit-function for RS485 hardware
+	 * 				flow-control in dma-mode.
 	 * @note		The DXL direction pin is set during this function.
+	 * @note		This should be used more preferably now that the bug has
+	 * 				been fixed.
 	 * @param		the bytes to be sent,
 	 * @param		the number of bytes, i.e. the length of the data,
 	 * @return		the status of the UART,
@@ -114,7 +125,8 @@ public:
 	status transmit(const uint8_t* data, uint16_t length);
 
 	/*
-	 * @brief		checks for the interrupt-flags for the transmitting to be done.
+	 * @brief		checks for the interrupt-flags for the transmitting to be
+	 * 				done.
 	 * @param		none,
 	 * @retval		#true if the transmitting was done,
 	 * @retval		#false if not everything has been transmitted yet,
