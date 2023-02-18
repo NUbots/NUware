@@ -74,7 +74,7 @@ uint16_t Port::read() {
 	// If there is no byte to read, then return 0xFF as a value two bytes long
 	// to not be confused with a received byte.
 	if (!get_available_rx())
-		return 0xFF;
+		return 0xFFFF;
 #ifdef USE_QUEUE_CLASS
 	// Read from the front of the buffer
 	read_byte = rx_buffer.front();
@@ -98,12 +98,23 @@ void Port::flush_rx() {
 
 uint8_t Port::begin_rx() {
 	// Begin the receival of a byte only if there is no transmission.
-	if (comm_state != TX_BUSY) {
+	/*if (comm_state == TX_DONE) {
 		comm_state = RX_IDLE;
-		return (uint8_t)rs_link.receive_it(&received_byte, 1);
+		return (uint8_t)rs_link.receive(&received_byte, 1);
 	}
 	else
+		return 0xFF;*/
+	switch (comm_state) {
+	case TX_DONE:
+		comm_state = RX_IDLE;
+		HAL_GPIO_WritePin(SPARE1_GPIO_Port, SPARE1_Pin, GPIO_PIN_SET);
+		return (uint8_t)rs_link.receive(&received_byte, 1);
+	case RX_IDLE:
+		return 0xFE;
+	case TX_BUSY:
+	default:
 		return 0xFF;
+	}
 }
 
 void Port::handle_rx() {
@@ -117,6 +128,8 @@ void Port::handle_rx() {
 		rx_buffer.push(received_byte);
 	}
 #endif
+	// Reset the comm-state to trigger another receival.
+	comm_state = TX_DONE;
 	// Begin the receiving again for the next byte.
 	// Even if the buffer is full, one would still want to receive the next
 	// byte in case that the buffer frees up until then.
@@ -189,7 +202,7 @@ uint8_t Port::begin_tx() {
 			: PORT_BUFFER_SIZE - tx_buffer.front;
 	// If there is an error, etc., then set the number of bytes to zero to say
 	// than none have been sent.
-	status = rs_link.transmit_it(&tx_buffer.data[tx_buffer.front], num_bytes_tx);
+	status = rs_link.transmit(&tx_buffer.data[tx_buffer.front], num_bytes_tx);
 	if (RS485::RS485_OK != status) {
 		num_bytes_tx = 0;
 		comm_state = TX_DONE;
@@ -237,11 +250,20 @@ void Port::handle_tx() {
 	 * in their code. But it should not hurt to listen for bytes in the
 	 * meantime whilst there is no transmission. It does however make TX_DONE
 	 * useless as a state. May change this functionality later.
+	 *
+	 * Addendum:
+	 * Actually, I think that this is better. My intention is to have the UART
+	 * interface always receiving, i.e. 'listening', and transmitting
+	 * simultaneously when need be. The RS485 link is half-duplex but the
+	 * microcontroller's UART interface is still full-duplex. So, there is no
+	 * reason not to exploit that and have the UART interface perpetually
+	 * receiving but
 	 */
 	else {
 		num_bytes_tx = 0;
+		//comm_state = RX_IDLE;
 		comm_state = TX_DONE;
-		begin_rx();
+		//begin_rx();
 	}
 #endif
 }

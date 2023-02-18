@@ -13,6 +13,8 @@
 #ifndef SRC_RS485_H_
 #define SRC_RS485_H_
 
+//#define DETECT_IDLE_LINE
+
 #define RS485_RX GPIO_PIN_RESET
 #define RS485_TX GPIO_PIN_SET
 
@@ -127,6 +129,8 @@ public:
 	/*
 	 * @brief		checks for the interrupt-flags for the transmitting to be
 	 * 				done.
+	 * @note		The DXL direction pin is reset during this function if the
+	 * 				flag has been set by the interrupt.
 	 * @param		none,
 	 * @retval		#true if the transmitting was done,
 	 * @retval		#false if not everything has been transmitted yet,
@@ -135,6 +139,8 @@ public:
 private:
 	// The handle of the corresponding UART interface:
 	UART_HandleTypeDef* huart;
+	// The handles of the corresponding DMA interfaces:
+	DMA_HandleTypeDef* hdma_rx, * hdma_tx;
 	// The GPIO port of the direction-pin:
 	GPIO_TypeDef* gpio_port;
 	// The GPIO pin of the direction-pin:

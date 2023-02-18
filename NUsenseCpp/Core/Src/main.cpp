@@ -58,6 +58,8 @@
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 /* USER CODE BEGIN PFP */
+uint8_t calculate_checksum(uint8_t*, uint8_t);
+uint16_t update_crc(uint16_t, uint8_t*, uint16_t);
 
 /* USER CODE END PFP */
 
@@ -113,6 +115,8 @@ int main(void)
   MX_USART6_UART_Init();
   /* USER CODE BEGIN 2 */
 
+  HAL_GPIO_WritePin(SPARE1_GPIO_Port, SPARE1_Pin, GPIO_PIN_RESET);
+
 #ifdef FIRST_BUZZ
   //Confirm that the programme is running.
   HAL_GPIO_WritePin(BUZZER_SIG_GPIO_Port, BUZZER_SIG_Pin, GPIO_PIN_SET);
@@ -132,6 +136,7 @@ int main(void)
    * Update: I think that this has been fixed now that DMA is working although
    * it is safer to keep an eye out for it.
    */
+  char test_uart_str_buffer[] = "NUsense = nuisance!\r\n";
   RS485 test_uart_link = RS485(TEST_UART);
   char test_uart_c = 'x';
   // Wait for the first packet.
@@ -155,11 +160,62 @@ int main(void)
 #endif
 
 #ifdef TEST_PORT
-  //char test_port_str_buffer[] = "NUsense = nuisance!\r\n";
   char test_port_str_buffer[64];
   int16_t test_port_byte = 0xAA;
   Port test_port(1);
   test_port.begin_rx();
+#endif
+
+#ifdef TEST_MOTOR
+#if TEST_MOTOR == 1
+  RS485 test_motor_rs_link(1);
+  uint8_t test_motor_inst_packet[] = {
+		  0xFF, 0xFF, 	// header
+		  0x01,			// ID
+		  0x04,			// packet's length
+		  0x03,			// instruction
+		  0x19,			// address of data
+		  0x01,			// data to be written
+		  0xFF			// checksum
+  };
+  test_motor_inst_packet[7] = calculate_checksum(&test_motor_inst_packet[2], 5);
+  uint8_t test_motor_sts_packet[6+3];
+  test_motor_rs_link.transmit(test_motor_inst_packet, 8);
+#else
+  /* Please mind that a lot of this code is very bare-bones. We will need a
+   * proper protocol-handler later.
+   */
+  RS485 test_motor_rs_link(1);
+  uint16_t test_motor_crc_value;
+  uint8_t test_motor_sts_packet[11];
+  // Write to the indirect address first to map to the LED.
+  uint8_t test_motor_inst_packet[14] = {
+		  0xFF, 0xFF, 0xFD,	// header
+		  0x00,				// reserved
+		  0x01,				// ID
+		  0x07, 0x00,		// packet's length
+		  0x03,				// instruction
+		  0xA8, 0x00,		// address of data
+		  0x41,	0x00,		// data to be written
+		  0xFF, 0xFF		// CRC
+  };
+  test_motor_crc_value = update_crc(0, test_motor_inst_packet, 5+7);
+  test_motor_inst_packet[12] = (uint8_t)(test_motor_crc_value & 0x00FF);
+  test_motor_inst_packet[13] = (uint8_t)((test_motor_crc_value & 0xFF00) >> 8);
+  test_motor_rs_link.transmit(test_motor_inst_packet, 14);
+  while (!test_motor_rs_link.get_transmit_flag());
+  // Wait for the status-packet so that it can be read in the debugger.
+  test_motor_rs_link.receive(test_motor_sts_packet, 11);
+  while (!test_motor_rs_link.get_receive_flag());
+  // Write to the LED.
+  test_motor_inst_packet[5] = 0x06;
+  test_motor_inst_packet[8] = 0xE0;
+  test_motor_inst_packet[10] = 0x01;
+  test_motor_crc_value = update_crc(0, test_motor_inst_packet, 5+6);
+  test_motor_inst_packet[11] = (uint8_t)(test_motor_crc_value & 0x00FF);
+  test_motor_inst_packet[12] = (uint8_t)((test_motor_crc_value & 0xFF00) >> 8);
+  test_motor_rs_link.transmit(test_motor_inst_packet, 13);
+#endif
 #endif
   /* USER CODE END 2 */
 
@@ -175,6 +231,8 @@ int main(void)
 		test_uart_link.transmit((uint8_t*)&test_uart_c, 1);
 		test_uart_link.receive((uint8_t*)&test_uart_c, 1);
 	}
+	if (test_uart_link.get_transmit_flag())
+		test_uart_link.transmit((uint8_t*)&test_uart_str_buffer, strlen(test_uart_str_buffer));
 
 #endif
 
@@ -232,11 +290,43 @@ int main(void)
 		sprintf(test_port_str_buffer, "NUsense = nuisance! %c\r\n", (uint8_t)test_port_byte);
 		test_port.write((uint8_t*)test_port_str_buffer, strlen(test_port_str_buffer));
 	}
+	//test_port.write((uint8_t*)test_port_str_buffer, strlen(test_port_str_buffer));
 	// Always check both interrupts at the end of the context in which one is
 	// using this class.
 	test_port.check_rx();
 	test_port.check_tx();
-	HAL_Delay(1);
+	//HAL_Delay(1);
+#endif
+
+#ifdef TEST_MOTOR
+#if TEST_MOTOR == 1
+	// Version 1.0
+	if (test_motor_rs_link.get_transmit_flag())
+		test_motor_rs_link.receive(test_motor_sts_packet, 6);
+
+	if (test_motor_rs_link.get_receive_flag()) {
+		test_motor_inst_packet[6] ^= 0x01;
+		test_motor_inst_packet[7] = calculate_checksum(&test_motor_inst_packet[2], 5);
+		HAL_Delay(500);
+		test_motor_rs_link.transmit(test_motor_inst_packet, 8);
+	}
+#else
+	// Version 2.0
+	if (test_motor_rs_link.get_transmit_flag())
+		test_motor_rs_link.receive(test_motor_sts_packet, 11);
+
+	if (test_motor_rs_link.get_receive_flag()) {
+		// Toggle the state of the LED.
+		test_motor_inst_packet[10] ^= 0x01;
+		// Recalculate the CRC.
+		test_motor_crc_value = update_crc(0, test_motor_inst_packet, 5+6);
+	    test_motor_inst_packet[11] = (uint8_t)(test_motor_crc_value & 0x00FF);
+	    test_motor_inst_packet[12] = (uint8_t)((test_motor_crc_value & 0xFF00) >> 8);
+	    // Wait for a bit to set the blinking frequency of the LED.
+		HAL_Delay(500);
+		test_motor_rs_link.transmit(test_motor_inst_packet, 13);
+	}
+#endif
 #endif
     /* USER CODE END WHILE */
 
@@ -297,6 +387,60 @@ void SystemClock_Config(void)
 }
 
 /* USER CODE BEGIN 4 */
+
+uint8_t calculate_checksum(uint8_t* data, uint8_t length) {
+	uint8_t checksum = 0;
+	for (int i = 0; i < length; i++)
+		checksum += data[i];
+	return ~checksum;
+}
+
+uint16_t update_crc(uint16_t crc_accum, uint8_t* data_blk_ptr, uint16_t data_blk_size)
+{
+	uint16_t i, j;
+	uint16_t crc_table[256] = {
+        0x0000, 0x8005, 0x800F, 0x000A, 0x801B, 0x001E, 0x0014, 0x8011,
+        0x8033, 0x0036, 0x003C, 0x8039, 0x0028, 0x802D, 0x8027, 0x0022,
+        0x8063, 0x0066, 0x006C, 0x8069, 0x0078, 0x807D, 0x8077, 0x0072,
+        0x0050, 0x8055, 0x805F, 0x005A, 0x804B, 0x004E, 0x0044, 0x8041,
+        0x80C3, 0x00C6, 0x00CC, 0x80C9, 0x00D8, 0x80DD, 0x80D7, 0x00D2,
+        0x00F0, 0x80F5, 0x80FF, 0x00FA, 0x80EB, 0x00EE, 0x00E4, 0x80E1,
+        0x00A0, 0x80A5, 0x80AF, 0x00AA, 0x80BB, 0x00BE, 0x00B4, 0x80B1,
+        0x8093, 0x0096, 0x009C, 0x8099, 0x0088, 0x808D, 0x8087, 0x0082,
+        0x8183, 0x0186, 0x018C, 0x8189, 0x0198, 0x819D, 0x8197, 0x0192,
+        0x01B0, 0x81B5, 0x81BF, 0x01BA, 0x81AB, 0x01AE, 0x01A4, 0x81A1,
+        0x01E0, 0x81E5, 0x81EF, 0x01EA, 0x81FB, 0x01FE, 0x01F4, 0x81F1,
+        0x81D3, 0x01D6, 0x01DC, 0x81D9, 0x01C8, 0x81CD, 0x81C7, 0x01C2,
+        0x0140, 0x8145, 0x814F, 0x014A, 0x815B, 0x015E, 0x0154, 0x8151,
+        0x8173, 0x0176, 0x017C, 0x8179, 0x0168, 0x816D, 0x8167, 0x0162,
+        0x8123, 0x0126, 0x012C, 0x8129, 0x0138, 0x813D, 0x8137, 0x0132,
+        0x0110, 0x8115, 0x811F, 0x011A, 0x810B, 0x010E, 0x0104, 0x8101,
+        0x8303, 0x0306, 0x030C, 0x8309, 0x0318, 0x831D, 0x8317, 0x0312,
+        0x0330, 0x8335, 0x833F, 0x033A, 0x832B, 0x032E, 0x0324, 0x8321,
+        0x0360, 0x8365, 0x836F, 0x036A, 0x837B, 0x037E, 0x0374, 0x8371,
+        0x8353, 0x0356, 0x035C, 0x8359, 0x0348, 0x834D, 0x8347, 0x0342,
+        0x03C0, 0x83C5, 0x83CF, 0x03CA, 0x83DB, 0x03DE, 0x03D4, 0x83D1,
+        0x83F3, 0x03F6, 0x03FC, 0x83F9, 0x03E8, 0x83ED, 0x83E7, 0x03E2,
+        0x83A3, 0x03A6, 0x03AC, 0x83A9, 0x03B8, 0x83BD, 0x83B7, 0x03B2,
+        0x0390, 0x8395, 0x839F, 0x039A, 0x838B, 0x038E, 0x0384, 0x8381,
+        0x0280, 0x8285, 0x828F, 0x028A, 0x829B, 0x029E, 0x0294, 0x8291,
+        0x82B3, 0x02B6, 0x02BC, 0x82B9, 0x02A8, 0x82AD, 0x82A7, 0x02A2,
+        0x82E3, 0x02E6, 0x02EC, 0x82E9, 0x02F8, 0x82FD, 0x82F7, 0x02F2,
+        0x02D0, 0x82D5, 0x82DF, 0x02DA, 0x82CB, 0x02CE, 0x02C4, 0x82C1,
+        0x8243, 0x0246, 0x024C, 0x8249, 0x0258, 0x825D, 0x8257, 0x0252,
+        0x0270, 0x8275, 0x827F, 0x027A, 0x826B, 0x026E, 0x0264, 0x8261,
+        0x0220, 0x8225, 0x822F, 0x022A, 0x823B, 0x023E, 0x0234, 0x8231,
+        0x8213, 0x0216, 0x021C, 0x8219, 0x0208, 0x820D, 0x8207, 0x0202
+    };
+
+    for(j = 0; j < data_blk_size; j++)
+    {
+        i = ((uint16_t)(crc_accum >> 8) ^ data_blk_ptr[j]) & 0xFF;
+        crc_accum = (crc_accum << 8) ^ crc_table[i];
+    }
+
+    return crc_accum;
+}
 
 /* USER CODE END 4 */
 

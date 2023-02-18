@@ -9,16 +9,18 @@
 #include "RS485.h"		// needed for the RS485 interface
 #include <deque>
 #include <vector>
+#include "main.h"		// only used for GPIO labels for debugging
 
 #ifndef SRC_PORT_H_
 #define SRC_PORT_H_
 
 //#define USE_QUEUE_CLASS
 //#define SEE_STATISTICS
+//#define USE_DMA_RX_BUFFER
 
 #define PORT_BUFFER_SIZE 	2048
 
-#define NO_BYTE_READ		0xFF
+#define NO_BYTE_READ		0xFFFF
 
 class Port {
 private:
@@ -87,8 +89,15 @@ private:
 		}
 
 	};
-	// @brief	The buffers for RX and TX,
-	RingBuffer rx_buffer, tx_buffer;
+	// @brief	The buffer for TX,
+	RingBuffer tx_buffer;
+#ifdef USE_DMA_RX_BUFFER
+	// @brief	The buffer for RX,
+	RingBuffer rx_buffer;
+#else
+	// @brief	The buffer for RX,
+	RingBuffer rx_buffer;
+#endif
 #endif
 	// @brief 	The number of bytes just transmitted,
 	volatile uint16_t num_bytes_tx;
@@ -159,7 +168,7 @@ public:
 	 * 				byte received so far.
 	 * @param		none,
 	 * @return		the next byte,
-	 * @retval		#0xFF if there is no byte to read,
+	 * @retval		#0xFFFF if there is no byte to read,
 	 */
 	uint16_t read();
 	/**
@@ -174,6 +183,10 @@ public:
 	 * 				read the port.
 	 * @param		none.
 	 * @return		the status,
+	 * @retval		#0xFE if the port is already in receiving, i.e. the RX_IDLE
+	 * 				state,
+	 * 				#0xFF if the port is busy transmitting, i.e. the TX_BUSY
+	 * 				state,
 	 */
 	uint8_t begin_rx();
 	/**

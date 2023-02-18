@@ -21,9 +21,6 @@
 #include "usart.h"
 
 /* USER CODE BEGIN 0 */
-// Higher-level interrupt flags for easier set-up.
-// Maybe be neater to have it as a static variable with a getter.
-volatile uint16_t uart_it_flags;
 
 /* USER CODE END 0 */
 
@@ -920,30 +917,5 @@ void HAL_UART_MspDeInit(UART_HandleTypeDef* uartHandle)
 }
 
 /* USER CODE BEGIN 1 */
-
-/* Callback functions for the UARTs.
- *
- * @brief 		sets the appropriate flag based on the interrupted UART.
- * @param		the handle for the interrupted UART,
- * @return		nothing
- */
-///*
-void HAL_UART_RxCpltCallback(UART_HandleTypeDef* handle) {
-	if 		(handle == &huart1) uart_it_flags |= UART1_RX;
-	else if (handle == &huart2) uart_it_flags |= UART2_RX;
-	else if (handle == &huart3) uart_it_flags |= UART3_RX;
-	else if (handle == &huart4) uart_it_flags |= UART4_RX;
-	else if (handle == &huart5) uart_it_flags |= UART5_RX;
-	else if (handle == &huart6) uart_it_flags |= UART6_RX;
-}
-void HAL_UART_TxCpltCallback(UART_HandleTypeDef* handle) {
-	if 		(handle == &huart1) uart_it_flags |= UART1_TX;
-	else if (handle == &huart2) uart_it_flags |= UART2_TX;
-	else if (handle == &huart3) uart_it_flags |= UART3_TX;
-	else if (handle == &huart4) uart_it_flags |= UART4_TX;
-	else if (handle == &huart5) uart_it_flags |= UART5_TX;
-	else if (handle == &huart6) uart_it_flags |= UART6_TX;
-}
-//*/
 
 /* USER CODE END 1 */

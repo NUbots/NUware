@@ -76,6 +76,8 @@ void Error_Handler(void);
 #define DXL_DIR1_GPIO_Port GPIOD
 #define DXL_DIR6_Pin GPIO_PIN_15
 #define DXL_DIR6_GPIO_Port GPIOD
+#define SPARE1_Pin GPIO_PIN_0
+#define SPARE1_GPIO_Port GPIOD
 #define DXL_DIR5_Pin GPIO_PIN_1
 #define DXL_DIR5_GPIO_Port GPIOD
 #define DXL_DIR2_Pin GPIO_PIN_4
