@@ -136,40 +136,40 @@ int main(void)
    * Update: I think that this has been fixed now that DMA is working although
    * it is safer to keep an eye out for it.
    */
-  char test_uart_str_buffer[] = "NUsense = nuisance!\r\n";
-  RS485 test_uart_link = RS485(TEST_UART);
-  char test_uart_c = 'x';
+  char str_buffer[] = "NUsense = nuisance!\r\n";
+  RS485 link = RS485(TEST_UART);
+  char c = 'x';
   // Wait for the first packet.
-  test_uart_link.receive((uint8_t*)&test_uart_c, 1);
+  link.receive((uint8_t*)&c, 1);
 #endif
 
 #ifdef TEST_USB
-  char test_usb_str_buffer[] = "NUsense = nuisance!\r\n";
+  char str_buffer[] = "NUsense = nuisance!\r\n";
 #endif
 
 #ifdef TEST_IMU
-  int16_t test_imu_acc;
-  uint16_t test_imu_count;
-  uint8_t test_imu_flags;
-  uint8_t test_imu_rx[14];
-  struct NU_IMU_raw_data test_imu_raw_data;
-  struct NU_IMU_converted_data test_imu_converted_data;
-  char test_imu_str[256];
+  int16_t acc;
+  uint16_t count;
+  uint8_t flags;
+  uint8_t rx[14];
+  struct NU_IMU_raw_data raw_data;
+  struct NU_IMU_converted_data converted_data;
+  char str[256];
 
   NU_IMU_Init();
 #endif
 
 #ifdef TEST_PORT
-  char test_port_str_buffer[64];
-  int16_t test_port_byte = 0xAA;
-  Port test_port(1);
-  test_port.begin_rx();
+  char str_buffer[64];
+  int16_t byte = 0xAA;
+  Port port(1);
+  port.begin_rx();
 #endif
 
 #ifdef TEST_MOTOR
 #if TEST_MOTOR == 1
-  RS485 test_motor_rs_link(1);
-  uint8_t test_motor_inst_packet[] = {
+  RS485 rs_link(1);
+  uint8_t inst_packet[] = {
 		  0xFF, 0xFF, 	// header
 		  0x01,			// ID
 		  0x04,			// packet's length
@@ -178,18 +178,18 @@ int main(void)
 		  0x01,			// data to be written
 		  0xFF			// checksum
   };
-  test_motor_inst_packet[7] = calculate_checksum(&test_motor_inst_packet[2], 5);
-  uint8_t test_motor_sts_packet[6+3];
-  test_motor_rs_link.transmit(test_motor_inst_packet, 8);
+  inst_packet[7] = calculate_checksum(&inst_packet[2], 5);
+  uint8_t sts_packet[6+3];
+  rs_link.transmit(inst_packet, 8);
 #else
   /* Please mind that a lot of this code is very bare-bones. We will need a
    * proper protocol-handler later.
    */
-  RS485 test_motor_rs_link(1);
-  uint16_t test_motor_crc_value;
-  uint8_t test_motor_sts_packet[11];
+  RS485 rs_link(1);
+  uint16_t crc_value;
+  uint8_t sts_packet[11];
   // Write to the indirect address first to map to the LED.
-  uint8_t test_motor_inst_packet[14] = {
+  uint8_t inst_packet[14] = {
 		  0xFF, 0xFF, 0xFD,	// header
 		  0x00,				// reserved
 		  0x01,				// ID
@@ -199,22 +199,22 @@ int main(void)
 		  0x41,	0x00,		// data to be written
 		  0xFF, 0xFF		// CRC
   };
-  test_motor_crc_value = update_crc(0, test_motor_inst_packet, 5+7);
-  test_motor_inst_packet[12] = (uint8_t)(test_motor_crc_value & 0x00FF);
-  test_motor_inst_packet[13] = (uint8_t)((test_motor_crc_value & 0xFF00) >> 8);
-  test_motor_rs_link.transmit(test_motor_inst_packet, 14);
-  while (!test_motor_rs_link.get_transmit_flag());
+  crc_value = update_crc(0, inst_packet, 5+7);
+  inst_packet[12] = (uint8_t)(crc_value & 0x00FF);
+  inst_packet[13] = (uint8_t)((crc_value & 0xFF00) >> 8);
+  rs_link.transmit(inst_packet, 14);
+  while (!rs_link.get_transmit_flag());
   // Wait for the status-packet so that it can be read in the debugger.
-  test_motor_rs_link.receive(test_motor_sts_packet, 11);
-  while (!test_motor_rs_link.get_receive_flag());
+  rs_link.receive(sts_packet, 11);
+  while (!rs_link.get_receive_flag());
   // Write to the LED.
-  test_motor_inst_packet[5] = 0x06;
-  test_motor_inst_packet[8] = 0xE0;
-  test_motor_inst_packet[10] = 0x01;
-  test_motor_crc_value = update_crc(0, test_motor_inst_packet, 5+6);
-  test_motor_inst_packet[11] = (uint8_t)(test_motor_crc_value & 0x00FF);
-  test_motor_inst_packet[12] = (uint8_t)((test_motor_crc_value & 0xFF00) >> 8);
-  test_motor_rs_link.transmit(test_motor_inst_packet, 13);
+  inst_packet[5] = 0x06;
+  inst_packet[8] = 0xE0;
+  inst_packet[10] = 0x01;
+  crc_value = update_crc(0, inst_packet, 5+6);
+  inst_packet[11] = (uint8_t)(crc_value & 0x00FF);
+  inst_packet[12] = (uint8_t)((crc_value & 0xFF00) >> 8);
+  rs_link.transmit(inst_packet, 13);
 #endif
 #endif
   /* USER CODE END 2 */
@@ -227,104 +227,104 @@ int main(void)
 	// Echo whatever is received on the test UART.
 	// If a packet has been received, then send back the character and receive
 	// the next one.
-	if (test_uart_link.get_receive_flag()) {
-		test_uart_link.transmit((uint8_t*)&test_uart_c, 1);
-		test_uart_link.receive((uint8_t*)&test_uart_c, 1);
+	if (link.get_receive_flag()) {
+		link.transmit((uint8_t*)&c, 1);
+		link.receive((uint8_t*)&c, 1);
 	}
-	if (test_uart_link.get_transmit_flag())
-		test_uart_link.transmit((uint8_t*)&test_uart_str_buffer, strlen(test_uart_str_buffer));
+	if (link.get_transmit_flag())
+		link.transmit((uint8_t*)&str_buffer, strlen(str_buffer));
 
 #endif
 
 #ifdef TEST_USB
-	CDC_Transmit_HS((uint8_t*)test_usb_str_buffer, strlen(test_usb_str_buffer));
+	CDC_Transmit_HS((uint8_t*)str_buffer, strlen(str_buffer));
 #endif
 
 #ifdef TEST_IMU
-	//NU_IMU_ReadSlowly(test_imu_addresses, (uint8_t*)&test_imu_raw_data, 16);
-	//NU_IMU_ReadFifo(test_imu_rx, 14);
-	//NU_IMU_ReadFifo(test_imu_rx, 4);
-	//NU_IMU_ReadBurst(ACCEL_XOUT_H, test_imu_rx, 14);
+	//NU_IMU_ReadSlowly(addresses, (uint8_t*)&raw_data, 16);
+	//NU_IMU_ReadFifo(rx, 14);
+	//NU_IMU_ReadFifo(rx, 4);
+	//NU_IMU_ReadBurst(ACCEL_XOUT_H, rx, 14);
 
-	NU_IMU_ReadBurst(ACCEL_XOUT_H, test_imu_rx, 14);
+	NU_IMU_ReadBurst(ACCEL_XOUT_H, rx, 14);
 
-	test_imu_raw_data.accelerometer.x = ((uint16_t)test_imu_rx[ 0] << 8) | test_imu_rx[ 1];
-	test_imu_raw_data.accelerometer.y = ((uint16_t)test_imu_rx[ 2] << 8) | test_imu_rx[ 3];
-	test_imu_raw_data.accelerometer.z = ((uint16_t)test_imu_rx[ 4] << 8) | test_imu_rx[ 5];
-	test_imu_raw_data.temperature =		((uint16_t)test_imu_rx[ 6] << 8) | test_imu_rx[ 7];
-	test_imu_raw_data.gyroscope.x = 	((uint16_t)test_imu_rx[ 8] << 8) | test_imu_rx[ 9];
-	test_imu_raw_data.gyroscope.y = 	((uint16_t)test_imu_rx[10] << 8) | test_imu_rx[11];
-	test_imu_raw_data.gyroscope.z = 	((uint16_t)test_imu_rx[12] << 8) | test_imu_rx[13];
+	raw_data.accelerometer.x = ((uint16_t)rx[ 0] << 8) | rx[ 1];
+	raw_data.accelerometer.y = ((uint16_t)rx[ 2] << 8) | rx[ 3];
+	raw_data.accelerometer.z = ((uint16_t)rx[ 4] << 8) | rx[ 5];
+	raw_data.temperature =		((uint16_t)rx[ 6] << 8) | rx[ 7];
+	raw_data.gyroscope.x = 	((uint16_t)rx[ 8] << 8) | rx[ 9];
+	raw_data.gyroscope.y = 	((uint16_t)rx[10] << 8) | rx[11];
+	raw_data.gyroscope.z = 	((uint16_t)rx[12] << 8) | rx[13];
 
-	NU_IMU_ConvertRawData(&test_imu_raw_data, &test_imu_converted_data);
+	NU_IMU_ConvertRawData(&raw_data, &converted_data);
 
-	sprintf(test_imu_str, "IMU:\t"
+	sprintf(str, "IMU:\t"
 			"ACC (g):\t%.3f\t%.3f\t%.3f\t"
 			"TEMP (deg C):\t%.3f\t"
 			"GYR (dps):\t%.3f\t%.3f\t%.3f\t"
 			"Raw:\t%d\t%d\t%d\t%d\t%d\t%d\t%d\r\n",
-			test_imu_converted_data.accelerometer.x,
-			test_imu_converted_data.accelerometer.y,
-			test_imu_converted_data.accelerometer.z,
-			test_imu_converted_data.temperature,
-			test_imu_converted_data.gyroscope.x,
-			test_imu_converted_data.gyroscope.y,
-			test_imu_converted_data.gyroscope.z,
-			test_imu_raw_data.accelerometer.x,
-			test_imu_raw_data.accelerometer.y,
-			test_imu_raw_data.accelerometer.z,
-			test_imu_raw_data.temperature,
-			test_imu_raw_data.gyroscope.x,
-			test_imu_raw_data.gyroscope.y,
-			test_imu_raw_data.gyroscope.z
+			converted_data.accelerometer.x,
+			converted_data.accelerometer.y,
+			converted_data.accelerometer.z,
+			converted_data.temperature,
+			converted_data.gyroscope.x,
+			converted_data.gyroscope.y,
+			converted_data.gyroscope.z,
+			raw_data.accelerometer.x,
+			raw_data.accelerometer.y,
+			raw_data.accelerometer.z,
+			raw_data.temperature,
+			raw_data.gyroscope.x,
+			raw_data.gyroscope.y,
+			raw_data.gyroscope.z
 			);
 
-	CDC_Transmit_HS((uint8_t*)test_imu_str, strlen(test_imu_str));
+	CDC_Transmit_HS((uint8_t*)str, strlen(str));
 
 	HAL_Delay(100);
 #endif
 
 #ifdef TEST_PORT
-	test_port_byte = test_port.read();
-	if (test_port_byte != NO_BYTE_READ) {
-		sprintf(test_port_str_buffer, "NUsense = nuisance! %c\r\n", (uint8_t)test_port_byte);
-		test_port.write((uint8_t*)test_port_str_buffer, strlen(test_port_str_buffer));
+	byte = port.read();
+	if (byte != NO_BYTE_READ) {
+		sprintf(str_buffer, "NUsense = nuisance! %c\r\n", (uint8_t)byte);
+		port.write((uint8_t*)str_buffer, strlen(str_buffer));
 	}
-	//test_port.write((uint8_t*)test_port_str_buffer, strlen(test_port_str_buffer));
+	//test_port.write((uint8_t*)str_buffer, strlen(str_buffer));
 	// Always check both interrupts at the end of the context in which one is
 	// using this class.
-	test_port.check_rx();
-	test_port.check_tx();
+	port.check_rx();
+	port.check_tx();
 	//HAL_Delay(1);
 #endif
 
 #ifdef TEST_MOTOR
 #if TEST_MOTOR == 1
 	// Version 1.0
-	if (test_motor_rs_link.get_transmit_flag())
-		test_motor_rs_link.receive(test_motor_sts_packet, 6);
+	if (rs_link.get_transmit_flag())
+		rs_link.receive(sts_packet, 6);
 
-	if (test_motor_rs_link.get_receive_flag()) {
-		test_motor_inst_packet[6] ^= 0x01;
-		test_motor_inst_packet[7] = calculate_checksum(&test_motor_inst_packet[2], 5);
+	if (rs_link.get_receive_flag()) {
+		inst_packet[6] ^= 0x01;
+		inst_packet[7] = calculate_checksum(&inst_packet[2], 5);
 		HAL_Delay(500);
-		test_motor_rs_link.transmit(test_motor_inst_packet, 8);
+		rs_link.transmit(inst_packet, 8);
 	}
 #else
 	// Version 2.0
-	if (test_motor_rs_link.get_transmit_flag())
-		test_motor_rs_link.receive(test_motor_sts_packet, 11);
+	if (rs_link.get_transmit_flag())
+		rs_link.receive(sts_packet, 11);
 
-	if (test_motor_rs_link.get_receive_flag()) {
+	if (rs_link.get_receive_flag()) {
 		// Toggle the state of the LED.
-		test_motor_inst_packet[10] ^= 0x01;
+		inst_packet[10] ^= 0x01;
 		// Recalculate the CRC.
-		test_motor_crc_value = update_crc(0, test_motor_inst_packet, 5+6);
-	    test_motor_inst_packet[11] = (uint8_t)(test_motor_crc_value & 0x00FF);
-	    test_motor_inst_packet[12] = (uint8_t)((test_motor_crc_value & 0xFF00) >> 8);
+		crc_value = update_crc(0, inst_packet, 5+6);
+	    inst_packet[11] = (uint8_t)(crc_value & 0x00FF);
+	    inst_packet[12] = (uint8_t)((crc_value & 0xFF00) >> 8);
 	    // Wait for a bit to set the blinking frequency of the LED.
 		HAL_Delay(500);
-		test_motor_rs_link.transmit(test_motor_inst_packet, 13);
+		rs_link.transmit(inst_packet, 13);
 	}
 #endif
 #endif
