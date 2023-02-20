@@ -13,7 +13,7 @@
 #ifndef SRC_RS485_H_
 #define SRC_RS485_H_
 
-//#define DETECT_IDLE_LINE
+#define DETECT_IDLE_LINE
 
 #define RS485_RX GPIO_PIN_RESET
 #define RS485_TX GPIO_PIN_SET

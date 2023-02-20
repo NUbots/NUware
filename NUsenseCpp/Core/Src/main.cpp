@@ -178,7 +178,7 @@ int main(void)
 		  0x01,			// data to be written
 		  0xFF			// checksum
   };
-  inst_packet[7] = calculate_checksum(&inst_packet[2], 5);
+  //inst_packet[7] = calculate_checksum(&inst_packet[2], 5);
   uint8_t sts_packet[6+3];
   rs_link.transmit(inst_packet, 8);
 #else
@@ -187,7 +187,7 @@ int main(void)
    */
   RS485 rs_link(1);
   uint16_t crc_value;
-  uint8_t sts_packet[11];
+  uint8_t sts_packet[11+3];
   // Write to the indirect address first to map to the LED.
   uint8_t inst_packet[14] = {
 		  0xFF, 0xFF, 0xFD,	// header
@@ -202,6 +202,13 @@ int main(void)
   crc_value = update_crc(0, inst_packet, 5+7);
   inst_packet[12] = (uint8_t)(crc_value & 0x00FF);
   inst_packet[13] = (uint8_t)((crc_value & 0xFF00) >> 8);
+  /* Delay for a bit to give the motor time to boot up. Without this delay, I
+   * found that the motor does not respond at all. From some basic testing I
+   * think that it is because the motor only boots up until the DXL power is
+   * switched on from the DXL_POWER_EN pin. However, it may have something to
+   * do with the RS485 transcievers instead.
+   */
+  HAL_Delay(1000);
   rs_link.transmit(inst_packet, 14);
   while (!rs_link.get_transmit_flag());
   // Wait for the status-packet so that it can be read in the debugger.

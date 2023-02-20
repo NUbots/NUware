@@ -161,17 +161,22 @@ RS485::status RS485::receive(uint8_t* data, uint16_t length) {
 	// Declare local variables.
 	RS485::status status;
 
-#ifdef DETECT_IDLE_LINE
-	__HAL_DMA_DISABLE_IT(hdma_rx, DMA_IT_HT);
+#ifdef TEST_MOTOR
+	HAL_GPIO_WritePin(SPARE1_GPIO_Port, SPARE1_Pin, GPIO_PIN_SET);
+	HAL_GPIO_WritePin(SPARE1_GPIO_Port, SPARE1_Pin, GPIO_PIN_RESET);
 #endif
-
 	// Set the hardware to the receiving direction and listen.
 	HAL_GPIO_WritePin(gpio_port, gpio_pin, RS485_RX);
+	//for (int i = 0; i < 5; i++);
+	//HAL_GPIO_WritePin(SPARE1_GPIO_Port, SPARE1_Pin, GPIO_PIN_SET);
 #ifdef DETECT_IDLE_LINE
-	__HAL_DMA_DISABLE_IT(hdma_rx, DMA_IT_HT);
 	status = (RS485::status)HAL_UARTEx_ReceiveToIdle_DMA(huart, data, length+3);
+	__HAL_DMA_DISABLE_IT(hdma_rx, DMA_IT_HT);
 #else
 	status = (RS485::status)HAL_UART_Receive_DMA(huart, data, length);
+#endif
+#ifdef TEST_MOTOR
+	HAL_GPIO_WritePin(SPARE1_GPIO_Port, SPARE1_Pin, GPIO_PIN_RESET);
 #endif
 #ifdef TEST_UART
 	// If this is during a test, then play buzzer when there is an error.
@@ -181,7 +186,6 @@ RS485::status RS485::receive(uint8_t* data, uint16_t length) {
 		HAL_GPIO_WritePin(BUZZER_SIG_GPIO_Port, BUZZER_SIG_Pin, GPIO_PIN_RESET);
 	}
 #endif
-
 	return status;
 }
 
