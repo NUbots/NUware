@@ -28,10 +28,13 @@
 /* USER CODE BEGIN Includes */
 #include "settings.h"
 #include "usbd_cdc_if.h"
-#include "rs485_c.h"
-#include "RS485.h"
 #include "imu.h"
-#include "Port.h"
+
+#include "dynamixel/Dynamixel.h"
+#include "dynamixel/Packetiser.hpp"
+#include "uart/Port.h"
+#include "uart/rs485_c.h"
+#include "uart/RS485.h"
 
 /* USER CODE END Includes */
 
@@ -137,7 +140,7 @@ int main(void)
    * it is safer to keep an eye out for it.
    */
   char str_buffer[] = "NUsense = nuisance!\r\n";
-  RS485 link = RS485(TEST_UART);
+  uart::RS485 link = RS485(TEST_UART);
   char c = 'x';
   // Wait for the first packet.
   link.receive((uint8_t*)&c, 1);
@@ -161,14 +164,14 @@ int main(void)
 
 #ifdef TEST_PORT
   char str_buffer[64];
-  int16_t byte = 0xAA;
-  Port port(1);
+  uint16_t byte = 0xAA55;
+  uart::Port port(1);
   port.begin_rx();
 #endif
 
 #ifdef TEST_MOTOR
 #if TEST_MOTOR == 1
-  RS485 rs_link(1);
+  uart::RS485 rs_link(1);
   uint8_t inst_packet[] = {
 		  0xFF, 0xFF, 	// header
 		  0x01,			// ID
@@ -185,43 +188,80 @@ int main(void)
   /* Please mind that a lot of this code is very bare-bones. We will need a
    * proper protocol-handler later.
    */
-  RS485 rs_link(1);
-  uint16_t crc_value;
-  uint8_t sts_packet[11+3];
-  // Write to the indirect address first to map to the LED.
-  uint8_t inst_packet[14] = {
-		  0xFF, 0xFF, 0xFD,	// header
-		  0x00,				// reserved
-		  0x01,				// ID
-		  0x07, 0x00,		// packet's length
-		  0x03,				// instruction
-		  0xA8, 0x00,		// address of data
-		  0x41,	0x00,		// data to be written
-		  0xFF, 0xFF		// CRC
-  };
-  crc_value = update_crc(0, inst_packet, 5+7);
-  inst_packet[12] = (uint8_t)(crc_value & 0x00FF);
-  inst_packet[13] = (uint8_t)((crc_value & 0xFF00) >> 8);
+  /*
+   * Most of this code for the Packetiser class and the Packet struct was
+   * hastily taken from the original NUClear code. It has been bastardised
+   * here. It may very well need a redesign. For example, I am not sure how
+   * useful the Packet struct is since the Packetiser needs vectors since the
+   * byte-stuffing makes a packet's length unpredictable (at least in unlikely
+   * in situations when byte-stuffing is actually needed).
+   */
+  uart::Port port(1);
+  dynamixel::Packetiser<uint8_t,256> packetiser;
+  std::array<uint8_t,4> params = {0xA8,0x00,0x41,0x00};
+  std::array<uint8_t,3> params_1 = {0xE0,0x00,0x01};
+  std::vector<uint8_t> inst_packet(sizeof(dynamixel::Packet<uint8_t, 4>));
+
+  // Encode the instruction-packet to write to an indirect address.
+  new (inst_packet.data())
+		  dynamixel::Packet<uint8_t, 4>(0x01, dynamixel::WRITE, params);
+  packetiser.encode(inst_packet);
+
   /* Delay for a bit to give the motor time to boot up. Without this delay, I
    * found that the motor does not respond at all. From some basic testing I
    * think that it is because the motor only boots up until the DXL power is
    * switched on from the DXL_POWER_EN pin. However, it may have something to
-   * do with the RS485 transcievers instead.
+   * do with the RS485 transceivers instead.
    */
   HAL_Delay(1000);
-  rs_link.transmit(inst_packet, 14);
-  while (!rs_link.get_transmit_flag());
-  // Wait for the status-packet so that it can be read in the debugger.
-  rs_link.receive(sts_packet, 11);
-  while (!rs_link.get_receive_flag());
-  // Write to the LED.
-  inst_packet[5] = 0x06;
-  inst_packet[8] = 0xE0;
-  inst_packet[10] = 0x01;
-  crc_value = update_crc(0, inst_packet, 5+6);
-  inst_packet[11] = (uint8_t)(crc_value & 0x00FF);
-  inst_packet[12] = (uint8_t)((crc_value & 0xFF00) >> 8);
-  rs_link.transmit(inst_packet, 13);
+
+  // Begin the receiving. This should be done only once if we are using the DMA
+  // as a buffer.
+  port.begin_rx();
+
+  // One should always flush before expecting a packet. It is not needed right
+  // after the begin_rx(), but it is here for the sake of an example.
+  port.flush_rx();
+
+  // Write the isntruction-packet to the port.
+  port.write(inst_packet.data(), inst_packet.size());
+  // Wait until we have received at least the expected number of bytes of the
+  // status-packet. It may be longer because of byte-stuffing.
+  while (port.get_available_rx() < sizeof(dynamixel::Packet<uint8_t,1>))
+	  // While waiting, check the TX interrupts in case the buffer is full, etc.
+  	  port.check_tx();
+
+  /*
+   * What happens if we received the need number of bytes, but something went
+   * wrong, and the packet is incomplete in the buffer? Mostly likely the code
+   * will get stuck in the do-while loop below. It should never happen in
+   * theory, but a safeguard may be to use some kind of timeout. A timeout is
+   * needed above anyway in case we never get a packet at all.
+   */
+
+  // Decode whatever is received on the port.
+  //while (!packetiser.decode(port.read()));
+  do {
+	  // If there is a byte to be read, then decode it.
+	  if (port.peek() != NO_BYTE_READ)
+		  packetiser.decode(port.read());
+  } while (!packetiser.is_packet_ready());
+  // Cast to a packet-structure.
+  dynamixel::Packet<uint8_t,1> sts_packet
+  	  = *reinterpret_cast<dynamixel::Packet<uint8_t,1>*>(
+		  packetiser.get_decoded_packet()
+  	  );
+  // Maybe check the CRC here if this is a proper protocol-handler.
+  // Reset the decoder.
+  packetiser.reset();
+
+  // Re-fit the instruction-packet to write to the indirect register.
+  inst_packet.resize(sizeof(dynamixel::Packet<uint8_t, 3>));
+  new (inst_packet.data())
+		  dynamixel::Packet<uint8_t, 3>(0x01, dynamixel::WRITE, params_1);
+  // Then encode it and write it to the port.
+  packetiser.encode(inst_packet);
+  port.write(inst_packet.data(), inst_packet.size());
 #endif
 #endif
   /* USER CODE END 2 */
@@ -319,20 +359,39 @@ int main(void)
 	}
 #else
 	// Version 2.0
-	if (rs_link.get_transmit_flag())
-		rs_link.receive(sts_packet, 11);
 
-	if (rs_link.get_receive_flag()) {
-		// Toggle the state of the LED.
-		inst_packet[10] ^= 0x01;
-		// Recalculate the CRC.
-		crc_value = update_crc(0, inst_packet, 5+6);
-	    inst_packet[11] = (uint8_t)(crc_value & 0x00FF);
-	    inst_packet[12] = (uint8_t)((crc_value & 0xFF00) >> 8);
-	    // Wait for a bit to set the blinking frequency of the LED.
+	// Wait until we have received at least the expected number of bytes of the
+	// status-packet. It may be longer because of byte-stuffing.
+	if (port.get_available_rx() >= sizeof(dynamixel::Packet<uint8_t,1>)) {
+		// Decode whatever is received on the port.
+		//while (!packetiser.decode(port.read()));
+		do {
+			if (port.peek() != NO_BYTE_READ)
+				packetiser.decode(port.read());
+		} while (packetiser.is_packet_ready());
+		// Cast to a packet-structure.
+		sts_packet = *reinterpret_cast<dynamixel::Packet<uint8_t,1>*>(
+				  packetiser.get_decoded_packet()
+		);
+		// Maybe check the CRC here if this is a proper protocol-handler.
+		// Reset the decoder.
+		packetiser.reset();
+
+		// Delay so that the LED can be observed to blink at 2 Hz.
 		HAL_Delay(500);
-		rs_link.transmit(inst_packet, 13);
+
+		// Toggle the state of the LED.
+		params_1[2] ^= 0x01;
+		new (inst_packet.data())
+				dynamixel::Packet<uint8_t, 3>(0x01, dynamixel::WRITE, params_1);
+		// Then encode it and write it to the port.
+		packetiser.encode(inst_packet);
+		port.flush_rx();
+		port.write(inst_packet.data(), inst_packet.size());
 	}
+
+	// Always check the TX interrupts.
+	port.check_tx();
 #endif
 #endif
     /* USER CODE END WHILE */

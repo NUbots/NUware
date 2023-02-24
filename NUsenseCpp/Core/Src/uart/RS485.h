@@ -13,7 +13,9 @@
 #ifndef SRC_RS485_H_
 #define SRC_RS485_H_
 
-#define DETECT_IDLE_LINE
+namespace uart {
+
+//#define DETECT_IDLE_LINE
 
 #define RS485_RX GPIO_PIN_RESET
 #define RS485_TX GPIO_PIN_SET
@@ -93,6 +95,15 @@ public:
 	 * @retval		#false if nothing has not been received yet,
 	 */
 	bool get_receive_flag();
+
+	/*
+	 * @brief		gets the counter for the receiving DMA instance.
+	 * @param		none,
+	 * @return		the number of bytes yet to be received through the DMA
+	 * 				before it is fully complete,
+	 */
+	uint16_t get_receive_counter();
+
 	/*
 	 * @brief		wraps the UART transmit-function for RS485 hardware
 	 * 				flow-control in polling-mode.
@@ -136,6 +147,14 @@ public:
 	 * @retval		#false if not everything has been transmitted yet,
 	 */
 	bool get_transmit_flag();
+
+	/*
+	 * @brief		gets the counter for the transmitting DMA instance.
+	 * @param		none,
+	 * @return		the number of bytes yet to be transmitted through the DMA
+	 * 				before it is fully complete,
+	 */
+	uint16_t get_transmit_counter();
 private:
 	// The handle of the corresponding UART interface:
 	UART_HandleTypeDef* huart;
@@ -150,5 +169,7 @@ private:
 	// The mask for the given UART interface's interrupt for transmitting:
 	uint16_t it_tx_mask;
 };
+
+} // namespace uart
 
 #endif /* SRC_RS485_H_ */

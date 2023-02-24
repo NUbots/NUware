@@ -6,17 +6,19 @@
  */
 
 #include "stdint.h" 	// needed for explicit type-defines
-#include "RS485.h"		// needed for the RS485 interface
 #include <deque>
 #include <vector>
 #include "main.h"		// only used for GPIO labels for debugging
+#include "RS485.h"		// needed for the RS485 interface
 
 #ifndef SRC_PORT_H_
 #define SRC_PORT_H_
 
+namespace uart {
+
 //#define USE_QUEUE_CLASS
 //#define SEE_STATISTICS
-//#define USE_DMA_RX_BUFFER
+#define USE_DMA_RX_BUFFER
 
 #define PORT_BUFFER_SIZE 	2048
 
@@ -29,9 +31,13 @@ private:
 	// 				each RS485 link.
 	RS485 rs_link;
 #ifdef USE_QUEUE_CLASS
-	// @brief	The buffers for RX and TX,
+#ifndef USE_DMA_RX_BUFFER
+	// @brief	The buffer for RX,
 	std::deque<uint8_t> rx_buffer;
+#endif
+	// @brief	The buffer for TX,
 	std::vector<uint8_t> tx_buffer;
+	// @brief 	The buffer of bytes transmitted,
 	std::vector<uint8_t> bytes_tx;
 #else
 	// May be replaced with a more C++-like container class, e.g. a queue.
@@ -49,7 +55,7 @@ private:
 		// 			of the queue."
 		volatile uint16_t front;
 		// @brief	the back of the 'queue' where bytes are added or pushed,
-		// @note	This is inclusive of the last byte.
+		// @note	This is exclusive of the last byte.
 		// @note	"That rude man just cut in line; he should go at the back
 		// 			of the queue."
 		volatile uint16_t back;
@@ -63,11 +69,13 @@ private:
 		 * @return	nothing,
 		 */
 		void push(uint8_t byte) {
-			// Move the back backwards (higher) in the array unless the back is
-			// already at the front, i.e. the buffer is only one byte long.
-			if (size != 0) back = (back + 1) % PORT_BUFFER_SIZE;
-			data[back] = byte;
-			size++;
+			// Move the back backwards (higher) in the array unless there is no
+			// more room left.
+			if (size < PORT_BUFFER_SIZE) {
+				data[back] = byte;
+				back = (back + 1) % PORT_BUFFER_SIZE;
+				size++;
+			}
 		}
 		/**
 		 * @brief	removes one byte from the front of the queue.
@@ -77,27 +85,24 @@ private:
 		 * @return	the byte to be removed,
 		 */
 		uint8_t pop() {
-			uint8_t byte;
-			byte = data[front];
-			// Update the front to move back (higher) in the array unless the
-			// front is already at the back, i.e. the buffer is only one byte
-			// long.
-			if (size != 1) front = (front + 1) % PORT_BUFFER_SIZE;
-			// Either way, decrease the size.
-			size--;
+			uint8_t byte = 0xFF;
+			// Update the front to move back (higher) in the array unless there
+			// is nothing left in the buffer.
+			if (size != 0) {
+				byte = data[front];
+				front = (front + 1) % PORT_BUFFER_SIZE;
+				size--;
+			}
 			return byte;
 		}
 
 	};
+//#ifndef USE_DMA_RX_BUFFER
+	// @brief	The buffer for RX,
+	RingBuffer rx_buffer;
+//#endif
 	// @brief	The buffer for TX,
 	RingBuffer tx_buffer;
-#ifdef USE_DMA_RX_BUFFER
-	// @brief	The buffer for RX,
-	RingBuffer rx_buffer;
-#else
-	// @brief	The buffer for RX,
-	RingBuffer rx_buffer;
-#endif
 #endif
 	// @brief 	The number of bytes just transmitted,
 	volatile uint16_t num_bytes_tx;
@@ -164,6 +169,14 @@ public:
 	 */
 	uint16_t get_available_tx();
 	/**
+	 * @brief		peeks the next byte from the rx-buffer, i.e. the foremost
+	 * 				byte received so far.
+	 * @param		none,
+	 * @return		the next byte,
+	 * @retval		#0xFFFF if there is no byte to read,
+	 */
+	uint16_t peek();
+	/**
 	 * @brief		pops the next byte from the rx-buffer, i.e. the foremost
 	 * 				byte received so far.
 	 * @param		none,
@@ -222,13 +235,6 @@ public:
 	void check_tx();
 };
 
-/*
-extern Port port_1;
-extern Port port_2;
-extern Port port_3;
-extern Port port_4;
-extern Port port_5;
-extern Port port_6;
-*/
+} // namespace uart
 
 #endif /* SRC_PORT_H_ */

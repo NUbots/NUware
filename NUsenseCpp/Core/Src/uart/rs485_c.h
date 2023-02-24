@@ -14,6 +14,8 @@
 #ifndef INC_RS485_H_
 #define INC_RS485_H_
 
+namespace uart {
+
 #define RS485_RX GPIO_PIN_RESET
 #define RS485_TX GPIO_PIN_SET
 
@@ -58,5 +60,7 @@ HAL_StatusTypeDef RS485_Transmit(UART_HandleTypeDef* huart, const uint8_t* pData
  * @return		the HAL status of the UART,
  */
 HAL_StatusTypeDef RS485_Transmit_IT(UART_HandleTypeDef* huart, const uint8_t* pData, uint16_t length);
+
+} // namespace uart
 
 #endif /* INC_RS485_H_ */

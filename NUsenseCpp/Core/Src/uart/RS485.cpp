@@ -23,7 +23,6 @@ void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef* handle, uint16_t size) {
 #else
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef* handle) {
 #endif
-	HAL_GPIO_WritePin(SPARE1_GPIO_Port, SPARE1_Pin, GPIO_PIN_RESET);
 	if 		(handle == &huart1) uart_it_flags |= UART1_RX;
 	else if (handle == &huart2) uart_it_flags |= UART2_RX;
 	else if (handle == &huart3) uart_it_flags |= UART3_RX;
@@ -39,6 +38,9 @@ void HAL_UART_TxCpltCallback(UART_HandleTypeDef* handle) {
 	else if (handle == &huart5) uart_it_flags |= UART5_TX;
 	else if (handle == &huart6) uart_it_flags |= UART6_TX;
 }
+
+namespace uart {
+
 //*/
 
 RS485::RS485() {
@@ -163,7 +165,7 @@ RS485::status RS485::receive(uint8_t* data, uint16_t length) {
 
 #ifdef TEST_MOTOR
 	HAL_GPIO_WritePin(SPARE1_GPIO_Port, SPARE1_Pin, GPIO_PIN_SET);
-	HAL_GPIO_WritePin(SPARE1_GPIO_Port, SPARE1_Pin, GPIO_PIN_RESET);
+	//HAL_GPIO_WritePin(SPARE1_GPIO_Port, SPARE1_Pin, GPIO_PIN_RESET);
 #endif
 	// Set the hardware to the receiving direction and listen.
 	HAL_GPIO_WritePin(gpio_port, gpio_pin, RS485_RX);
@@ -176,7 +178,7 @@ RS485::status RS485::receive(uint8_t* data, uint16_t length) {
 	status = (RS485::status)HAL_UART_Receive_DMA(huart, data, length);
 #endif
 #ifdef TEST_MOTOR
-	HAL_GPIO_WritePin(SPARE1_GPIO_Port, SPARE1_Pin, GPIO_PIN_RESET);
+	//HAL_GPIO_WritePin(SPARE1_GPIO_Port, SPARE1_Pin, GPIO_PIN_RESET);
 #endif
 #ifdef TEST_UART
 	// If this is during a test, then play buzzer when there is an error.
@@ -195,6 +197,10 @@ bool RS485::get_receive_flag() {
 		return true;
 	} else
 		return false;
+}
+
+uint16_t RS485::get_receive_counter() {
+	return __HAL_DMA_GET_COUNTER(hdma_rx);
 }
 
 RS485::status RS485::transmit_poll(const uint8_t* data, uint16_t length, uint32_t timeout) {
@@ -241,6 +247,7 @@ RS485::status RS485::transmit(const uint8_t* data, uint16_t length) {
 
 	// Set the hardware to the receiving direction and send.
 	HAL_GPIO_WritePin(gpio_port, gpio_pin, RS485_TX);
+	HAL_GPIO_WritePin(SPARE1_GPIO_Port, SPARE1_Pin, GPIO_PIN_RESET);
 	status = (RS485::status)HAL_UART_Transmit_DMA(huart, data, length);
 #ifdef TEST_UART
 	// If this is during a test, then play buzzer when there is an error.
@@ -259,8 +266,15 @@ bool RS485::get_transmit_flag() {
 		// Set the direction back to receiving so that half-duplex channel is
 		// not being blocked.
 		HAL_GPIO_WritePin(gpio_port, gpio_pin, RS485_RX);
+		HAL_GPIO_WritePin(SPARE1_GPIO_Port, SPARE1_Pin, GPIO_PIN_SET);
 		uart_it_flags &= ~it_tx_mask;
 		return true;
 	} else
 		return false;
 }
+
+uint16_t RS485::get_transmit_counter() {
+	return __HAL_DMA_GET_COUNTER(hdma_tx);
+}
+
+} // namespace uart

@@ -7,38 +7,14 @@
 
 #include "Port.h"
 
+namespace uart {
+
 /* An alternative way to handle interrupts rather than doing it within the main
  * loop is to make global variables and call the handlers explicitly in the
  * callback-functions. This is how Robotis did it, but I think that it is
  * inefficient and can cause bugs especially when a C++ container class is used
  * instead of a struct.
  */
-/*
-Port port_1(1);
-Port port_2(2);
-Port port_3(3);
-Port port_4(4);
-Port port_5(5);
-Port port_6(6);
-*/
-/*
-void HAL_UART_RxCpltCallback(UART_HandleTypeDef* handle) {
-	if 		(handle == &huart1) port_1.handle_rx();
-	else if (handle == &huart2) port_2.handle_rx();
-	else if (handle == &huart3) port_3.handle_rx();
-	else if (handle == &huart4) port_4.handle_rx();
-	else if (handle == &huart5) port_5.handle_rx();
-	else if (handle == &huart6) port_6.handle_rx();
-}
-void HAL_UART_TxCpltCallback(UART_HandleTypeDef* handle) {
-	if 		(handle == &huart1) port_1.handle_tx();
-	else if (handle == &huart2) port_2.handle_tx();
-	else if (handle == &huart3) port_3.handle_tx();
-	else if (handle == &huart4) port_4.handle_tx();
-	else if (handle == &huart5) port_5.handle_tx();
-	else if (handle == &huart6) port_6.handle_tx();
-}
-*/
 
 Port::Port(uint8_t uart_number = 1) :
 	rs_link(uart_number),
@@ -53,6 +29,9 @@ Port::~Port() {
 }
 
 uint16_t Port::get_available_rx() {
+#ifdef USE_DMA_RX_BUFFER
+	handle_rx();
+#endif
 #ifdef USE_QUEUE_CLASS
 	return rx_buffer.size();
 #else
@@ -68,11 +47,39 @@ uint16_t Port::get_available_tx() {
 #endif
 }
 
+uint16_t Port::peek() {
+	uint8_t read_byte;
+
+#ifdef USE_DMA_RX_BUFFER
+	handle_rx();
+#endif
+
+	/* If there is no byte to read, then return 0xFFFF as a value two bytes
+	 * long so that is not to be confused with a received byte.
+	 */
+	if (!get_available_rx())
+		return 0xFFFF;
+#ifdef USE_QUEUE_CLASS
+	// Read from the front of the buffer
+	read_byte = rx_buffer.front();
+#else
+	// Read from the front of the buffer.
+	read_byte = rx_buffer.data[rx_buffer.front];
+#endif
+
+	return read_byte;
+}
+
 uint16_t Port::read() {
 	uint8_t read_byte;
 
-	// If there is no byte to read, then return 0xFF as a value two bytes long
-	// to not be confused with a received byte.
+#ifdef USE_DMA_RX_BUFFER
+	handle_rx();
+#endif
+
+	/* If there is no byte to read, then return 0xFFFF as a value two bytes
+	 * long so that is not to be confused with a received byte.
+	 */
 	if (!get_available_rx())
 		return 0xFFFF;
 #ifdef USE_QUEUE_CLASS
@@ -83,6 +90,7 @@ uint16_t Port::read() {
 	// Read from the front of the buffer.
 	read_byte = rx_buffer.pop();
 #endif
+
 	return read_byte;
 }
 
@@ -97,13 +105,11 @@ void Port::flush_rx() {
 }
 
 uint8_t Port::begin_rx() {
+#ifdef USE_DMA_RX_BUFFER
+	// Begin the receival of all bytes into a circular buffer.
+	return (uint8_t)rs_link.receive(rx_buffer.data, PORT_BUFFER_SIZE);
+#else
 	// Begin the receival of a byte only if there is no transmission.
-	/*if (comm_state == TX_DONE) {
-		comm_state = RX_IDLE;
-		return (uint8_t)rs_link.receive(&received_byte, 1);
-	}
-	else
-		return 0xFF;*/
 	switch (comm_state) {
 	case TX_DONE:
 		comm_state = RX_IDLE;
@@ -115,10 +121,28 @@ uint8_t Port::begin_rx() {
 	default:
 		return 0xFF;
 	}
+#endif
 }
 
 void Port::handle_rx() {
-
+#ifdef USE_DMA_RX_BUFFER
+	uint16_t old_back, count;
+	// Update the back of the buffer.
+	old_back = rx_buffer.back;
+	count = rs_link.get_receive_counter();
+	rx_buffer.back = (PORT_BUFFER_SIZE - count) % PORT_BUFFER_SIZE;
+	rx_buffer.size += rx_buffer.back - old_back;
+	/* Handle if the buffer has overflowed. This should be very unlikely, and
+	 * if it has happened, then something seriously bad has happened at the
+	 * protocol-handling level! If this happens, then buffer may be unusable
+	 * since the DMA may still be updating further down this function when the
+	 * front is popped.
+	 */
+	if (rx_buffer.size > PORT_BUFFER_SIZE) {
+		rx_buffer.front = rx_buffer.back;
+		rx_buffer.size = PORT_BUFFER_SIZE;
+	}
+#else
 	// If the buffer is not full yet, then add the received byte to it.
 #ifdef USE_QUEUE_CLASS
 	if (get_available_rx() < PORT_BUFFER_SIZE)
@@ -134,6 +158,7 @@ void Port::handle_rx() {
 	// Even if the buffer is full, one would still want to receive the next
 	// byte in case that the buffer frees up until then.
 	begin_rx();
+#endif
 }
 
 void Port::check_rx() {
@@ -201,7 +226,7 @@ uint8_t Port::begin_tx() {
 			tx_buffer.size
 			: PORT_BUFFER_SIZE - tx_buffer.front;
 	// If there is an error, etc., then set the number of bytes to zero to say
-	// than none have been sent.
+	// that none have been sent.
 	status = rs_link.transmit(&tx_buffer.data[tx_buffer.front], num_bytes_tx);
 	if (RS485::RS485_OK != status) {
 		num_bytes_tx = 0;
@@ -221,10 +246,8 @@ uint8_t Port::begin_tx() {
 
 void Port::handle_tx() {
 #ifdef USE_QUEUE_CLASS
-	uint16_t nietzsche = 0;
 	// Remove the bytes that were just transmitted from the front of the buffer.
 	tx_buffer.erase(tx_buffer.begin(),tx_buffer.begin()+num_bytes_tx);
-	nietzsche = tx_buffer.size();
 	// Send any remaining bytes.
 	if (tx_buffer.size() != 0)
 		begin_tx();
@@ -232,39 +255,17 @@ void Port::handle_tx() {
 		num_bytes_tx = 0;
 #else
 	// Move the front further backwards.
-	// Make sure not to move further past the back if all the bytes in the
-	// buffer were sent.
-	tx_buffer.front = tx_buffer.size != num_bytes_tx?
-			(tx_buffer.front + num_bytes_tx) % PORT_BUFFER_SIZE
-			// If all bytes were sent, then subtract one from the formula to
-			// account for front being moved to the back.
-			: (tx_buffer.front + num_bytes_tx  - 1) % PORT_BUFFER_SIZE;
+	tx_buffer.front = (tx_buffer.front + num_bytes_tx) % PORT_BUFFER_SIZE;
 	// Update the size.
 	tx_buffer.size -= num_bytes_tx;
+	// Update the number of bytes to be transmitted.
+	num_bytes_tx = 0;
 	// Send any remaining bytes.
 	if (tx_buffer.size)
 		begin_tx();
-	// If not, then begin receiving again.
-	/* I am not sure about the functionality of this. It may be better to not
-	 * call begin_rx and instead give the user the agency to begin the receival
-	 * in their code. But it should not hurt to listen for bytes in the
-	 * meantime whilst there is no transmission. It does however make TX_DONE
-	 * useless as a state. May change this functionality later.
-	 *
-	 * Addendum:
-	 * Actually, I think that this is better. My intention is to have the UART
-	 * interface always receiving, i.e. 'listening', and transmitting
-	 * simultaneously when need be. The RS485 link is half-duplex but the
-	 * microcontroller's UART interface is still full-duplex. So, there is no
-	 * reason not to exploit that and have the UART interface perpetually
-	 * receiving but
-	 */
-	else {
-		num_bytes_tx = 0;
-		//comm_state = RX_IDLE;
+	// If not, then set to done.
+	else
 		comm_state = TX_DONE;
-		//begin_rx();
-	}
 #endif
 }
 
@@ -273,3 +274,5 @@ void Port::check_tx() {
 	if (rs_link.get_transmit_flag())
 		handle_tx();
 }
+
+} // namespace uart

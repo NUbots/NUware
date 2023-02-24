@@ -8,6 +8,8 @@
 
 #include "rs485_c.h"
 
+namespace uart {
+
 /*
  * @brief		wraps the UART receive-function for RS485 hardware flow-control in polling-mode.
  * @note		The DXL direction pin is reset during this function.
@@ -158,4 +160,4 @@ HAL_StatusTypeDef RS485_Transmit_IT(UART_HandleTypeDef* huart, const uint8_t* da
 	return status;
 }
 
-
+} // namespace uart
