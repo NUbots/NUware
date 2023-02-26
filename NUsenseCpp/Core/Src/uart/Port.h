@@ -24,6 +24,8 @@ namespace uart {
 
 #define NO_BYTE_READ		0xFFFF
 
+#define NUM_PORTS			6
+
 class Port {
 private:
 	// @brief	The RS485 link:
