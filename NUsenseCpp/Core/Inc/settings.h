@@ -13,6 +13,8 @@
 //#define FIRST_BUZZ
 #define DXL_PWR
 
+//#define RUN_MAIN
+
 //#define TEST_UART 1
 
 //#define TEST_USB
