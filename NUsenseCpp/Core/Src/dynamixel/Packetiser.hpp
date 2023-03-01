@@ -51,8 +51,10 @@ static constexpr uint16_t crc_table[256] = {
 
 // sshhh ... most of this is stolen from the old NUsense code.
 
-// @brief The generalised packet structure for the Dynamixel V2 protocol
-template <typename T, uint16_t N>
+/*
+ * @brief	a packetiser for encoding an outgoing packet and for decoding an
+ * 			incoming packet,
+ */
 class Packetiser
 {
 public:
@@ -66,9 +68,10 @@ public:
 		filled_length(7),
 		expected_length(0),
 		crc(0),
-		packet_is_ready(true),
+		packet_is_ready(false),
 		state(INITIAL)
 	{
+		// Set the magic header number.
 		buffer[0] = 0xFF;
 		buffer[1] = 0xFF;
 		buffer[2] = 0xFD;
@@ -120,7 +123,7 @@ public:
      * @retval	#true if the whole packet is done, i.e. fully decoded,
      * @retval	#false if the whole packet has not been fully decoded,
      */
-    bool decode(const uint8_t read_byte) {
+    const bool decode(const uint8_t read_byte) {
     	switch (state) {
 			case INITIAL: 		state = read_byte == 0xFF ? HEADER_BYTE_1 : INITIAL; break;
 			case HEADER_BYTE_1: state = read_byte == 0xFF ? HEADER_BYTE_2 : INITIAL; break;
@@ -152,8 +155,11 @@ public:
 			case UNSTUFF_2: {
 				uint8_t b = read_byte;
 
+				// Put the byte in the buffer
+				buffer[filled_length++] = b;
+
 				// All but the last two bytes go into the CRC and the CRC doesn't do byte stuffing
-				if (expected_length < filled_length + 2) {
+				if (filled_length <= expected_length - 2) {
 					crc = update_crc(crc, b);
 
 					// Keep track as we go past byte stuffing
@@ -164,8 +170,6 @@ public:
 						case UNSTUFF_2: state = b == 0xFD ? UNSTUFF_3 : READING; break;
 					}
 				}
-				// Put the byte in the buffer
-				buffer[filled_length++] = b;
 
 				// Packet has been read reset the internal state for the next packet
 				if (filled_length == expected_length) {
@@ -205,19 +209,19 @@ public:
 	/*
 	 * @brief	gets the length of the decoded packet.
 	 */
-	uint16_t get_decoded_length() {
+	const uint16_t get_decoded_length() const {
 		return filled_length;
 	}
 	/*
 	 * @brief	gets the computed CRC of the decoded packet.
 	 */
-	uint16_t get_decoded_crc() {
+	const uint16_t get_decoded_crc() const {
 		return crc;
 	}
 	/*
 	 * @brief	gets whether a packet is ready.
 	 */
-	uint16_t is_packet_ready() {
+	const bool is_packet_ready() const {
 		return packet_is_ready;
 	}
     /*
@@ -230,43 +234,22 @@ public:
 
 		// Start off with header + id + size
 		filled_length = 7;
+		crc = 0;
 		packet_is_ready = false;
 	}
 
-    /*
-     * @brief 	updates the CRC for a bulk of bytes.
-     * @note	This function is taken from Robotis.
-     */
-    static uint16_t update_crc(uint16_t crc_accum, const uint8_t* data_blk_ptr, const uint16_t data_blk_size) {
-    	uint16_t i, j;
-
-        for(j = 0; j < data_blk_size; j++)
-        {
-            i = ((uint16_t)(crc_accum >> 8) ^ data_blk_ptr[j]) & 0xFF;
-            crc_accum = (crc_accum << 8) ^ crc_table[i];
-        }
-
-        return crc_accum;
-    }
-
-    /*
-	 * @brief 	updates the CRC for a single byte.
-	 * @note	This function is taken from Robotis.
-	 */
-	static uint16_t update_crc(uint16_t crc_accum, const uint8_t byte) {
-		uint16_t i;
-
-		i = ((uint16_t)(crc_accum >> 8) ^ byte) & 0xFF;
-		crc_accum = (crc_accum << 8) ^ crc_table[i];
-
-		return crc_accum;
-	}
 private:
-    std::array<uint8_t, N> buffer;
+    // @brief	the buffer to store the decoded packet,
+    std::array<uint8_t, 2048> buffer;
+    // @brief	the number of bytes filled in the buffer,
     uint16_t filled_length;
+    // @brief	the total expected length of the packet,
 	uint16_t expected_length;
+	// @brief	the accumulated CRC value,
 	uint16_t crc;
+	// @brief	whether the decoded packet is done, i.e. fully decoded,
 	bool packet_is_ready;
+	// @brief	the state of the decoded packet,
     enum State {
 		INITIAL,        // No bytes
 		HEADER_BYTE_1,  // Received 0xFF
@@ -281,6 +264,36 @@ private:
 		UNSTUFF_3,      // Seen 0xFFFFFD while reading, if next byte is 0xFD drop it
 	};
 	State state;
+
+	// Helper functions:
+	/*
+	 * @brief 	updates the CRC for a bulk of bytes.
+	 * @note	This function is taken from Robotis.
+	 */
+	static uint16_t update_crc(uint16_t crc_accum, const uint8_t* data_blk_ptr, const uint16_t data_blk_size) {
+		uint16_t i, j;
+
+		for(j = 0; j < data_blk_size; j++)
+		{
+			i = ((uint16_t)(crc_accum >> 8) ^ data_blk_ptr[j]) & 0xFF;
+			crc_accum = (crc_accum << 8) ^ crc_table[i];
+		}
+
+		return crc_accum;
+	}
+
+	/*
+	 * @brief 	updates the CRC for a single byte.
+	 * @note	This function is taken from Robotis.
+	 */
+	static uint16_t update_crc(uint16_t crc_accum, const uint8_t byte) {
+		uint16_t i;
+
+		i = ((uint16_t)(crc_accum >> 8) ^ byte) & 0xFF;
+		crc_accum = (crc_accum << 8) ^ crc_table[i];
+
+		return crc_accum;
+	}
 };
 
 }
