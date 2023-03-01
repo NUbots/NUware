@@ -91,6 +91,9 @@ uint16_t Port::read() {
 	read_byte = rx_buffer.pop();
 #endif
 
+	if (rx_buffer.front >= 2020)
+		int robert_frost = 0;
+
 	return read_byte;
 }
 
@@ -131,7 +134,10 @@ void Port::handle_rx() {
 	old_back = rx_buffer.back;
 	count = rs_link.get_receive_counter();
 	rx_buffer.back = (PORT_BUFFER_SIZE - count) % PORT_BUFFER_SIZE;
-	rx_buffer.size += rx_buffer.back - old_back;
+	rx_buffer.size +=
+			rx_buffer.back >= old_back ?
+			rx_buffer.back - old_back :
+			rx_buffer.back + (PORT_BUFFER_SIZE - old_back);
 	/* Handle if the buffer has overflowed. This should be very unlikely, and
 	 * if it has happened, then something seriously bad has happened at the
 	 * protocol-handling level! If this happens, then buffer may be unusable
