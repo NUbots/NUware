@@ -28,6 +28,13 @@
 /* USER CODE BEGIN Includes */
 #include "settings.h"
 #include "test_hw.hpp"
+#include <array>
+#include <sstream>
+#include "dynamixel/Dynamixel.h"
+#include "dynamixel/Packetiser.hpp"
+#include "uart/Port.h"
+#include "dynamixel/PacketHandler.hpp"
+#include "usbd_cdc_if.h"
 
 /* USER CODE END Includes */
 
@@ -123,10 +130,137 @@ int main(void)
   HAL_GPIO_WritePin(DXL_PWR_EN_GPIO_Port, DXL_PWR_EN_Pin, GPIO_PIN_SET);
 #endif
 
+  /*
+  uint8_t packet[] = {
+  	  0xFF, 0xFF, 0xFD, 0x00,
+	  0x01,
+	  0x04, 0x00,
+	  0x55,
+	  0x00,
+	  0xA1, 0x0C
+  };
+  uint16_t crc = 0x0000;
+
+  crc = test_hw::update_crc(0x00, packet, sizeof(packet)-2);
+
+  crc = 0x0000;
+
+  for (int i = 0; i < sizeof(packet)-2; i++) {
+	  crc = test_hw::update_crc(crc, packet[i]);
+  }
+
+  crc = 0x0000;
+  */
+
 #ifdef RUN_MAIN
+	std::array<uart::Port,NUM_PORTS> ports = {{
+			uart::Port(1),uart::Port(2),uart::Port(3),
+			uart::Port(4),uart::Port(5),uart::Port(6)
+	}};
+	std::array<uint16_t,16> read_bank_addresses = {
+		  0x00A8,
+		  dynamixel::PRESENT_PWM,
+		  	  dynamixel::PRESENT_PWM+1,
+		  dynamixel::PRESENT_CURRENT,
+			  dynamixel::PRESENT_CURRENT+1,
+		  dynamixel::PRESENT_VELOCITY,
+			  dynamixel::PRESENT_VELOCITY+1,
+			  dynamixel::PRESENT_VELOCITY+2,
+			  dynamixel::PRESENT_VELOCITY+3,
+		  dynamixel::PRESENT_POSITION,
+			  dynamixel::PRESENT_POSITION+1,
+			  dynamixel::PRESENT_POSITION+2,
+			  dynamixel::PRESENT_POSITION+3,
+		  dynamixel::PRESENT_INPUT_VOLTAGE,
+			  dynamixel::PRESENT_INPUT_VOLTAGE+1,
+		  dynamixel::PRESENT_TEMPERATURE
+	};
 
-#endif
+	dynamixel::Packet<uint8_t,1> short_sts(dynamixel::R_SHOULDER_PITCH+1, dynamixel::STATUS_RETURN, {0x00});
+	dynamixel::PacketHandler<uint16_t,read_bank_addresses.size(),1>
+			single_write_handler(
+					ports[0],
+					dynamixel::Packet<uint16_t,read_bank_addresses.size()>(
+							dynamixel::R_SHOULDER_PITCH+1,
+							dynamixel::WRITE,
+							read_bank_addresses
+					),
+					1
+			);
+	std::array<dynamixel::ServoState, dynamixel::NUMBER_OF_DEVICES> local_cache;
 
+	/* Delay for a bit to give the motor time to boot up. Without this delay, I
+	* found that the motor does not respond at all. From some basic testing I
+	* think that it is because the motor only boots up until the DXL power is
+	* switched on from the DXL_POWER_EN pin. However, it may have something to
+	* do with the RS485 transceivers instead.
+	*/
+	HAL_Delay(1000);
+
+	// Begin the receiving. This should be done only once if we are using the DMA
+	// as a buffer.
+	for (auto& port : ports) {
+	  port.begin_rx();
+	  port.flush_rx();
+	}
+
+	do {
+		single_write_handler.send_inst();
+
+		while(!single_write_handler.check_sts())
+			ports[0].check_tx();
+		short_sts = single_write_handler.get_sts_packet(0);
+	} while (
+				(short_sts.crc != single_write_handler.get_crc(0))
+			||	(short_sts.params[0] != dynamixel::NO_ERROR)
+	);
+
+	dynamixel::PacketHandler<uint16_t,2,15+1> single_read_handler(
+			ports[0],
+			dynamixel::Packet<uint16_t,2> (
+					dynamixel::L_SHOULDER_PITCH,
+					dynamixel::READ,
+					{0x00A8+2*28,15}
+			),
+			1
+	);
+
+	single_read_handler.send_inst();
+
+	while (1) {
+		if (single_read_handler.check_sts()) {
+			auto read_sts_packet = single_read_handler.get_sts_packet(0);
+
+			if ((single_read_handler.is_sts_healthy(0))
+					&& read_sts_packet.params[0] == dynamixel::NO_ERROR)
+			{
+				local_cache[0].convert_from_read_bank(
+						*(dynamixel::ReadBank*)(read_sts_packet.params.data()+1)
+				);
+
+				std::stringstream ss;
+				ss << local_cache[0];
+				CDC_Transmit_HS((uint8_t*)ss.str().data(), ss.str().size());
+			}
+			else {
+				std::string str = "Error\r\n";
+				CDC_Transmit_HS((uint8_t*)str.data(), str.size());
+			}
+
+			single_read_handler.reset();
+
+			// Delay so that the LED can be observed to blink at 2 Hz.
+			HAL_Delay(500);
+
+			single_read_handler.send_inst();
+		}
+
+
+		// Always check the TX interrupts.
+		ports[0].check_tx();
+	}
+
+#else
 #ifdef TEST_UART
   test_hw::uart();
 #endif
@@ -148,8 +282,9 @@ int main(void)
   test_hw::motor_v1();
 #else
   test_hw::motor_v2();
-#endif
-#endif
+#endif // TEST_MOTOR == 1
+#endif // TEST_MOTOR
+#endif // RUN_MAIN
 
   /* USER CODE END 2 */
 
