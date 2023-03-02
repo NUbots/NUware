@@ -176,6 +176,7 @@ int main(void)
 		  dynamixel::PRESENT_TEMPERATURE
 	};
 
+	/*
 	dynamixel::Packet<uint8_t,1> short_sts(dynamixel::R_SHOULDER_PITCH+1, dynamixel::STATUS_RETURN, {0x00});
 	dynamixel::PacketHandler<uint16_t,read_bank_addresses.size(),1>
 			single_write_handler(
@@ -186,6 +187,35 @@ int main(void)
 							read_bank_addresses
 					),
 					1
+			);
+	*/
+	const int l = 2+2+1+2*15+1+2*15;
+	std::array<uint8_t,l> indirect_address_params;
+	indirect_address_params[0] = 0xA8;
+	indirect_address_params[1] = 0x00;
+	indirect_address_params[2] = ((l-6)/2) & 0x00FF;
+	indirect_address_params[3] = (((l-6)/2) >> 8) & 0x00FF;
+	for (int i = 0; i < 2; i++) {
+		uint16_t base = 4 + i*(1+2*15);
+		indirect_address_params[base] =
+				i == 0 ?
+				dynamixel::R_SHOULDER_PITCH+1 :
+				dynamixel::L_SHOULDER_PITCH+1;
+		for (int j = 0; j < 15; j++) {
+			indirect_address_params[base+2*j+1] = read_bank_addresses[j+1] & 0x00FF;
+			indirect_address_params[base+2*j+2] = (read_bank_addresses[j+1] >> 8) & 0x00FF;
+		}
+	}
+	//dynamixel::Packet<uint8_t,1> short_sts(dynamixel::R_SHOULDER_PITCH+1, dynamixel::STATUS_RETURN, {0x00});
+	dynamixel::PacketHandler<uint8_t,indirect_address_params.size(),1>
+			sync_write_handler(
+					ports[0],
+					dynamixel::Packet<uint8_t,indirect_address_params.size()>(
+							dynamixel::ALL_DEVICES,
+							dynamixel::SYNC_WRITE,
+							indirect_address_params
+					),
+					2
 			);
 	std::array<dynamixel::ServoState, dynamixel::NUMBER_OF_DEVICES> local_cache;
 
@@ -204,7 +234,7 @@ int main(void)
 	  port.flush_rx();
 	}
 
-	do {
+	/*do {
 		single_write_handler.send_inst();
 
 		while(!single_write_handler.check_sts())
@@ -213,8 +243,26 @@ int main(void)
 	} while (
 				(short_sts.crc != single_write_handler.get_crc(0))
 			||	(short_sts.params[0] != dynamixel::NO_ERROR)
-	);
+	);*/
 
+	sync_write_handler.send_inst();
+
+	/*
+	while (1) {
+		sync_write_handler.send_inst();
+
+		while(!sync_write_handler.check_sts())
+			ports[0].check_tx();
+		for (int i = 0; i < 2; i++) {
+			auto sync_write_sts = sync_write_handler.get_sts_packet(i);
+			if ((sync_write_sts.crc != sync_write_handler.get_crc(i))
+					&& (sync_write_sts.params[0] != dynamixel::NO_ERROR))
+				break;
+		}
+	}
+	*/
+
+	/*
 	dynamixel::PacketHandler<uint16_t,2,15+1> single_read_handler(
 			ports[0],
 			dynamixel::Packet<uint16_t,2> (
@@ -226,8 +274,22 @@ int main(void)
 	);
 
 	single_read_handler.send_inst();
+	*/
+
+	dynamixel::PacketHandler<uint16_t,3,15+1> sync_read_handler(
+			ports[0],
+			dynamixel::Packet<uint16_t,3> (
+					dynamixel::ALL_DEVICES,
+					dynamixel::SYNC_READ,
+					{0x00A8+2*28,15,0x0201}
+			),
+			2
+	);
+
+	sync_read_handler.send_inst();
 
 	while (1) {
+		/*
 		if (single_read_handler.check_sts()) {
 			auto read_sts_packet = single_read_handler.get_sts_packet(0);
 
@@ -254,7 +316,36 @@ int main(void)
 
 			single_read_handler.send_inst();
 		}
+		*/
 
+		if (sync_read_handler.check_sts()) {
+			for (int i = 0; i < 2; i++) {
+				auto sync_read_sts = sync_read_handler.get_sts_packet(i);
+
+				if ((sync_read_handler.is_sts_healthy(i))
+						&& sync_read_sts.params[0] == dynamixel::NO_ERROR)
+				{
+					local_cache[0].convert_from_read_bank(
+							*(dynamixel::ReadBank*)(sync_read_sts.params.data()+1)
+					);
+
+					std::stringstream ss;
+					ss << "Servo: " << (i+1) << "\t" << local_cache[0];
+					CDC_Transmit_HS((uint8_t*)ss.str().data(), ss.str().size());
+				}
+				else {
+					std::string str = "Error\r\n";
+					CDC_Transmit_HS((uint8_t*)str.data(), str.size());
+				}
+			}
+
+			sync_read_handler.reset();
+
+			// Delay so that the LED can be observed to blink at 2 Hz.
+			HAL_Delay(500);
+
+			sync_read_handler.send_inst();
+		}
 
 		// Always check the TX interrupts.
 		ports[0].check_tx();

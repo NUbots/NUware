@@ -237,12 +237,12 @@ struct ServoState {
  * @return,	the output stream,
  */
 std::ostream & operator << (std::ostream& out, const ServoState& servo_state) {
-	out << "PWM (%)\t" << servo_state.presentPWM << "\t\t";
-	out << "Curr. (mA)\t" << servo_state.presentCurrent << "\t\t";
-	out << "Vel. (rpm)\t" << servo_state.presentVelocity << "\t\t";
-	out << "Pos. (deg)\t" << servo_state.presentPosition << "\t\t";
-	out << "Volt. (V)\t" << servo_state.voltage << "\t\t";
-	out << "Temp. (deg C)\t" << servo_state.temperature << std::endl;
+	out << "PWM (%) " << servo_state.presentPWM << "\t\t";
+	out << "Curr. (mA) " << servo_state.presentCurrent << "\t\t";
+	out << "Vel. (rpm) " << servo_state.presentVelocity << "\t\t";
+	out << "Pos. (deg) " << servo_state.presentPosition << "\t\t";
+	out << "Volt. (V) " << servo_state.voltage << "\t\t";
+	out << "Temp. (deg C) " << servo_state.temperature << "\r" << std::endl;
 	return out;
 }
 
