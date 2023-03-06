@@ -5,9 +5,10 @@
  *      Author: Clayton
  */
 
-#include "Dynamixel.h"
 #include "../uart/Port.h"
+#include "Devices.hpp"
 #include "Packetiser.hpp"
+#include "Packet.hpp"
 
 #ifndef SRC_DYNAMIXEL_PACKETHANDLER_HPP_
 #define SRC_DYNAMIXEL_PACKETHANDLER_HPP_
@@ -20,7 +21,8 @@ namespace dynamixel {
  * @param	the type of parameters in the instruction, either a byte or a
  * 			half-word,
  * @param	the number of such parameters in the instruction,
- * @param	the number of parameters as bytes in the expected status,
+ * @param	the number of parameters as bytes in the expected status, not
+ * 			including the error,
  */
 template <typename T, uint16_t N, uint16_t M>
 class PacketHandler {
@@ -74,6 +76,11 @@ public:
 	 * 			#SUCCESS if all the expected packets have been decoded,
 	 */
 	const Result check_sts() {
+		// If none are expected, e.g. for a sync-write instruction, then return
+		// early.
+		if (expected_num_sts == 0)
+			return SUCCESS;
+
 		// Peek to see if there is a byte on the buffer yet.
 		if (port.peek() == NO_BYTE_READ)
 			return NONE;
@@ -85,7 +92,7 @@ public:
 			return NONE;
 		// If so, then add the status-packet with the rest.
 		sts_packets.push_back(
-				*reinterpret_cast<dynamixel::Packet<uint8_t,M>*>(
+				*reinterpret_cast<dynamixel::Packet<uint8_t,M+1>*>(
 						packetiser.get_decoded_packet()
 				)
 		);
@@ -129,7 +136,7 @@ public:
 	 * @param	the index of the status-packet,
 	 * @return	the status-packet as an object,
 	 */
-	const Packet<uint8_t,M>& get_sts_packet(const uint16_t index) const {
+	const Packet<uint8_t,M+1>& get_sts_packet(const uint16_t index) const {
 		if (index >= sts_packets.size())
 			return sts_packets.back();
 		else
@@ -178,7 +185,9 @@ private:
 	// @note	this is mainly for sync-read, sync-write, etc.
 	const uint8_t expected_num_sts;
 	// @brief	the status-packets,
-	std::vector<Packet<uint8_t,M>> sts_packets;
+	// @note	each status-packet needs to be one byte longer for the error
+	//			which is being packed along with the other parameters.
+	std::vector<Packet<uint8_t,M+1>> sts_packets;
 	// @brief	the number of status-packets decoded so far,
 	uint16_t packet_count;
 	// @brief	the decoded CRCs from the packetiser,

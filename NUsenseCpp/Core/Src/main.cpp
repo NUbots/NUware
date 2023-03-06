@@ -30,11 +30,12 @@
 #include "test_hw.hpp"
 #include <array>
 #include <sstream>
-#include "dynamixel/Dynamixel.h"
 #include "dynamixel/Packetiser.hpp"
 #include "uart/Port.h"
 #include "dynamixel/PacketHandler.hpp"
 #include "usbd_cdc_if.h"
+#include "dynamixel/Devices.hpp"
+#include "dynamixel/Packet.hpp"
 
 /* USER CODE END Includes */
 
@@ -130,101 +131,23 @@ int main(void)
   HAL_GPIO_WritePin(DXL_PWR_EN_GPIO_Port, DXL_PWR_EN_Pin, GPIO_PIN_SET);
 #endif
 
-  /*
-  uint8_t packet[] = {
-  	  0xFF, 0xFF, 0xFD, 0x00,
-	  0x01,
-	  0x04, 0x00,
-	  0x55,
-	  0x00,
-	  0xA1, 0x0C
-  };
-  uint16_t crc = 0x0000;
-
-  crc = test_hw::update_crc(0x00, packet, sizeof(packet)-2);
-
-  crc = 0x0000;
-
-  for (int i = 0; i < sizeof(packet)-2; i++) {
-	  crc = test_hw::update_crc(crc, packet[i]);
-  }
-
-  crc = 0x0000;
-  */
-
 #ifdef RUN_MAIN
+  	// These are the ports on the NUsense board. They are either to be used for
+    // sending packets directly or to be passed to a packet-handler.
 	std::array<uart::Port,NUM_PORTS> ports = {{
 			uart::Port(1),uart::Port(2),uart::Port(3),
 			uart::Port(4),uart::Port(5),uart::Port(6)
 	}};
-	std::array<uint16_t,16> read_bank_addresses = {
-		  0x00A8,
-		  dynamixel::PRESENT_PWM,
-		  	  dynamixel::PRESENT_PWM+1,
-		  dynamixel::PRESENT_CURRENT,
-			  dynamixel::PRESENT_CURRENT+1,
-		  dynamixel::PRESENT_VELOCITY,
-			  dynamixel::PRESENT_VELOCITY+1,
-			  dynamixel::PRESENT_VELOCITY+2,
-			  dynamixel::PRESENT_VELOCITY+3,
-		  dynamixel::PRESENT_POSITION,
-			  dynamixel::PRESENT_POSITION+1,
-			  dynamixel::PRESENT_POSITION+2,
-			  dynamixel::PRESENT_POSITION+3,
-		  dynamixel::PRESENT_INPUT_VOLTAGE,
-			  dynamixel::PRESENT_INPUT_VOLTAGE+1,
-		  dynamixel::PRESENT_TEMPERATURE
-	};
-
-	/*
-	dynamixel::Packet<uint8_t,1> short_sts(dynamixel::R_SHOULDER_PITCH+1, dynamixel::STATUS_RETURN, {0x00});
-	dynamixel::PacketHandler<uint16_t,read_bank_addresses.size(),1>
-			single_write_handler(
-					ports[0],
-					dynamixel::Packet<uint16_t,read_bank_addresses.size()>(
-							dynamixel::R_SHOULDER_PITCH+1,
-							dynamixel::WRITE,
-							read_bank_addresses
-					),
-					1
-			);
-	*/
-	const int l = 2+2+1+2*15+1+2*15;
-	std::array<uint8_t,l> indirect_address_params;
-	indirect_address_params[0] = 0xA8;
-	indirect_address_params[1] = 0x00;
-	indirect_address_params[2] = ((l-6)/2) & 0x00FF;
-	indirect_address_params[3] = (((l-6)/2) >> 8) & 0x00FF;
-	for (int i = 0; i < 2; i++) {
-		uint16_t base = 4 + i*(1+2*15);
-		indirect_address_params[base] =
-				i == 0 ?
-				dynamixel::R_SHOULDER_PITCH+1 :
-				dynamixel::L_SHOULDER_PITCH+1;
-		for (int j = 0; j < 15; j++) {
-			indirect_address_params[base+2*j+1] = read_bank_addresses[j+1] & 0x00FF;
-			indirect_address_params[base+2*j+2] = (read_bank_addresses[j+1] >> 8) & 0x00FF;
-		}
-	}
-	//dynamixel::Packet<uint8_t,1> short_sts(dynamixel::R_SHOULDER_PITCH+1, dynamixel::STATUS_RETURN, {0x00});
-	dynamixel::PacketHandler<uint8_t,indirect_address_params.size(),1>
-			sync_write_handler(
-					ports[0],
-					dynamixel::Packet<uint8_t,indirect_address_params.size()>(
-							dynamixel::ALL_DEVICES,
-							dynamixel::SYNC_WRITE,
-							indirect_address_params
-					),
-					2
-			);
+	// This is the local storage of each servo's state. This is to be updated
+	// regularly by polling the servos constantly and to be spammed to the NUC.
 	std::array<dynamixel::ServoState, dynamixel::NUMBER_OF_DEVICES> local_cache;
 
 	/* Delay for a bit to give the motor time to boot up. Without this delay, I
-	* found that the motor does not respond at all. From some basic testing I
-	* think that it is because the motor only boots up until the DXL power is
-	* switched on from the DXL_POWER_EN pin. However, it may have something to
-	* do with the RS485 transceivers instead.
-	*/
+	 * found that the motor does not respond at all. From some basic testing, I
+	 * think that it is because the motor only boots up until the DXL power is
+	 * switched on from the DXL_POWER_EN pin. However, it may have something to
+	 * do with the RS485 transceivers instead.
+	 */
 	HAL_Delay(1000);
 
 	// Begin the receiving. This should be done only once if we are using the DMA
@@ -234,120 +157,128 @@ int main(void)
 	  port.flush_rx();
 	}
 
-	/*do {
-		single_write_handler.send_inst();
+	// For now, we are just testing two servos on one port.
 
-		while(!single_write_handler.check_sts())
-			ports[0].check_tx();
-		short_sts = single_write_handler.get_sts_packet(0);
-	} while (
-				(short_sts.crc != single_write_handler.get_crc(0))
-			||	(short_sts.params[0] != dynamixel::NO_ERROR)
-	);*/
+	/*
+	 * ~~~ ~~~ ~~~ Set up of the Indirect Registers ~~~ ~~~ ~~~
+	 * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	 * Here, the indirect registers are set up by a single sync-write
+	 * instruction on each port. These indirect registers are used for the
+	 * contiguous read-bank which is read constantly in a loop.
+	 */
+	// The parameters of the sync-write instruction can be quite complex. Here,
+	// they are generated by a helper function.
+	auto sync_write_params = dynamixel::make_sync_write_params<2>(
+			{
+				// For now, we are just testing two servos.
+				dynamixel::R_SHOULDER_PITCH,
+				dynamixel::L_SHOULDER_PITCH
+			}
+	);
+	// Make the handler for the sync-write instruction.
+	dynamixel::PacketHandler<uint8_t,sync_write_params.size(),1>
+			sync_write_handler(
+					ports[0], // the port
+					dynamixel::Packet<uint8_t,sync_write_params.size()>(
+							dynamixel::ALL_DEVICES, // the broadcast ID
+							dynamixel::SYNC_WRITE, 	// the instruction
+							sync_write_params 		// the parameters
+					), // the packet
+					0 // The sync-write instruction has no statuses in response.
+			);
 
+	// Send the sync-write instruction to now set the indirect-register up.
+	// There are no status-packets in response.
 	sync_write_handler.send_inst();
+	// We do not have to check the TX of the port.
 
 	/*
-	while (1) {
-		sync_write_handler.send_inst();
-
-		while(!sync_write_handler.check_sts())
-			ports[0].check_tx();
-		for (int i = 0; i < 2; i++) {
-			auto sync_write_sts = sync_write_handler.get_sts_packet(i);
-			if ((sync_write_sts.crc != sync_write_handler.get_crc(i))
-					&& (sync_write_sts.params[0] != dynamixel::NO_ERROR))
-				break;
-		}
-	}
-	*/
-
-	/*
-	dynamixel::PacketHandler<uint16_t,2,15+1> single_read_handler(
-			ports[0],
-			dynamixel::Packet<uint16_t,2> (
-					dynamixel::L_SHOULDER_PITCH,
-					dynamixel::READ,
-					{0x00A8+2*28,15}
-			),
-			1
+	 * ~~~ ~~~ ~~~ Polling of the Indirect Registers ~~~ ~~~ ~~~
+	 * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	 * Here, the indirect registers are polled in a loop using sync-read
+	 * instructions.
+	 */
+	// Make the handler for sync-read instruction.
+	const uint16_t read_bank_length = sizeof(dynamixel::ReadBank);
+	dynamixel::PacketHandler<uint8_t,2+2+2,read_bank_length> sync_read_handler(
+			ports[0], // the port
+			dynamixel::Packet<uint8_t,2+2+2> (
+					dynamixel::ALL_DEVICES,	// the broadcast ID
+					dynamixel::SYNC_READ,	// the instruction
+					{
+							// the starting address
+							dynamixel::INDIRECT_DATA_1 & 0xFF,
+							(dynamixel::INDIRECT_DATA_1 >> 8) & 0xFF,
+							// the number of registers
+							0x0F, 0x00,
+							// the IDs
+							// These need to be offset by one always when
+							// packed into an array of parameters.
+							dynamixel::R_SHOULDER_PITCH+1,
+							dynamixel::L_SHOULDER_PITCH+1,
+					} // the parameters
+			), // the packet
+			2 // Again, we are just testing two servos for now.
 	);
 
-	single_read_handler.send_inst();
-	*/
-
-	dynamixel::PacketHandler<uint16_t,3,15+1> sync_read_handler(
-			ports[0],
-			dynamixel::Packet<uint16_t,3> (
-					dynamixel::ALL_DEVICES,
-					dynamixel::SYNC_READ,
-					{0x00A8+2*28,15,0x0201}
-			),
-			2
-	);
-
+	// Send the sync-read instruction to begin the loop.
 	sync_read_handler.send_inst();
 
+	/*
+	 * ~~~ ~~~ ~~~ The Main Loop ~~~ ~~~ ~~~
+	 * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	 */
 	while (1) {
-		/*
-		if (single_read_handler.check_sts()) {
-			auto read_sts_packet = single_read_handler.get_sts_packet(0);
-
-			if ((single_read_handler.is_sts_healthy(0))
-					&& read_sts_packet.params[0] == dynamixel::NO_ERROR)
-			{
-				local_cache[0].convert_from_read_bank(
-						*(dynamixel::ReadBank*)(read_sts_packet.params.data()+1)
-				);
-
-				std::stringstream ss;
-				ss << local_cache[0];
-				CDC_Transmit_HS((uint8_t*)ss.str().data(), ss.str().size());
-			}
-			else {
-				std::string str = "Error\r\n";
-				CDC_Transmit_HS((uint8_t*)str.data(), str.size());
-			}
-
-			single_read_handler.reset();
-
-			// Delay so that the LED can be observed to blink at 2 Hz.
-			HAL_Delay(500);
-
-			single_read_handler.send_inst();
-		}
-		*/
-
+		// If all the expected statuses have been received and decoded, then
+		// parse it for any errors and print the data.
 		if (sync_read_handler.check_sts()) {
+			// For now, we are just testing two servos.
 			for (int i = 0; i < 2; i++) {
-				auto sync_read_sts = sync_read_handler.get_sts_packet(i);
+				const auto sync_read_sts = sync_read_handler.get_sts_packet(i);
 
+				// If the status' CRC is right, and there is no error, then
+				// parse it as a state and add it to the cache.
 				if ((sync_read_handler.is_sts_healthy(i))
 						&& sync_read_sts.params[0] == dynamixel::NO_ERROR)
 				{
 					local_cache[0].convert_from_read_bank(
-							*(dynamixel::ReadBank*)(sync_read_sts.params.data()+1)
+							*reinterpret_cast<const dynamixel::ReadBank*>(
+									sync_read_sts.params.data()+1
+							)
 					);
 
+					// For now, print the state for testing.
+					// Later on, this should be done somewhere else outside of
+					// this if-statement.
 					std::stringstream ss;
 					ss << "Servo: " << (i+1) << "\t" << local_cache[0];
 					CDC_Transmit_HS((uint8_t*)ss.str().data(), ss.str().size());
 				}
 				else {
-					std::string str = "Error\r\n";
-					CDC_Transmit_HS((uint8_t*)str.data(), str.size());
+					// If the CRC is wrong, or there is an error, then print it.
+					std::stringstream ss;
+					ss << "Servo: " << (i+1) << "\tError\t"
+							<< sync_read_sts.params[0] << "\r" << std::endl;
+					CDC_Transmit_HS((uint8_t*)ss.str().data(), ss.str().size());
 				}
 			}
 
+			// Reset the handler.
 			sync_read_handler.reset();
 
-			// Delay so that the LED can be observed to blink at 2 Hz.
+			// Delay for a bit.
 			HAL_Delay(500);
 
+			// Send the sync-read instruction again to continue the loop.
 			sync_read_handler.send_inst();
 		}
 
 		// Always check the TX interrupts.
+		/*
+		 * Well, this is not strictly needed if only one packet is being sent
+		 * at a time on each port. In fact, transmission may not even need a
+		 * circular buffer in the first place, but it is there for completeness.
+		 */
 		ports[0].check_tx();
 	}
 

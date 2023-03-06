@@ -11,39 +11,11 @@
 #include "stdint.h" 	// needed for explicit type-defines
 #include <array>		// needed for the array container inside the packet
 #include <string>		// needed for printing the servo-state
-#include <ostream>
+#include <ostream>		// needed for outputting the servo-state
+#include <iomanip>		// needed to make the output stream nicer
+#include "../uart/Port.h"
 
 namespace dynamixel {
-
-enum Instruction {
-    PING = 0x01,
-    READ = 0x02,
-    WRITE = 0x03,
-    REG_WRITE = 0x04,
-    ACTION = 0x05,
-    FACTORY_RESET = 0x06,
-	REBOOT = 0x08,
-	CLEAR = 0x10,
-	CONTROL_TABLE_BACKUP = 0x20,
-	STATUS_RETURN = 0x55,
-    SYNC_READ = 0X82,
-    SYNC_WRITE = 0x83,
-	FAST_SYNC_READ = 0x8A,
-	BULK_READ = 0x92,
-	BULK_WRITE = 0x93,
-	FAST_BULK_READ = 0x9A
-};
-
-enum Error {
-	NO_ERROR = 0x00,
-    RESULT_FAIL = 0x01,
-    INST_ERR = 0x02,
-    CRC_ERR = 0x03,
-    DATA_RANGE_ERR = 0x04,
-    DATA_LEN_ERR = 0x05,
-    DATA_LIM_ERR = 0x06,
-    ACCESS_ERR = 0x07
-};
 
 enum Register {
 	TORQUE_ENABLE			 = 64,
@@ -75,7 +47,15 @@ enum Register {
 	VELOCITY_TRAJECTORY		 = 136,
 	POSITION_TRAJECTORY		 = 140,
 	PRESENT_INPUT_VOLTAGE	 = 144,
-	PRESENT_TEMPERATURE		 = 146
+	PRESENT_TEMPERATURE		 = 146,
+	INDIRECT_ADDRESS_1		 = 168,
+	// ...
+	INDIRECT_DATA_1			 = 224,
+	// ...
+	INDIRECT_ADDRESS_29		 = 578,
+	// ...
+	INDIRECT_DATA_29		 = 634
+	// ...
 };
 
 enum Device {
@@ -109,58 +89,6 @@ enum Device {
 	ALL_DEVICES			 = 0xFE
 };
 
-// sshhh ... most of this is stolen and bastardised from the old NUsense code.
-
-/*
- * @brief	a generic packet struct,
- * @param	the type of parameters, either a byte or a half-word,
- * @param	the number of such parameters in the packet,
- */
-#pragma pack(push, 1)  // Make it so that the compiler reads this struct "as is" (no padding bytes)
-template <typename T, uint16_t N>
-struct Packet {
-	/*
-	 * @brief	constructs the packet,
-	 * @param	the id of the device concerned,
-	 * @param	the instruction,
-	 * @param	the parameters,
-	 * @return	none
-	 */
-	Packet(uint8_t id = 0x00, Instruction instruction = STATUS_RETURN, const std::array<T,N>& params = {}) :
-		magic(0x00FDFFFF),
-		id(id),
-		length(N+3),
-		instruction(instruction),
-		params(params),
-		crc(0xFFFF)
-	{
-		// If this has an array of half-words as the parameters, then the
-		// length needs to be re-calculated.
-		if (std::is_same<T,uint16_t>::value)
-			length = 2*N + 3;
-	}
-	// @brief 	This header will not change, except maybe for rsrv which is 0x00
-    uint32_t magic;
-
-    // @brief 	This field can be the ID of the sender or the recepient
-    uint8_t id;
-
-    // @brief 	Specifies the length of the fields that follow below it
-    uint16_t length;
-
-    // @brief 	Code for the instruction to be executed, as stated in the
-    //			Instructions enum
-    uint8_t instruction;
-
-    // @brief 	This will include the error field for the status packet, or
-    //			just the parameter field for the instruction packet
-    std::array<T,N> params;
-
-    // @brief 	CRC for the packet - 2 bytes long
-    uint16_t crc;
-};
-#pragma pack(pop)
-
 /*
  * @brief	the grouping of read values in the servo's control-table,
  */
@@ -174,6 +102,7 @@ struct ReadBank {
 	uint8_t  present_temperature;
 };
 #pragma pack(pop)
+
 
 /*
  * @brief	the state of a servo
@@ -237,14 +166,105 @@ struct ServoState {
  * @return,	the output stream,
  */
 std::ostream & operator << (std::ostream& out, const ServoState& servo_state) {
-	out << "PWM (%) " << servo_state.presentPWM << "\t\t";
-	out << "Curr. (mA) " << servo_state.presentCurrent << "\t\t";
-	out << "Vel. (rpm) " << servo_state.presentVelocity << "\t\t";
-	out << "Pos. (deg) " << servo_state.presentPosition << "\t\t";
-	out << "Volt. (V) " << servo_state.voltage << "\t\t";
-	out << "Temp. (deg C) " << servo_state.temperature << "\r" << std::endl;
+	out << "PWM (%) " << std::fixed << std::setw(6) << std::setprecision(2)
+			<< servo_state.presentPWM << "\t";
+	out << "Curr. (mA) " << std::fixed << std::setw(6) << std::setprecision(2)
+			<< servo_state.presentCurrent << "\t";
+	out << "Vel. (rpm) " << std::fixed << std::setw(8) << std::setprecision(2)
+			<< servo_state.presentVelocity << "\t";
+	out << "Pos. (deg) " << std::fixed << std::setw(6) << std::setprecision(2)
+			<< servo_state.presentPosition << "\t";
+	out << "Volt. (V) " << std::fixed << std::setw(6) << std::setprecision(2)
+			<< servo_state.voltage << "\t";
+	out << "Temp. (deg C) " << std::fixed << std::setw(6) << std::setprecision(2)
+			<< servo_state.temperature << "\r" << std::endl;
 	return out;
 }
+
+/*
+ * Helper functions:
+ */
+
+/*
+ * @brief 	makes the parameters for a sync-write instruction that sets the
+ * 			indirect addresses to a set of servos on one port.
+ * @note	the purpose of this helper-function is to wrap the rather complex
+ * 			packing for the sync-write instruction for the indirect addresses
+ * 			and to genericise this for any number of devices.
+ * @param	an array of the servo-ids,
+ * @return	the parameters as an array,
+ */
+template <uint8_t N>
+const std::array<uint8_t,2+2+N*(1+2*15)> make_sync_write_params(const std::array<Device,N>& devices) {
+	// List all the addresses that will be written to the indirect addresses.
+	/*
+	 * Note that these are not the addresses that are being written to in this
+	 * sync-write instruction, rather they are the values that are written to
+	 * the space for indirect addresses in the RAM. Later, we will read and
+	 * write from the indirect registers that correspond to these addresses.
+	 */
+	const uint16_t read_bank_length = 15; // number of half-words, not bytes,
+	std::array<uint16_t,read_bank_length> read_bank_addresses = {
+		  dynamixel::PRESENT_PWM,
+			  dynamixel::PRESENT_PWM+1,
+		  dynamixel::PRESENT_CURRENT,
+			  dynamixel::PRESENT_CURRENT+1,
+		  dynamixel::PRESENT_VELOCITY,
+			  dynamixel::PRESENT_VELOCITY+1,
+			  dynamixel::PRESENT_VELOCITY+2,
+			  dynamixel::PRESENT_VELOCITY+3,
+		  dynamixel::PRESENT_POSITION,
+			  dynamixel::PRESENT_POSITION+1,
+			  dynamixel::PRESENT_POSITION+2,
+			  dynamixel::PRESENT_POSITION+3,
+		  dynamixel::PRESENT_INPUT_VOLTAGE,
+			  dynamixel::PRESENT_INPUT_VOLTAGE+1,
+		  dynamixel::PRESENT_TEMPERATURE
+	};
+
+	// Pack these addresses as parameters according to the sync-write
+	// instruction.
+	/*
+	 * L starting address
+	 * H starting address
+	 * L data-length
+	 * H data-length
+	 * 1st ID
+	 * ...bytes ...
+	 * 2nd ID
+	 * ... bytes ...
+	 * ...
+	 */
+	// The parameters have two bytes for the starting address, two for the
+	// data-length, one byte for each ID and however many bytes for each servo.
+	// Note that the parameters have to be packed as bytes instead of
+	// half-words because the ID is only a byte.
+	const uint16_t params_length = 2+2+N*(1+2*read_bank_length);
+	std::array<uint8_t,params_length> params;
+	// The starting-address, which is 0x00A8 and is where the indirect
+	// addresses begin:
+	params[0] = INDIRECT_ADDRESS_1 & 0xFF;
+	params[1] = (INDIRECT_ADDRESS_1 >> 8) & 0xFF;
+	// The data-length:
+	params[2] = (2*read_bank_length) & 0x00FF;
+	params[3] = (2*read_bank_length >> 8) & 0x00FF;
+	// For each device, fill the array of parameters with the ID and the
+	// indirect addresses.
+	for (int i = 0; i < N; i++) {
+		// The base of the array for the i-th device:
+		const uint16_t base = 4 + i*(1+2*read_bank_length);
+		// Add the ID.
+		params[base] = devices[i] + 1; // offset by one
+		// Add all the indirect addresses.
+		for (int j = 0; j < read_bank_length; j++) {
+			params[base+2*j+1] = read_bank_addresses[j] & 0x00FF;
+			params[base+2*j+2] = (read_bank_addresses[j] >> 8) & 0x00FF;
+		}
+	}
+
+	return params;
+}
+
 
 } // namespace dynamixel
 

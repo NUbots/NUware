@@ -91,9 +91,6 @@ uint16_t Port::read() {
 	read_byte = rx_buffer.pop();
 #endif
 
-	if (rx_buffer.front >= 2020)
-		int robert_frost = 0;
-
 	return read_byte;
 }
 
