@@ -31,12 +31,30 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef* handle) {
 	else if (handle == &huart6) uart_it_flags |= UART6_RX;
 }
 void HAL_UART_TxCpltCallback(UART_HandleTypeDef* handle) {
-	if 		(handle == &huart1) uart_it_flags |= UART1_TX;
-	else if (handle == &huart2) uart_it_flags |= UART2_TX;
-	else if (handle == &huart3) uart_it_flags |= UART3_TX;
-	else if (handle == &huart4) uart_it_flags |= UART4_TX;
-	else if (handle == &huart5) uart_it_flags |= UART5_TX;
-	else if (handle == &huart6) uart_it_flags |= UART6_TX;
+	if 		(handle == &huart1) {
+		uart_it_flags |= UART1_TX;
+		HAL_GPIO_WritePin(DXL_DIR1_GPIO_Port, DXL_DIR1_Pin, RS485_RX);
+	}
+	else if (handle == &huart2) {
+		uart_it_flags |= UART2_TX;
+		HAL_GPIO_WritePin(DXL_DIR2_GPIO_Port, DXL_DIR2_Pin, RS485_RX);
+	}
+	else if (handle == &huart3) {
+		uart_it_flags |= UART3_TX;
+		HAL_GPIO_WritePin(DXL_DIR3_GPIO_Port, DXL_DIR3_Pin, RS485_RX);
+	}
+	else if (handle == &huart4) {
+		uart_it_flags |= UART4_TX;
+		HAL_GPIO_WritePin(DXL_DIR4_GPIO_Port, DXL_DIR4_Pin, RS485_RX);
+	}
+	else if (handle == &huart5) {
+		uart_it_flags |= UART5_TX;
+		HAL_GPIO_WritePin(DXL_DIR5_GPIO_Port, DXL_DIR5_Pin, RS485_RX);
+	}
+	else if (handle == &huart6) {
+		uart_it_flags |= UART6_TX;
+		HAL_GPIO_WritePin(DXL_DIR6_GPIO_Port, DXL_DIR6_Pin, RS485_RX);
+	}
 }
 
 namespace uart {
@@ -265,7 +283,6 @@ bool RS485::get_transmit_flag() {
 	if (uart_it_flags & it_tx_mask) {
 		// Set the direction back to receiving so that half-duplex channel is
 		// not being blocked.
-		HAL_GPIO_WritePin(gpio_port, gpio_pin, RS485_RX);
 		HAL_GPIO_WritePin(SPARE1_GPIO_Port, SPARE1_Pin, GPIO_PIN_SET);
 		uart_it_flags &= ~it_tx_mask;
 		return true;

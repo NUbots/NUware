@@ -18,13 +18,10 @@ namespace dynamixel {
 /*
  * @brief	the handler for any generic packet (any except bulk-read and
  * 			bulk-write)
- * @param	the type of parameters in the instruction, either a byte or a
- * 			half-word,
- * @param	the number of such parameters in the instruction,
  * @param	the number of parameters as bytes in the expected status, not
  * 			including the error,
  */
-template <typename T, uint16_t N, uint16_t M>
+template <uint16_t M>
 class PacketHandler {
 public:
 	// @brief	the result of whether all the status-packets have been received,
@@ -36,29 +33,39 @@ public:
 	/*
 	 * @brief	constructs the packet-handler.
 	 * @param	the reference to the port to be communicated on,
-	 * @param	the instruction-packet to be sent,
 	 * @param	the expected number of status-packets in response,
 	 */
-	PacketHandler(uart::Port& port, const Packet<T,N>& inst_packet, const uint16_t expected_num_sts) :
+	PacketHandler(uart::Port& port = uart::Port(1), const uint16_t expected_num_sts = 0) :
 		port(port),
 		packetiser(),
-		inst_packet(inst_packet),
-		encoded_inst_packet(sizeof(Packet<T,N>)),
+		encoded_inst_packet(0),
 		expected_num_sts(expected_num_sts),
 		sts_packets(0),
 		packet_count(0),
 		decoded_crcs(0)
 	{
-		// Firstly, encode the instruction-packet into a vector with the
-		// calculated CRC and any byte-stuffing if need be.
-		new (encoded_inst_packet.data()) Packet<T,N>(inst_packet);
-		packetiser.encode(encoded_inst_packet);
+
 	};
 	/*
 	 * @brief	destructs the packet-handler.
 	 * @note	nothing needs to be freed as of yet,
 	 */
 	virtual ~PacketHandler() {};
+
+	/*
+	 * @brief	encodes the instruction-packet to be sent.
+	 * @param	the type of parameters, either a byte or a half-word,
+	 * @param	the number of such parameters in the packet,
+	 * @param	the packet itself,
+	 */
+	template <typename T, uint16_t N>
+	void set_inst(const Packet<T,N>& inst_packet) {
+		// Encode the instruction-packet into a vector with the calculated CRC
+		// and any byte-stuffing if need be.
+		encoded_inst_packet.resize(sizeof(Packet<T,N>));
+		new (encoded_inst_packet.data()) Packet<T,N>(inst_packet);
+		packetiser.encode(encoded_inst_packet);
+	}
 
 	/*
 	 * @brief	sends the instruction out on the port.
@@ -176,8 +183,6 @@ private:
 	// @brief	the packetiser to encode the instruction and to decode the
 	//			status,
 	dynamixel::Packetiser packetiser;
-	// @brief	the instruction-packet,
-	const Packet<T,N> inst_packet;
 	// @brief	the encoded instruction-packet as a vector,
 	std::vector<uint8_t> encoded_inst_packet;
 	// @brief	the expected number of status-packets in response to the

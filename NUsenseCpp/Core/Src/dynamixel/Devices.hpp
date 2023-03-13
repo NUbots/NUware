@@ -89,6 +89,16 @@ enum Device {
 	ALL_DEVICES			 = 0xFE
 };
 
+enum Limb {
+	RIGHT_ARM	 = 0,
+	LEFT_ARM	 = 1,
+	RIGHT_THIGH = 2,
+	LEFT_THIGH = 3,
+	RIGHT_FOOT = 4,
+	LEFT_FOOT = 5,
+	NUMBER_OF_LIMBS = 6
+};
+
 /*
  * @brief	the grouping of read values in the servo's control-table,
  */
@@ -195,7 +205,7 @@ std::ostream & operator << (std::ostream& out, const ServoState& servo_state) {
  * @return	the parameters as an array,
  */
 template <uint8_t N>
-const std::array<uint8_t,2+2+N*(1+2*15)> make_sync_write_params(const std::array<Device,N>& devices) {
+const std::array<uint8_t,2+2+N*(1+2*15)> make_sync_write_params(const std::vector<Device>& devices) {
 	// List all the addresses that will be written to the indirect addresses.
 	/*
 	 * Note that these are not the addresses that are being written to in this
@@ -239,10 +249,10 @@ const std::array<uint8_t,2+2+N*(1+2*15)> make_sync_write_params(const std::array
 	// data-length, one byte for each ID and however many bytes for each servo.
 	// Note that the parameters have to be packed as bytes instead of
 	// half-words because the ID is only a byte.
-	const uint16_t params_length = 2+2+N*(1+2*read_bank_length);
+	constexpr uint16_t params_length = 2+2+N*(1+2*read_bank_length);
 	std::array<uint8_t,params_length> params;
 	// The starting-address, which is 0x00A8 and is where the indirect
-	// addresses begin:
+	// The beginning address:
 	params[0] = INDIRECT_ADDRESS_1 & 0xFF;
 	params[1] = (INDIRECT_ADDRESS_1 >> 8) & 0xFF;
 	// The data-length:
@@ -250,7 +260,7 @@ const std::array<uint8_t,2+2+N*(1+2*15)> make_sync_write_params(const std::array
 	params[3] = (2*read_bank_length >> 8) & 0x00FF;
 	// For each device, fill the array of parameters with the ID and the
 	// indirect addresses.
-	for (int i = 0; i < N; i++) {
+	for (uint8_t i = 0; i < devices.size(); i++) {
 		// The base of the array for the i-th device:
 		const uint16_t base = 4 + i*(1+2*read_bank_length);
 		// Add the ID.

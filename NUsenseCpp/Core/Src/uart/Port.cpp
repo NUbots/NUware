@@ -204,8 +204,9 @@ uint16_t Port::write(const uint8_t* data, const uint16_t length) {
 
 void Port::flush_tx() {
 	// Wait until there are no bytes transmitting.
-	//while (!num_bytes_tx);
-	while (comm_state == TX_BUSY);
+	//while (!num_bytes_tx)
+	while (comm_state == TX_BUSY)
+		check_tx();
 }
 
 uint8_t Port::begin_tx() {

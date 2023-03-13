@@ -60,7 +60,7 @@ struct Packet {
 	 * @param	the parameters,
 	 * @return	none
 	 */
-	Packet(uint8_t id = 0x00, Instruction instruction = STATUS_RETURN, const std::array<T,N>& params = {}) :
+	Packet(uint8_t id = 0, Instruction instruction = STATUS_RETURN, const std::array<T,N>& params = {}) :
 		magic(0x00FDFFFF),
 		id(id),
 		length(N+3),
