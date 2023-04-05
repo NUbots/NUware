@@ -89,16 +89,6 @@ enum Device {
 	ALL_DEVICES			 = 0xFE
 };
 
-enum Limb {
-	RIGHT_ARM	 = 0,
-	LEFT_ARM	 = 1,
-	RIGHT_THIGH = 2,
-	LEFT_THIGH = 3,
-	RIGHT_FOOT = 4,
-	LEFT_FOOT = 5,
-	NUMBER_OF_LIMBS = 6
-};
-
 /*
  * @brief	the grouping of read values in the servo's control-table,
  */
@@ -204,8 +194,7 @@ std::ostream & operator << (std::ostream& out, const ServoState& servo_state) {
  * @param	an array of the servo-ids,
  * @return	the parameters as an array,
  */
-template <uint8_t N>
-const std::array<uint8_t,2+2+N*(1+2*15)> make_sync_write_params(const std::vector<Device>& devices) {
+const std::vector<uint8_t> make_sync_write_params(const std::vector<Device>& devices) {
 	// List all the addresses that will be written to the indirect addresses.
 	/*
 	 * Note that these are not the addresses that are being written to in this
@@ -214,7 +203,7 @@ const std::array<uint8_t,2+2+N*(1+2*15)> make_sync_write_params(const std::vecto
 	 * write from the indirect registers that correspond to these addresses.
 	 */
 	const uint16_t read_bank_length = 15; // number of half-words, not bytes,
-	std::array<uint16_t,read_bank_length> read_bank_addresses = {
+	const std::array<uint16_t,read_bank_length> read_bank_addresses = {
 		  dynamixel::PRESENT_PWM,
 			  dynamixel::PRESENT_PWM+1,
 		  dynamixel::PRESENT_CURRENT,
@@ -240,7 +229,7 @@ const std::array<uint8_t,2+2+N*(1+2*15)> make_sync_write_params(const std::vecto
 	 * L data-length
 	 * H data-length
 	 * 1st ID
-	 * ...bytes ...
+	 * ... bytes ...
 	 * 2nd ID
 	 * ... bytes ...
 	 * ...
@@ -249,8 +238,8 @@ const std::array<uint8_t,2+2+N*(1+2*15)> make_sync_write_params(const std::vecto
 	// data-length, one byte for each ID and however many bytes for each servo.
 	// Note that the parameters have to be packed as bytes instead of
 	// half-words because the ID is only a byte.
-	constexpr uint16_t params_length = 2+2+N*(1+2*read_bank_length);
-	std::array<uint8_t,params_length> params;
+	const uint16_t params_length = 2+2+devices.size()*(1+2*read_bank_length);
+	std::vector<uint8_t> params(params_length);
 	// The starting-address, which is 0x00A8 and is where the indirect
 	// The beginning address:
 	params[0] = INDIRECT_ADDRESS_1 & 0xFF;

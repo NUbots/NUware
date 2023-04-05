@@ -16,12 +16,8 @@
 namespace dynamixel {
 
 /*
- * @brief	the handler for any generic packet (any except bulk-read and
- * 			bulk-write)
- * @param	the number of parameters as bytes in the expected status, not
- * 			including the error,
+ * @brief	the handler for any generic packet
  */
-template <uint16_t M>
 class PacketHandler {
 public:
 	// @brief	the result of whether all the status-packets have been received,
@@ -35,14 +31,15 @@ public:
 	 * @param	the reference to the port to be communicated on,
 	 * @param	the expected number of status-packets in response,
 	 */
-	PacketHandler(uart::Port& port = uart::Port(1), const uint16_t expected_num_sts = 0) :
+	PacketHandler(uart::Port& port, const uint16_t expected_num_sts = 0) :
 		port(port),
 		packetiser(),
-		encoded_inst_packet(0),
+		encoded_inst_packet(7+1+2),
 		expected_num_sts(expected_num_sts),
 		sts_packets(0),
 		packet_count(0),
-		decoded_crcs(0)
+		decoded_crcs(0),
+		result(NONE)
 	{
 
 	};
@@ -58,12 +55,15 @@ public:
 	 * @param	the number of such parameters in the packet,
 	 * @param	the packet itself,
 	 */
-	template <typename T, uint16_t N>
-	void set_inst(const Packet<T,N>& inst_packet) {
+	template <typename T>
+	void set_inst(const Packet<T>& inst_packet) {
 		// Encode the instruction-packet into a vector with the calculated CRC
 		// and any byte-stuffing if need be.
-		encoded_inst_packet.resize(sizeof(Packet<T,N>));
-		new (encoded_inst_packet.data()) Packet<T,N>(inst_packet);
+		encoded_inst_packet.resize(inst_packet.length+7);
+		//new (encoded_inst_packet.data()) Packet<T>(inst_packet);
+		std::copy_n(reinterpret_cast<const uint8_t*>(&inst_packet), 7+1, encoded_inst_packet.data());
+		for (int i = 8; i < inst_packet.length+7-2; i++)
+			encoded_inst_packet[i] = reinterpret_cast<const uint8_t*>(inst_packet.params.data())[i-8];
 		packetiser.encode(encoded_inst_packet);
 	}
 
@@ -83,29 +83,77 @@ public:
 	 * 			#SUCCESS if all the expected packets have been decoded,
 	 */
 	const Result check_sts() {
+		/*
+		 * The code hence to the check for a ready packet is run through very
+		 * often and thus leads to delays in main-loop. For optimising, this is
+		 * the second candidate to try to trim down. Decoding in the packetiser
+		 * is especially burdensome, but it unfortunately cannot be trim down
+		 * as much since it needs to parse through the whole packet one byte at
+		 * a time because of byte-stuffing. However, I feel as if this code is
+		 * already trimmed down as much as possible.
+		 */
+
 		// If none are expected, e.g. for a sync-write instruction, then return
 		// early.
 		if (expected_num_sts == 0)
 			return SUCCESS;
 
 		// Peek to see if there is a byte on the buffer yet.
-		if (port.peek() == NO_BYTE_READ)
+		uint16_t read_result = port.read();
+		if (read_result == NO_BYTE_READ)
 			return NONE;
 		// If so, then decode it.
-		packetiser.decode(port.read());
+		//HAL_GPIO_WritePin(SPARE2_GPIO_Port, SPARE2_Pin, GPIO_PIN_SET);
+		packetiser.decode(read_result);
+		//HAL_GPIO_WritePin(SPARE2_GPIO_Port, SPARE2_Pin, GPIO_PIN_RESET);
+
+		/*
+		 * The code hence is also run through often and is very burdensome. For
+		 * optimising, this is the first candidate to try to trim down. Copying
+		 * the raw packet into a packet structure is especially burdensome. To
+		 * trim this down, a whole rewrite of the packet structure may be
+		 * needed, see Packet.h. Thereafter, a rewrite of the for-loops in main
+		 * may need to be replaced with recursion so that template parameters
+		 * are not a problem.
+		 */
 
 		// Unless the packetiser has a whole packet, return.
-		if (!packetiser.is_packet_ready())
+		//HAL_GPIO_WritePin(SPARE2_GPIO_Port, SPARE2_Pin, GPIO_PIN_SET);
+		if (!packetiser.is_packet_ready()) {
+			//HAL_GPIO_WritePin(SPARE2_GPIO_Port, SPARE2_Pin, GPIO_PIN_RESET);
 			return NONE;
-		// If so, then add the status-packet with the rest.
-		sts_packets.push_back(
-				*reinterpret_cast<dynamixel::Packet<uint8_t,M+1>*>(
-						packetiser.get_decoded_packet()
-				)
+		}
+		//HAL_GPIO_WritePin(SPARE2_GPIO_Port, SPARE2_Pin, GPIO_PIN_RESET);
+		// If so, then parse the vector as a packet and add it with the rest.
+		//HAL_GPIO_WritePin(SPARE2_GPIO_Port, SPARE2_Pin, GPIO_PIN_SET);
+		const auto& decoded_packet = packetiser.get_decoded_packet();
+		//HAL_GPIO_WritePin(SPARE2_GPIO_Port, SPARE2_Pin, GPIO_PIN_RESET);
+		//HAL_GPIO_WritePin(SPARE2_GPIO_Port, SPARE2_Pin, GPIO_PIN_SET);
+		dynamixel::Packet<uint8_t> received_packet;
+		//HAL_GPIO_WritePin(SPARE2_GPIO_Port, SPARE2_Pin, GPIO_PIN_RESET);
+		//HAL_GPIO_WritePin(SPARE2_GPIO_Port, SPARE2_Pin, GPIO_PIN_SET);
+		std::copy(
+				decoded_packet.begin(),
+				std::next(decoded_packet.begin(), 8),
+				reinterpret_cast<uint8_t*>(&received_packet)
 		);
+		std::copy(
+				std::next(decoded_packet.begin(), 8),
+				std::next(decoded_packet.begin(), packetiser.get_decoded_length()-2),
+				received_packet.params.data()
+		);
+		std::copy(
+				std::next(decoded_packet.begin(), packetiser.get_decoded_length()-2),
+				std::next(decoded_packet.begin(), packetiser.get_decoded_length()),
+				reinterpret_cast<uint8_t*>(&(received_packet.crc))
+		);
+		//HAL_GPIO_WritePin(SPARE2_GPIO_Port, SPARE2_Pin, GPIO_PIN_RESET);
+		sts_packets.push_back(std::move(received_packet));
 		// Also, add the decoded CRC, that is the CRC that we calculated so
 		// that we may check it later outside this class.
+		//HAL_GPIO_WritePin(SPARE2_GPIO_Port, SPARE2_Pin, GPIO_PIN_SET);
 		decoded_crcs.push_back(packetiser.get_decoded_crc());
+		//HAL_GPIO_WritePin(SPARE2_GPIO_Port, SPARE2_Pin, GPIO_PIN_RESET);
 		// Increase the count and reset the packetiser for the next packet.
 		packet_count++;
 		packetiser.reset();
@@ -143,8 +191,12 @@ public:
 	 * @param	the index of the status-packet,
 	 * @return	the status-packet as an object,
 	 */
-	const Packet<uint8_t,M+1>& get_sts_packet(const uint16_t index) const {
-		if (index >= sts_packets.size())
+	const Packet<uint8_t>& get_sts_packet(const uint16_t index) const {
+		if (sts_packets.size() == 0)
+			// Yes, I know that this is broken. We will fix it later when we
+			// optimise all of this.
+			return Packet<uint8_t>();
+		else if (index >= sts_packets.size())
 			return sts_packets.back();
 		else
 			return sts_packets[index];
@@ -192,7 +244,7 @@ private:
 	// @brief	the status-packets,
 	// @note	each status-packet needs to be one byte longer for the error
 	//			which is being packed along with the other parameters.
-	std::vector<Packet<uint8_t,M+1>> sts_packets;
+	std::vector<Packet<uint8_t>> sts_packets;
 	// @brief	the number of status-packets decoded so far,
 	uint16_t packet_count;
 	// @brief	the decoded CRCs from the packetiser,

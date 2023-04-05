@@ -80,6 +80,8 @@ void Error_Handler(void);
 #define SPARE1_GPIO_Port GPIOD
 #define DXL_DIR5_Pin GPIO_PIN_1
 #define DXL_DIR5_GPIO_Port GPIOD
+#define SPARE2_Pin GPIO_PIN_3
+#define SPARE2_GPIO_Port GPIOD
 #define DXL_DIR2_Pin GPIO_PIN_4
 #define DXL_DIR2_GPIO_Port GPIOD
 #define DXL_PWR_EN_Pin GPIO_PIN_6

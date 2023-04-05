@@ -18,7 +18,8 @@ namespace uart {
 
 Port::Port(uint8_t uart_number = 1) :
 	rs_link(uart_number),
-	num_bytes_tx(0)
+	num_bytes_tx(0),
+	comm_state(RX_IDLE)
 {
 
 }
@@ -74,7 +75,7 @@ uint16_t Port::read() {
 	uint8_t read_byte;
 
 #ifdef USE_DMA_RX_BUFFER
-	handle_rx();
+	//handle_rx();
 #endif
 
 	/* If there is no byte to read, then return 0xFFFF as a value two bytes
@@ -126,10 +127,12 @@ uint8_t Port::begin_rx() {
 
 void Port::handle_rx() {
 #ifdef USE_DMA_RX_BUFFER
+	//HAL_GPIO_WritePin(SPARE2_GPIO_Port, SPARE2_Pin, GPIO_PIN_SET);
 	uint16_t old_back, count;
 	// Update the back of the buffer.
 	old_back = rx_buffer.back;
 	count = rs_link.get_receive_counter();
+	//HAL_GPIO_WritePin(SPARE2_GPIO_Port, SPARE2_Pin, GPIO_PIN_RESET);
 	rx_buffer.back = (PORT_BUFFER_SIZE - count) % PORT_BUFFER_SIZE;
 	rx_buffer.size +=
 			rx_buffer.back >= old_back ?
@@ -171,6 +174,7 @@ void Port::check_rx() {
 }
 
 uint16_t Port::write(const uint8_t* data, const uint16_t length) {
+#ifndef SIMPLE_WRITE
 	// For each byte, try to add it to the buffer.
 	for (int i = 0; i < length; i++) {
 		// If it is full, then begin a transmission if not already begun.
@@ -200,6 +204,12 @@ uint16_t Port::write(const uint8_t* data, const uint16_t length) {
 		while (begin_tx());
 	}
 	return length;
+#else
+	// Transmit everything at once.
+	while(rs_link.transmit(data, length));
+	comm_state = TX_BUSY;
+	return length;
+#endif
 }
 
 void Port::flush_tx() {
@@ -276,7 +286,11 @@ void Port::handle_tx() {
 void Port::check_tx() {
 	// If the transmission has been done, then handle it.
 	if (rs_link.get_transmit_flag())
+#ifndef SIMPLE_WRITE
 		handle_tx();
+#else
+		comm_state = TX_DONE;
+#endif
 }
 
 } // namespace uart

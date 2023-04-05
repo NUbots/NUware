@@ -47,31 +47,52 @@ enum Error {
 
 /*
  * @brief	a generic packet struct,
+ * @note	Originally, the parameters were meant to be an array so that the
+ * 			whole structure was packed like a C array. However, this needed
+ * 			a template which made it hard to define a packet or an array, etc.
+ * 			in a for-loop. It is also made it hard for the packet-handler to
+ * 			define status-packets since they could be an error-packet. So, I
+ * 			just made this structure even more generalised by using a vector
+ * 			instead. There is probably a better solution, but I cannot be
+ * 			bothered. This Packet structure is more of a temporary struct until
+ * 			we use more sophisticated structures like the ones originally in
+ * 			HardwareIO, the old NUsense code, etc.
+ * @note	Addendum: When we optimise this, maybe this should be a simpler
+ * 			structure so that copying and casting is easier. There are a few
+ * 			options to redefine this structure; firstly, a simpler packed
+ * 			structure with an array instead of a vector so that a C-array can
+ * 			be re-intepreted as a packet; secondly, a structure that has the raw
+ * 			packet as an array or vector and has a bunch of helper functions to
+ * 			re-intepret fields such as ID; thirdly, a structure that has a
+ * 			pointer at the end pointing to a dynamically allocated block of
+ * 			memory as the parameters. The problem with the for-loop may be
+ * 			fixed by using recursion which is very fancy C++ for me!
  * @param	the type of parameters, either a byte or a half-word,
- * @param	the number of such parameters in the packet,
  */
 #pragma pack(push, 1)  // Make it so that the compiler reads this struct "as is" (no padding bytes)
-template <typename T, uint16_t N>
+template <typename T>
 struct Packet {
 	/*
 	 * @brief	constructs the packet,
 	 * @param	the id of the device concerned,
+	 * @param	the number of parameters, including the error-byte if this is a
+	 * 			status-packet,
 	 * @param	the instruction,
 	 * @param	the parameters,
 	 * @return	none
 	 */
-	Packet(uint8_t id = 0, Instruction instruction = STATUS_RETURN, const std::array<T,N>& params = {}) :
+	Packet(const uint8_t id = 0, const uint16_t num_params = 0, Instruction instruction = STATUS_RETURN, const std::vector<T>& params = {}) :
 		magic(0x00FDFFFF),
 		id(id),
-		length(N+3),
+		length(num_params+3),
 		instruction(instruction),
-		params(params),
+		params(std::move(params)),
 		crc(0xFFFF)
 	{
 		// If this has an array of half-words as the parameters, then the
 		// length needs to be re-calculated.
 		if (std::is_same<T,uint16_t>::value)
-			length = 2*N + 3;
+			length = 2*num_params + 3;
 	}
 	// @brief 	This header will not change, except maybe for rsrv which is 0x00
     uint32_t magic;
@@ -88,7 +109,7 @@ struct Packet {
 
     // @brief 	This will include the error field for the status packet, or
     //			just the parameter field for the instruction packet
-    std::array<T,N> params;
+    std::vector<T> params;
 
     // @brief 	CRC for the packet - 2 bytes long
     uint16_t crc;

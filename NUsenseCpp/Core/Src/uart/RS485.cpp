@@ -63,6 +63,7 @@ namespace uart {
 
 RS485::RS485() {
 	huart = &huart1;
+	hdma_rx = &hdma_usart1_rx;
 	// Map the GPIO port and pin to the correct one corresponding to the given UART interface.
 	gpio_port = DXL_DIR1_GPIO_Port; gpio_pin = DXL_DIR1_Pin; it_rx_mask = UART1_RX; it_tx_mask = UART1_TX;
 }
@@ -265,7 +266,6 @@ RS485::status RS485::transmit(const uint8_t* data, uint16_t length) {
 
 	// Set the hardware to the receiving direction and send.
 	HAL_GPIO_WritePin(gpio_port, gpio_pin, RS485_TX);
-	HAL_GPIO_WritePin(SPARE1_GPIO_Port, SPARE1_Pin, GPIO_PIN_RESET);
 	status = (RS485::status)HAL_UART_Transmit_DMA(huart, data, length);
 #ifdef TEST_UART
 	// If this is during a test, then play buzzer when there is an error.
@@ -283,7 +283,6 @@ bool RS485::get_transmit_flag() {
 	if (uart_it_flags & it_tx_mask) {
 		// Set the direction back to receiving so that half-duplex channel is
 		// not being blocked.
-		HAL_GPIO_WritePin(SPARE1_GPIO_Port, SPARE1_Pin, GPIO_PIN_SET);
 		uart_it_flags &= ~it_tx_mask;
 		return true;
 	} else

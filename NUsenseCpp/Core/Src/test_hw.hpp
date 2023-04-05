@@ -145,7 +145,7 @@ void port() {
 }
 #endif
 
-//#ifdef TEST_MOTOR
+#ifdef TEST_MOTOR
 void motor_v1() {
 	uart::RS485 rs_link(1);
 	uint8_t inst_packet[] = {
@@ -389,7 +389,7 @@ uint16_t update_crc(uint16_t crc_accum, const uint8_t byte) {
 	return crc_accum;
 }
 
-//#endif
+#endif
 
 } // namespace test_hw
 

@@ -14,6 +14,8 @@
 
 namespace dynamixel {
 
+#define PACKETISER_BUFFER_SIZE 2048
+
 static constexpr uint16_t crc_table[256] = {
 		0x0000, 0x8005, 0x800F, 0x000A, 0x801B, 0x001E, 0x0014, 0x8011,
 		0x8033, 0x0036, 0x003C, 0x8039, 0x0028, 0x802D, 0x8027, 0x0022,
@@ -203,8 +205,8 @@ public:
     /*
 	 * @brief	gets the pointer to the decoded packet.
 	 */
-	uint8_t* get_decoded_packet() {
-		return buffer.data();
+	const std::array<uint8_t, PACKETISER_BUFFER_SIZE>& get_decoded_packet() const {
+		return buffer;
 	}
 	/*
 	 * @brief	gets the length of the decoded packet.
@@ -240,7 +242,7 @@ public:
 
 private:
     // @brief	the buffer to store the decoded packet,
-    std::array<uint8_t, 2048> buffer;
+    std::array<uint8_t, PACKETISER_BUFFER_SIZE> buffer;
     // @brief	the number of bytes filled in the buffer,
     uint16_t filled_length;
     // @brief	the total expected length of the packet,

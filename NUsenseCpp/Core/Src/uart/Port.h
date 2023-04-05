@@ -19,6 +19,7 @@ namespace uart {
 //#define USE_QUEUE_CLASS
 //#define SEE_STATISTICS
 #define USE_DMA_RX_BUFFER
+#define SIMPLE_WRITE
 
 #define PORT_BUFFER_SIZE 	2048
 
@@ -215,6 +216,10 @@ public:
 	/**
 	 * @brief		pushes the next byte to the tx-buffer, i.e. the next byte
 	 * 				to be sent.
+	 * @note		If the simple-write is defined, then this function bypasses
+	 * 				the tx-buffer completely and just transmits all bytes
+	 * 				together. This is to temporarily fix a bug with the RS465
+	 * 				and with splitting a Dynamixel packet in two.
 	 * @param		the bytes to be pushed to the buffer,
 	 * @param		the number of bytes,
 	 * @return		the number of bytes pushed,
