@@ -173,7 +173,7 @@ void Port::check_rx() {
 		handle_rx();
 }
 
-uint16_t Port::write(const uint8_t* data, const uint16_t length) {
+const uint16_t Port::write(const uint8_t* data, const uint16_t length) {
 #ifndef SIMPLE_WRITE
 	// For each byte, try to add it to the buffer.
 	for (int i = 0; i < length; i++) {
@@ -203,13 +203,13 @@ uint16_t Port::write(const uint8_t* data, const uint16_t length) {
 		// Keep trying if there is an error.
 		while (begin_tx());
 	}
-	return length;
 #else
 	// Transmit everything at once.
 	while(rs_link.transmit(data, length));
 	comm_state = TX_BUSY;
-	return length;
 #endif
+	//return length;
+	return 0xFFFF;
 }
 
 void Port::flush_tx() {

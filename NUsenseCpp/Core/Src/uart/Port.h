@@ -218,13 +218,13 @@ public:
 	 * 				to be sent.
 	 * @note		If the simple-write is defined, then this function bypasses
 	 * 				the tx-buffer completely and just transmits all bytes
-	 * 				together. This is to temporarily fix a bug with the RS465
+	 * 				together. This is to temporarily fix a bug with the RS485
 	 * 				and with splitting a Dynamixel packet in two.
 	 * @param		the bytes to be pushed to the buffer,
 	 * @param		the number of bytes,
 	 * @return		the number of bytes pushed,
 	 */
-	uint16_t write(const uint8_t* data, const uint16_t length);
+	const uint16_t write(const uint8_t* data, const uint16_t length);
 	/**
 	 * @brief		flushes all the bytes out of the tx-buffer, i.e. to send
 	 * 				all remaining bytes.

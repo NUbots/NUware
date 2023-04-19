@@ -38,18 +38,19 @@ void uart() {
 	uart::RS485 link = uart::RS485(TEST_UART);
 	char c = 'x';
 	// Wait for the first packet.
-	link.receive((uint8_t*)&c, 1);
+	//link.receive((uint8_t*)&c, 1);
 
 	while (1) {
 		// Echo whatever is received on the test UART.
 		// If a packet has been received, then send back the character and receive
 		// the next one.
-		if (link.get_receive_flag()) {
+		/*if (link.get_receive_flag())
 			link.transmit((uint8_t*)&c, 1);
-			link.receive((uint8_t*)&c, 1);
-		}
 		if (link.get_transmit_flag())
-			link.transmit((uint8_t*)&str_buffer, strlen(str_buffer));
+			//link.transmit((uint8_t*)&str_buffer, strlen(str_buffer));
+			link.receive((uint8_t*)&c, 1);*/
+		link.receive_poll((uint8_t*)&c, 1, HAL_MAX_DELAY);
+		link.transmit_poll((uint8_t*)&c, 1, HAL_MAX_DELAY);
 	}
 }
 #endif

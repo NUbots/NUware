@@ -195,7 +195,7 @@ public:
 		if (sts_packets.size() == 0)
 			// Yes, I know that this is broken. We will fix it later when we
 			// optimise all of this.
-			return Packet<uint8_t>();
+			return sts_packets[0];
 		else if (index >= sts_packets.size())
 			return sts_packets.back();
 		else

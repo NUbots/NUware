@@ -214,14 +214,14 @@ int main(void)
 	 */
 
 	// Make a handler for each chain/port.
-	std::array<dynamixel::PacketHandler,NUM_PORTS>
+	std::array<dynamixel::PacketHandler,1/*NUM_PORTS*/>
 		write_handlers = {
-			dynamixel::PacketHandler(ports[0],	1),
+			dynamixel::PacketHandler(ports[0],	1)/*,
 			dynamixel::PacketHandler(ports[1], 	1),
 			dynamixel::PacketHandler(ports[2], 	1),
 			dynamixel::PacketHandler(ports[3], 	1),
 			dynamixel::PacketHandler(ports[4], 	1),
-			dynamixel::PacketHandler(ports[5], 	1)
+			dynamixel::PacketHandler(ports[5], 	1)*/
 		};
 
 	// For the each handler, set the write instruction and send it for each
@@ -231,6 +231,8 @@ int main(void)
 		// The parameters for the write instruction:
 		const std::vector<uint16_t> write_params = {
 				dynamixel::INDIRECT_ADDRESS_1,
+				dynamixel::TORQUE_ENABLE,
+				dynamixel::HARDWARE_ERROR_STATUS,
 				dynamixel::PRESENT_PWM,
 					dynamixel::PRESENT_PWM+1,
 				dynamixel::PRESENT_CURRENT,
@@ -364,8 +366,8 @@ int main(void)
 			 * optimise the delay between sending an instruction and parsing a
 			 * status into the servo-state, etc., the code inside this if-
 			 * condition must be made as quick as possible, see PacketHandler
-			 * .hpp. The two candidates to improve are the decoding which is a
-			 * bit slow because of the switching and the copying of the raw
+			 * .hpp. The two candidates to improve are the decoding, which is a
+			 * bit slow because of the switching, and the copying of the raw
 			 * status into a structure. The former cannot be helped as much
 			 * since the raw encoded packet needs to be decoded byte by byte;
 			 * the latter may be trimmed down without copying, but this will

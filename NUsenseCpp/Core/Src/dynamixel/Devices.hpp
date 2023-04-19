@@ -94,6 +94,8 @@ enum Device {
  */
 #pragma pack(push, 1)  // Make it so that the compiler reads this struct "as is" (no padding bytes)
 struct ReadBank {
+	uint8_t torque_enable;
+	uint8_t hardware_error_status;
 	int16_t present_pwm;
 	int16_t present_current;
 	int32_t present_velocity;
@@ -149,6 +151,8 @@ struct ServoState {
 	 * @param	the read-bank,
 	 */
 	void convert_from_read_bank(const ReadBank& read_bank) {
+		torqueEnabled	 = read_bank.torque_enable;
+		errorFlags		 = read_bank.hardware_error_status;
 		presentPWM		 = read_bank.present_pwm			 * 0.113;
 		presentCurrent	 = read_bank.present_current		 * 3.36;
 		presentVelocity	 = read_bank.present_velocity		 * 0.229;
@@ -166,6 +170,10 @@ struct ServoState {
  * @return,	the output stream,
  */
 std::ostream & operator << (std::ostream& out, const ServoState& servo_state) {
+	out << "Torque En. " << std::setw(1)
+			<< servo_state.torqueEnabled << "\t";
+	out << "Err. Flags 0x" << std::setfill('0') << std::setw(4) << std::hex
+			<< (uint16_t)servo_state.errorFlags << "\t" << std::setfill(' ');
 	out << "PWM (%) " << std::fixed << std::setw(6) << std::setprecision(2)
 			<< servo_state.presentPWM << "\t";
 	out << "Curr. (mA) " << std::fixed << std::setw(6) << std::setprecision(2)
@@ -202,8 +210,10 @@ const std::vector<uint8_t> make_sync_write_params(const std::vector<Device>& dev
 	 * the space for indirect addresses in the RAM. Later, we will read and
 	 * write from the indirect registers that correspond to these addresses.
 	 */
-	const uint16_t read_bank_length = 15; // number of half-words, not bytes,
+	const uint16_t read_bank_length = 17; // number of half-words, not bytes,
 	const std::array<uint16_t,read_bank_length> read_bank_addresses = {
+		  dynamixel::TORQUE_ENABLE,
+		  dynamixel::HARDWARE_ERROR_STATUS,
 		  dynamixel::PRESENT_PWM,
 			  dynamixel::PRESENT_PWM+1,
 		  dynamixel::PRESENT_CURRENT,
