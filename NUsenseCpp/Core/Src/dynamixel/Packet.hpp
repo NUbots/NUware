@@ -4,7 +4,7 @@
  *  Created on: 2 Mar. 2023
  *      Author: Clayton
  */
-
+#ifdef ROBERT_FROST
 #include "stdint.h" 	// needed for explicit type-defines
 #include <array>		// needed for the array container inside the packet
 
@@ -119,3 +119,5 @@ struct Packet {
 } /* namespace dynamixel */
 
 #endif /* SRC_DYNAMIXEL_PACKET_HPP_ */
+
+#endif

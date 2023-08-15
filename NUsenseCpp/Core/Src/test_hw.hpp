@@ -139,8 +139,8 @@ void port() {
 		//test_port.write((uint8_t*)str_buffer, strlen(str_buffer));
 		// Always check both interrupts at the end of the context in which one is
 		// using this class.
-		port.check_rx();
-		port.check_tx();
+		//port.check_rx();
+		//port.check_tx();
 		//HAL_Delay(1);
 	}
 }

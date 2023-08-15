@@ -89,7 +89,7 @@ enum Device {
 	ALL_DEVICES			 = 0xFE
 };
 
-/*
+/*#include <cstdint>
  * @brief	the grouping of read values in the servo's control-table,
  */
 #pragma pack(push, 1)  // Make it so that the compiler reads this struct "as is" (no padding bytes)

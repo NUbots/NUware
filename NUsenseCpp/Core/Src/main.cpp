@@ -32,11 +32,13 @@
 #include <sstream>
 #include <algorithm>
 #include "dynamixel/Packetiser.hpp"
-#include "uart/Port.h"
 #include "dynamixel/PacketHandler.hpp"
+#include "uart/Port.h"
 #include "usbd_cdc_if.h"
-#include "dynamixel/Devices.hpp"
-#include "dynamixel/Packet.hpp"
+#include "dynamixel/Dynamixel.hpp"
+#include "dynamixel/DynamixelServo.hpp"
+#include "platform/NUgus.hpp"
+#include "platform/ServoState.hpp"
 
 /* USER CODE END Includes */
 
@@ -86,7 +88,7 @@ int main(void)
   /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
   HAL_Init();
 
-  /* USER CODE BEGIN Init */
+  /* USER CODE BEGIN I//nit */
 
   /* USER CODE END Init */
 
@@ -142,7 +144,7 @@ int main(void)
 	}};
 	// This is the local storage of each servo's state. This is to be updated
 	// regularly by polling the servos constantly and to be spammed to the NUC.
-	std::array<dynamixel::ServoState, dynamixel::NUMBER_OF_DEVICES> local_cache;
+	std::array<platform::ServoState, platform::NUMBER_OF_DEVICES> local_cache;
 
 	/*
 	 * For now, this is just a very crude way of knowing what devices are on
@@ -154,39 +156,39 @@ int main(void)
 	 * on what port would defeat the main advantage of NUsense in the first
 	 * place. Furthermore, the packet-load should maybe be evenly distributed.
 	 */
-	std::array<std::vector<dynamixel::Device>,NUM_PORTS>
+	std::array<std::vector<platform::NUgus::ID>,NUM_PORTS>
 		chains = {
-			std::vector<dynamixel::Device>{
-					dynamixel::R_SHOULDER_PITCH,
-					dynamixel::R_SHOULDER_ROLL,
-					dynamixel::R_ELBOW,
-					dynamixel::HEAD_YAW
+			std::vector<platform::NUgus::ID>{
+					platform::NUgus::ID::R_SHOULDER_PITCH,
+					platform::NUgus::ID::R_SHOULDER_ROLL,
+					platform::NUgus::ID::R_ELBOW,
+					platform::NUgus::ID::HEAD_YAW
 			},
-			std::vector<dynamixel::Device>{
-					dynamixel::L_SHOULDER_PITCH,
-					dynamixel::L_SHOULDER_ROLL,
-					dynamixel::L_ELBOW,
-					dynamixel::HEAD_PITCH
+			std::vector<platform::NUgus::ID>{
+					platform::NUgus::ID::L_SHOULDER_PITCH,
+					platform::NUgus::ID::L_SHOULDER_ROLL,
+					platform::NUgus::ID::L_ELBOW,
+					platform::NUgus::ID::HEAD_PITCH
 			},
-			std::vector<dynamixel::Device>{
-					dynamixel::R_HIP_YAW,
-					dynamixel::R_HIP_ROLL,
-					dynamixel::R_HIP_PITCH
+			std::vector<platform::NUgus::ID>{
+					platform::NUgus::ID::R_HIP_YAW,
+					platform::NUgus::ID::R_HIP_ROLL,
+					platform::NUgus::ID::R_HIP_PITCH
 			},
-			std::vector<dynamixel::Device>{
-					dynamixel::L_HIP_YAW,
-					dynamixel::L_HIP_ROLL,
-					dynamixel::L_HIP_PITCH
+			std::vector<platform::NUgus::ID>{
+					platform::NUgus::ID::L_HIP_YAW,
+					platform::NUgus::ID::L_HIP_ROLL,
+					platform::NUgus::ID::L_HIP_PITCH
 			},
-			std::vector<dynamixel::Device>{
-					dynamixel::R_KNEE,
-					dynamixel::R_ANKLE_PITCH,
-					dynamixel::R_ANKLE_ROLL
+			std::vector<platform::NUgus::ID>{
+					platform::NUgus::ID::R_KNEE,
+					platform::NUgus::ID::R_ANKLE_PITCH,
+					platform::NUgus::ID::R_ANKLE_ROLL
 			},
-			std::vector<dynamixel::Device>{
-					dynamixel::L_KNEE,
-					dynamixel::L_ANKLE_PITCH,
-					dynamixel::L_ANKLE_ROLL
+			std::vector<platform::NUgus::ID>{
+					platform::NUgus::ID::L_KNEE,
+					platform::NUgus::ID::L_ANKLE_PITCH,
+					platform::NUgus::ID::L_ANKLE_ROLL
 			}
 	};
 
@@ -213,235 +215,67 @@ int main(void)
 	 * contiguous read-bank which is read constantly in a loop.
 	 */
 
-	// Make a handler for each chain/port.
-	std::array<dynamixel::PacketHandler,1/*NUM_PORTS*/>
-		write_handlers = {
-			dynamixel::PacketHandler(ports[0],	1)/*,
-			dynamixel::PacketHandler(ports[1], 	1),
-			dynamixel::PacketHandler(ports[2], 	1),
-			dynamixel::PacketHandler(ports[3], 	1),
-			dynamixel::PacketHandler(ports[4], 	1),
-			dynamixel::PacketHandler(ports[5], 	1)*/
-		};
+	// For each port, write for all servos the addresses of the read-bank to 
+	// the indirect registers.
+	for (int i = 0; i < NUM_PORTS; i++) {
 
-	// For the each handler, set the write instruction and send it for each
-	// device on the chain.
-	{ uint16_t chain_index = 0;
-	for (auto& write_handler : write_handlers) {
-		// The parameters for the write instruction:
-		const std::vector<uint16_t> write_params = {
-				dynamixel::INDIRECT_ADDRESS_1,
-				dynamixel::TORQUE_ENABLE,
-				dynamixel::HARDWARE_ERROR_STATUS,
-				dynamixel::PRESENT_PWM,
-					dynamixel::PRESENT_PWM+1,
-				dynamixel::PRESENT_CURRENT,
-					dynamixel::PRESENT_CURRENT+1,
-				dynamixel::PRESENT_VELOCITY,
-					dynamixel::PRESENT_VELOCITY+1,
-					dynamixel::PRESENT_VELOCITY+2,
-					dynamixel::PRESENT_VELOCITY+3,
-				dynamixel::PRESENT_POSITION,
-					dynamixel::PRESENT_POSITION+1,
-					dynamixel::PRESENT_POSITION+2,
-					dynamixel::PRESENT_POSITION+3,
-				dynamixel::PRESENT_INPUT_VOLTAGE,
-					dynamixel::PRESENT_INPUT_VOLTAGE+1,
-				dynamixel::PRESENT_TEMPERATURE
-		};
+		// Re-use the same packet-hanlder for each port.
+		dynamixel::PacketHandler packet_handler(ports[i]);
 
-		// The length of the chain, i.e. the number of devices:
-		const uint8_t chain_length = chains[chain_index].size();
+		for (const auto& id : chains[i]) {
+			// Send the write-instruction again if there is something wrong 
+			// with the returned status.
+			do {
+				// Reset the packet-handler before a new interaction has begun.
+				packet_handler.reset();
 
-		// The index of the device:
-		uint8_t device_index = 0;
+				// Send the write-instruction.
+				const auto write_inst = dynamixel::WriteCommand<std::array<uint16_t,17>>(
+					(uint8_t)id,
+					(uint16_t)platform::AddressBook::SERVO_READ_ADDRESS,
+					{
+						uint16_t(dynamixel::DynamixelServo::Address::TORQUE_ENABLE),
+						uint16_t(dynamixel::DynamixelServo::Address::HARDWARE_ERROR_STATUS),
+						uint16_t(dynamixel::DynamixelServo::Address::PRESENT_PWM_L),
+						uint16_t(dynamixel::DynamixelServo::Address::PRESENT_PWM_H),
+						uint16_t(dynamixel::DynamixelServo::Address::PRESENT_CURRENT_L),
+						uint16_t(dynamixel::DynamixelServo::Address::PRESENT_CURRENT_H),
+						uint16_t(dynamixel::DynamixelServo::Address::PRESENT_VELOCITY_L),
+						uint16_t(dynamixel::DynamixelServo::Address::PRESENT_VELOCITY_2),
+						uint16_t(dynamixel::DynamixelServo::Address::PRESENT_VELOCITY_3),
+						uint16_t(dynamixel::DynamixelServo::Address::PRESENT_VELOCITY_H),
+						uint16_t(dynamixel::DynamixelServo::Address::PRESENT_POSITION_L),
+						uint16_t(dynamixel::DynamixelServo::Address::PRESENT_POSITION_2),
+						uint16_t(dynamixel::DynamixelServo::Address::PRESENT_POSITION_3),
+						uint16_t(dynamixel::DynamixelServo::Address::PRESENT_POSITION_H),
+						uint16_t(dynamixel::DynamixelServo::Address::PRESENT_INPUT_VOLTAGE_L),
+						uint16_t(dynamixel::DynamixelServo::Address::PRESENT_INPUT_VOLTAGE_H),
+						uint16_t(dynamixel::DynamixelServo::Address::PRESENT_TEMPERATURE)
+					}
+				);
+				ports[i].write(
+					reinterpret_cast<const uint8_t*>(&write_inst), 
+					sizeof(write_inst)
+				);
 
-		// Define the write instruction for the first device.
-		dynamixel::Packet<uint16_t> write_inst(
-				chains[chain_index][device_index]+1,	// the device ID
-				write_params.size(),				// the number of parameters
-				dynamixel::WRITE,					// the instruction
-				write_params						// the parameters
-		);
-
-		// For each device on the chain, send the write instruction. Keep
-		// sending if there are any errors.
-		while (device_index < chain_length) {
-			// Send the instruction.
-			write_inst.id = chains[chain_index][device_index]+1;
-			write_handler.set_inst(write_inst);
-			write_handler.send_inst();
-
-			// Wait for a status and update the device-index along the chain
-			// unless there are any errors.
-			while (!write_handler.check_sts());
-			const auto write_sts = write_handler.get_sts_packet(0);
-			if ((write_handler.is_sts_healthy(0))
-					&& (write_sts.params[0] == dynamixel::NO_ERROR)
-			)
-				device_index++;
-
-			// Reset the handler before sending again.
-			write_handler.reset();
+				// Wait for the status to be received and decoded.
+				while (
+					packet_handler.check_sts<0>(id) 
+					== dynamixel::PacketHandler::Result::NONE
+				);
+			} while (
+				packet_handler.get_result() 
+				!= dynamixel::PacketHandler::Result::SUCCESS
+			);
 		}
-
-		chain_index++;
-	}}
-
-	/*
-	 * ~~~ ~~~ ~~~ Polling of the Indirect Registers ~~~ ~~~ ~~~
-	 * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-	 * Here, the indirect registers are polled in a loop using sync-read
-	 * instructions.
-	 */
-	// Make the handler for sync-read instruction.
-	std::array<dynamixel::PacketHandler,NUM_PORTS>
-		sync_read_handlers = {
-			dynamixel::PacketHandler(ports[0], chains[0].size()),
-			dynamixel::PacketHandler(ports[1], chains[1].size()),
-			dynamixel::PacketHandler(ports[2], chains[2].size()),
-			dynamixel::PacketHandler(ports[3], chains[3].size()),
-			dynamixel::PacketHandler(ports[4], chains[4].size()),
-			dynamixel::PacketHandler(ports[5], chains[5].size())
-		};
-
-	// For each handler, set the sync-read instruction and send it.
-	{ uint16_t chain_index = 0;
-	for (auto& sync_read_handler : sync_read_handlers) {
-		// The length of the read-bank:
-		constexpr uint16_t read_bank_length = sizeof(dynamixel::ReadBank);
-		// The number of devices on the chain:
-		const uint8_t chain_length = chains[chain_index].size();
-		// Write the parameters.
-		std::vector<uint8_t> sync_read_params = {
-				// The beginning address:
-					dynamixel::INDIRECT_DATA_1 			& 0x00FF,
-				(	dynamixel::INDIRECT_DATA_1 >> 8) 	& 0x00FF,
-				// The data-length:
-					read_bank_length 					& 0x00FF,
-				(	read_bank_length >> 8) 				& 0x00FF
-		};
-		// Copy the devices' IDs to the parameters.
-		sync_read_params.resize(chain_length+2+2);
-		std::copy(chains[chain_index].begin(), chains[chain_index].end(), sync_read_params.data()+4);
-		// Offset the IDs by one.
-		for (size_t i = 4; i < sync_read_params.size(); i++)
-			sync_read_params[i] += 1;
-		// Set the sync-read instruction.
-		sync_read_handler.set_inst(
-				dynamixel::Packet<uint8_t>(
-						dynamixel::ALL_DEVICES,		// the broadcast ID
-						sync_read_params.size(),	// the number of parameters
-						dynamixel::SYNC_READ,		// the instruction
-						sync_read_params 			// the parameters
-				) // the packet
-		);
-
-		// Send the sync-read instruction to begin the loop.
-		sync_read_handler.send_inst();
-
-		chain_index++;
-	}}
+	}
 
 	/*
 	 * ~~~ ~~~ ~~~ The Main Loop ~~~ ~~~ ~~~
 	 * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	 */
 	while (1) {
-		/*
-		 * For each sync-read handler, i.e. chain, if all the expected statuses
-		 * have been received and decoded, then parse it for any errors, update
-		 * the corresponding state, and print the data.
-		 */
-		{ uint8_t handler_count = 0;
-		for (auto& sync_read_handler : sync_read_handlers) {
-			/*for (int i = 0; i < handler_count+1; i++) {
-				HAL_GPIO_WritePin(SPARE1_GPIO_Port, SPARE1_Pin, GPIO_PIN_SET);
-				HAL_GPIO_WritePin(SPARE1_GPIO_Port, SPARE1_Pin, GPIO_PIN_RESET);
-			}*/
-
-			/*
-			 * Unless a status packet has been received fully, the main-loop is
-			 * just going through this if-condition continually. So, to
-			 * optimise the delay between sending an instruction and parsing a
-			 * status into the servo-state, etc., the code inside this if-
-			 * condition must be made as quick as possible, see PacketHandler
-			 * .hpp. The two candidates to improve are the decoding, which is a
-			 * bit slow because of the switching, and the copying of the raw
-			 * status into a structure. The former cannot be helped as much
-			 * since the raw encoded packet needs to be decoded byte by byte;
-			 * the latter may be trimmed down without copying, but this will
-			 * need a whole rewrite of the packet structure, see Packet.hpp,
-			 * and an introduction of recursion in main.
-			 */
-
-			//HAL_GPIO_WritePin(SPARE1_GPIO_Port, SPARE1_Pin, GPIO_PIN_SET);
-			if (sync_read_handler.check_sts()) {
-				//HAL_GPIO_WritePin(SPARE1_GPIO_Port, SPARE1_Pin, GPIO_PIN_RESET);
-
-				//HAL_GPIO_WritePin(SPARE1_GPIO_Port, SPARE1_Pin, GPIO_PIN_SET);
-
-				/*
-				 * As for optimising this code, interrupts may be needed for
-				 * the USB communications, but that has not been started yet.
-				 */
-
-				// Parse each status and handle any errors.
-				const uint16_t num_sts = sync_read_handler.get_num_sts();
-				for (int i = 0; i < num_sts; i++) {
-					// Get the status-packet.
-					const auto& sync_read_sts = sync_read_handler.get_sts_packet(i);
-					// Get the ID which is used to index stuff later.
-					if ((sync_read_sts.id - 1) >= dynamixel::NUMBER_OF_DEVICES)
-						// Somehow, a packet from an unknown device was
-						// received?
-						continue;
-					const auto device = static_cast<dynamixel::Device>(sync_read_sts.id-1);
-
-					// If the status' CRC is right, and there is no error, then
-					// parse it as a read-bank and add it to the cache.
-					if ((sync_read_handler.is_sts_healthy(i))
-							&& (sync_read_sts.params[0] == dynamixel::NO_ERROR)
-					)
-					{
-						local_cache[device].convert_from_read_bank(
-								*reinterpret_cast<const dynamixel::ReadBank*>(
-										sync_read_sts.params.data()+1
-								)
-						);
-
-						// For now, print the read-bank for testing.
-						// Later on, this should be done somewhere else outside of
-						// this if-statement.
-						//HAL_GPIO_WritePin(SPARE2_GPIO_Port, SPARE2_Pin, GPIO_PIN_SET);
-						std::stringstream ss;
-						ss << "Servo: " << (device+1) << "\t" << local_cache[device];
-						CDC_Transmit_HS((uint8_t*)ss.str().data(), ss.str().size());
-						//HAL_GPIO_WritePin(SPARE2_GPIO_Port, SPARE2_Pin, GPIO_PIN_RESET);
-					} else {
-						// If the CRC is wrong, or there is an error, then print it.
-						std::stringstream ss;
-						ss << "Servo: " << (device+1) << "\tError\t"
-								<< sync_read_sts.params[0] << "\r" << std::endl;
-						CDC_Transmit_HS((uint8_t*)ss.str().data(), ss.str().size());
-					}
-				}
-
-				//HAL_GPIO_WritePin(SPARE1_GPIO_Port, SPARE1_Pin, GPIO_PIN_RESET);
-
-				// At the end of parsing all statuses, reset the handler and
-				// resend the sync-read instruction to continue the loop.
-				sync_read_handler.reset();
-				// HAL_Delay(100);
-				sync_read_handler.send_inst();
-			}
-			//HAL_GPIO_WritePin(SPARE1_GPIO_Port, SPARE1_Pin, GPIO_PIN_RESET);
-
-			handler_count++;
-		}}
-
-		//HAL_GPIO_WritePin(SPARE1_GPIO_Port, SPARE1_Pin, GPIO_PIN_SET);
-		//HAL_GPIO_WritePin(SPARE1_GPIO_Port, SPARE1_Pin, GPIO_PIN_RESET);
+		
 	}
 
 #else

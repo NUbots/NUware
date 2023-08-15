@@ -205,8 +205,8 @@ public:
     /*
 	 * @brief	gets the pointer to the decoded packet.
 	 */
-	const std::array<uint8_t, PACKETISER_BUFFER_SIZE>& get_decoded_packet() const {
-		return buffer;
+	const uint8_t* get_decoded_packet() const {
+		return buffer.data();
 	}
 	/*
 	 * @brief	gets the length of the decoded packet.
