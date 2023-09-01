@@ -13,7 +13,7 @@
 #include <string>		// needed for printing the servo-state
 #include <ostream>		// needed for outputting the servo-state
 #include <iomanip>		// needed to make the output stream nicer
-#include "../uart/Port.h"
+#include "../uart/Port.hpp"
 
 namespace dynamixel {
 

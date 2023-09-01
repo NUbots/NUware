@@ -1,5 +1,5 @@
 /*
- * Port.h
+ * Port.hpp
  *
  *  Created on: 18 Jan. 2023
  *      Author: Clayton
@@ -10,6 +10,8 @@
 #include <vector>
 #include "main.h"		// only used for GPIO labels for debugging
 #include "RS485.h"		// needed for the RS485 interface
+#include <cstring> 		// needed for the memcpy
+#include <array>		// needed for the simple tx-buffer
 
 #ifndef SRC_PORT_H_
 #define SRC_PORT_H_
@@ -105,7 +107,11 @@ private:
 	RingBuffer rx_buffer;
 //#endif
 	// @brief	The buffer for TX,
+#ifdef SIMPLE_WRITE
+	std::array<uint8_t,UINT16_MAX> tx_buffer;
+#else
 	RingBuffer tx_buffer;
+#endif
 #endif
 	// @brief 	The number of bytes just transmitted,
 	volatile uint16_t num_bytes_tx;
@@ -213,10 +219,20 @@ public:
 	 * @return		nothing,
 	 */
 	void check_rx();
+#ifndef SIMPLE_WRITE
 	/**
 	 * @brief		pushes the next byte to the tx-buffer, i.e. the next byte
 	 * 				to be sent.
-	 * @note		If the simple-write is defined, then this function bypasses
+	 * @param		the bytes to be pushed to the buffer,
+	 * @param		the number of bytes,
+	 * @return		the number of bytes pushed,
+	 */
+	const uint16_t write(const uint8_t* data, const uint16_t length);
+#else
+	/**
+	 * @brief		copies all bytes to a buffer and then transmits those
+	 * 				copied bytes in the buffer through DMA.
+	 * @note		This function bypasses
 	 * 				the tx-buffer completely and just transmits all bytes
 	 * 				together. This is to temporarily fix a bug with the RS485
 	 * 				and with splitting a Dynamixel packet in two.
@@ -224,7 +240,30 @@ public:
 	 * @param		the number of bytes,
 	 * @return		the number of bytes pushed,
 	 */
-	const uint16_t write(const uint8_t* data, const uint16_t length);
+	const uint16_t write(const uint8_t* data, const uint16_t length) {
+		// Transmit everything at once.
+		std::memcpy(tx_buffer.data(), data, length);
+		while(rs_link.transmit(tx_buffer.data(), length));
+		comm_state = TX_BUSY;
+		//return length;
+		return 0xFFFF;
+	}
+#endif
+	/**
+	 * @brief		pushes the object, e.g. a packet, as bytes to the 
+	 * 				tx-buffer, i.e. the next byte to be sent.
+	 * @note		If the simple-write is defined, then this function bypasses
+	 * 				the tx-buffer completely and just transmits all bytes
+	 * 				together. This is to temporarily fix a bug with the RS485
+	 * 				and with splitting a Dynamixel packet in two.
+	 * @param		the object to be casted as bytes and then pushed to the 
+	 * 				buffer,, sizeof(T)
+	 * @return		the number of bytes pushed,
+	 */
+	template <typename T>
+	const uint16_t write(const T& data) {
+		return write(reinterpret_cast<const uint8_t*>(&data), sizeof(T));
+	}
 	/**
 	 * @brief		flushes all the bytes out of the tx-buffer, i.e. to send
 	 * 				all remaining bytes.

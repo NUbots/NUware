@@ -36,7 +36,7 @@ namespace dynamixel {
     // Check that this struct is not cache aligned
     static_assert(sizeof(BulkReadData) == 5, "The compiler is adding padding to this struct, Bad compiler!");
 
-    template <size_t N>
+    template <std::size_t N>
     struct BulkReadCommand {
 
         BulkReadCommand(const std::array<BulkReadData, N>& data)

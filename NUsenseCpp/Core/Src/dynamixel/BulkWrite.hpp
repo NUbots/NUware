@@ -40,7 +40,7 @@ namespace dynamixel {
     } __attribute__((packed));  // Make it so that the compiler reads this struct "as is" (no padding bytes)
 
 
-    template <typename T, size_t N>
+    template <typename T, std::size_t N>
     struct BulkWriteCommand {
 
         BulkWriteCommand(const std::array<BulkWriteData<T>, N>& data)

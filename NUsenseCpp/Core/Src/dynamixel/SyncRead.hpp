@@ -23,7 +23,7 @@ namespace dynamixel {
      *
      * @author Alex Biddulph
      */
-    template <size_t N>
+    template <std::size_t N>
     struct SyncReadCommand {
 
         SyncReadCommand(uint16_t address, uint16_t size, const std::array<uint8_t, N>& devices)

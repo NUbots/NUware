@@ -5,7 +5,7 @@
  *      Author: Clayton
  */
 
-#include "Port.h"
+#include "Port.hpp"
 
 namespace uart {
 
@@ -40,6 +40,7 @@ uint16_t Port::get_available_rx() {
 #endif
 }
 
+#ifndef SIMPLE_WRITE
 uint16_t Port::get_available_tx() {
 #ifdef USE_QUEUE_CLASS
 	return PORT_BUFFER_SIZE - tx_buffer.size();
@@ -47,6 +48,7 @@ uint16_t Port::get_available_tx() {
 	return PORT_BUFFER_SIZE - tx_buffer.size;
 #endif
 }
+#endif
 
 uint16_t Port::peek() {
 	uint8_t read_byte;
@@ -173,8 +175,8 @@ void Port::check_rx() {
 		handle_rx();
 }
 
-const uint16_t Port::write(const uint8_t* data, const uint16_t length) {
 #ifndef SIMPLE_WRITE
+const uint16_t Port::write(const uint8_t* data, const uint16_t length) {
 	// For each byte, try to add it to the buffer.
 	for (int i = 0; i < length; i++) {
 		// If it is full, then begin a transmission if not already begun.
@@ -203,11 +205,6 @@ const uint16_t Port::write(const uint8_t* data, const uint16_t length) {
 		// Keep trying if there is an error.
 		while (begin_tx());
 	}
-#else
-	// Transmit everything at once.
-	while(rs_link.transmit(data, length));
-	comm_state = TX_BUSY;
-#endif
 	//return length;
 	return 0xFFFF;
 }
@@ -282,6 +279,7 @@ void Port::handle_tx() {
 		comm_state = TX_DONE;
 #endif
 }
+#endif
 
 void Port::check_tx() {
 	// If the transmission has been done, then handle it.

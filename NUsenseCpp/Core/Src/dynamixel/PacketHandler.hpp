@@ -5,10 +5,10 @@
  *      Author: Clayton
  */
 
-#include "../uart/Port.h"
+#include "../uart/Port.hpp"
 #include "Dynamixel.hpp"
 #include "Packetiser.hpp"
-#include "../platform/NUgus.hpp"
+#include "../platform/NUsense/NUgus.hpp"
 
 #ifndef SRC_DYNAMIXEL_PACKETHANDLER_HPP_
 #define SRC_DYNAMIXEL_PACKETHANDLER_HPP_
@@ -51,8 +51,8 @@ public:
 	 * @retval	#NONE if not all the packets have been decoded,
 	 * 			#SUCCESS if all the expected packets have been decoded,
 	 */
-	template <size_t N>
-	const Result check_sts(const platform::NUgus::ID id) {
+	template <uint16_t N>
+	const Result check_sts(const platform::NUsense::NUgus::ID id) {
 
 		// Peek to see if there is a byte on the buffer yet.
 		uint16_t read_result = port.read();
@@ -87,7 +87,7 @@ public:
 		) {
 			// If the status-packet is not short, then check the CRC and the
 			// error.
-			if (packetiser.get_decoded_length() == 4+N)
+			if (packetiser.get_decoded_length() == 7+4+N)
 				if (sts->crc != packetiser.get_decoded_crc())
 					result = CRC_ERROR;
 				else if (sts->error == dynamixel::CommandError::NO_ERROR)

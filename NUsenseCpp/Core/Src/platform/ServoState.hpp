@@ -1,6 +1,10 @@
 #ifndef PLATFORM_SERVOSTATE_HPP
 #define PLATFORM_SERVOSTATE_HPP
 
+#include "stdint.h" 	// needed for explicit type-defines
+
+#include <ostream>		// needed for outputting the servo-state
+
 namespace platform {
 /// @see servo_states
 struct ServoState {
@@ -68,6 +72,16 @@ struct ServoState {
     /// @brief Whether we have initialised this servo yet
     bool initialised = false;
 };
+
+/*
+ * @brief	outputs the read values to a row,
+ * @note	this is mainly used for debugging,
+ * @param	the output stream,
+ * @param, 	the servo-state,
+ * @return,	the output stream,
+ */
+std::ostream & operator << (std::ostream& out, const ServoState& servo_state);
+
 } // namespace paltform
 
 #endif  // PLATFORM_SERVOSTATE_HPP

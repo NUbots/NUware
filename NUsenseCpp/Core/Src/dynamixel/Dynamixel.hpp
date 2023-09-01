@@ -66,10 +66,10 @@ namespace dynamixel {
             0x827F, 0x027A, 0x826B, 0x026E, 0x0264, 0x8261, 0x0220, 0x8225, 0x822F, 0x022A, 0x823B, 0x023E, 0x0234,
             0x8231, 0x8213, 0x0216, 0x021C, 0x8219, 0x0208, 0x820D, 0x8207, 0x0202};
 
-        size_t packet_len = sizeof(T) - sizeof(packet->crc);
+        std::size_t packet_len = sizeof(T) - sizeof(packet->crc);
         const uint8_t* p  = reinterpret_cast<const uint8_t*>(packet);
 
-        for (size_t j = 0; j < packet_len; j++) {
+        for (std::size_t j = 0; j < packet_len; j++) {
             uint16_t i = uint16_t(((crc_accum >> 8) ^ p[j]) & 0xFF);
             crc_accum  = (crc_accum << 8) ^ crc_table[i];
         }
@@ -100,7 +100,7 @@ namespace dynamixel {
             0x827F, 0x027A, 0x826B, 0x026E, 0x0264, 0x8261, 0x0220, 0x8225, 0x822F, 0x022A, 0x823B, 0x023E, 0x0234,
             0x8231, 0x8213, 0x0216, 0x021C, 0x8219, 0x0208, 0x820D, 0x8207, 0x0202};
 
-        for (size_t j = 0; j < (packet.size() - 2); j++) {
+        for (std::size_t j = 0; j < (packet.size() - 2); j++) {
             uint16_t i = uint16_t(((crc_accum >> 8) ^ packet[j]) & 0xFF);
             crc_accum  = (crc_accum << 8) ^ crc_table[i];
         }

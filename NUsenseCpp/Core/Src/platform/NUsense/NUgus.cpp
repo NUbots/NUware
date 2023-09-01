@@ -1,6 +1,6 @@
 #include "NUgus.hpp"
 
-namespace platform {
+namespace platform::NUsense {
 
     NUgus::NUgus()
         : /*OPENCR(uint8_t(ID::OPENCR))
@@ -25,4 +25,4 @@ namespace platform {
         , HEAD_YAW(uint8_t(ID::HEAD_YAW))
         , HEAD_PITCH(uint8_t(ID::HEAD_PITCH)) {}
 
-}  // namespace platform
+}  // namespace platform::NUsense

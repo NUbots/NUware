@@ -36,7 +36,7 @@ namespace dynamixel {
         T data;
     } __attribute__((packed));  // Make it so that the compiler reads this struct "as is" (no padding bytes)
 
-    template <typename T, size_t N>
+    template <typename T, std::size_t N>
     struct SyncWriteCommand {
 
         SyncWriteCommand(uint16_t address, const SyncWriteData<T> (&data)[N])

@@ -1,14 +1,14 @@
-#ifndef PLATFORM_NUGUS_HPP
-#define PLATFORM_NUGUS_HPP
+#ifndef PLATFORM_NUSENSE_NUGUS_HPP
+#define PLATFORM_NUSENSE_NUGUS_HPP
 
 #include <array>
 #include <stdexcept>
 
-#include "../dynamixel/DynamixelServo.hpp"
+#include "../../dynamixel/DynamixelServo.hpp"
 //#include "dynamixel/v2/FSR.hpp"
 //#include "dynamixel/v2/OpenCR.hpp"
 
-namespace platform {
+namespace platform::NUsense {
 
     struct MX64 : public dynamixel::DynamixelServo {
         MX64(uint8_t ID) : ID(ID) {}
@@ -196,6 +196,6 @@ namespace platform {
         //FSR_READ              = uint16_t(FSR::Address::FSR1_L)
     };
 
-}  // namespace platform
+}  // namespace platform::NUsense
 
-#endif  // PLATFORM_NUGUS_HPP
+#endif  // PLATFORM_NUSENSE_NUGUS_HPP
