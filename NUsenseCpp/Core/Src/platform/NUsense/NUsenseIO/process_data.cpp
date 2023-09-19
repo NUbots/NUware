@@ -1,12 +1,11 @@
-#include "process_data.hpp"
+#include "../NUsenseIO.hpp"
 
-#include "Convert.hpp"
-
-#include "../../utility/math/comparison.hpp"
+#include "../Convert.hpp"
+#include "../../../utility/math/comparison.hpp"
 
 namespace platform::NUsense {
 
-    void process_servo_data(
+    void NUsenseIO::process_servo_data(
         std::array<platform::ServoState,NUMBER_OF_DEVICES>& servo_states,
         const dynamixel::StatusReturnCommand<sizeof(DynamixelServoReadData)> packet
     ) {

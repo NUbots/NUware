@@ -2,16 +2,14 @@
 
 #include <limits>
 
-#include "NUgus.hpp"
-
 #include "../../utility/math/angle.hpp"
 #include "../../utility/math/comparison.hpp"
 
-namespace platform {
+namespace platform::NUsense {
 
     namespace convert {
 
-        // TODO: refit these for NUsense's IMU.
+        /// TODO: Refit these for NUsense's IMU.
 
         float gyro(int16_t raw) {
             // Range: -32768 - +32767 = -2000dps - +2000dps
@@ -232,4 +230,4 @@ namespace platform {
 
     }  // namespace convert
 
-}  // namespace platform
+}  // namespace platform::NUsense

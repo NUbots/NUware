@@ -70,6 +70,8 @@
 #define USBD_CONFIGURATION_STRING_HS     "CDC Config"
 #define USBD_INTERFACE_STRING_HS     "CDC Interface"
 
+#define USB_SIZ_BOS_DESC            0x0C
+
 /* USER CODE BEGIN PRIVATE_DEFINES */
 
 /* USER CODE END PRIVATE_DEFINES */
@@ -166,6 +168,29 @@ __ALIGN_BEGIN uint8_t USBD_HS_DeviceDesc[USB_LEN_DEV_DESC] __ALIGN_END =
   USBD_IDX_SERIAL_STR,        /*Index of serial number string*/
   USBD_MAX_NUM_CONFIGURATION  /*bNumConfigurations*/
 };
+
+/** BOS descriptor. */
+#if (USBD_LPM_ENABLED == 1)
+#if defined ( __ICCARM__ ) /* IAR Compiler */
+  #pragma data_alignment=4
+#endif /* defined ( __ICCARM__ ) */
+__ALIGN_BEGIN uint8_t USBD_HS_BOSDesc[USB_SIZ_BOS_DESC] __ALIGN_END =
+{
+  0x5,
+  USB_DESC_TYPE_BOS,
+  0xC,
+  0x0,
+  0x1,  /* 1 device capability */
+        /* device capability */
+  0x7,
+  USB_DEVICE_CAPABITY_TYPE,
+  0x2,
+  0x2,  /*LPM capability bit set */
+  0x0,
+  0x0,
+  0x0
+};
+#endif /* (USBD_LPM_ENABLED == 1) */
 
 /**
   * @}
@@ -351,7 +376,9 @@ uint8_t * USBD_HS_USR_BOSDescriptor(USBD_SpeedTypeDef speed, uint16_t *length)
   */
 static void Get_SerialNum(void)
 {
-  uint32_t deviceserial0, deviceserial1, deviceserial2;
+  uint32_t deviceserial0;
+  uint32_t deviceserial1;
+  uint32_t deviceserial2;
 
   deviceserial0 = *(uint32_t *) DEVICE_ID1;
   deviceserial1 = *(uint32_t *) DEVICE_ID2;

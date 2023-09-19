@@ -166,14 +166,14 @@ namespace platform::NUsense {
         uint8_t present_temperature;
     } __attribute__((packed));
 
-    /// @brief The data to write to the OpenCR device
+    /// @brief  The data to write to the OpenCR device
     struct OpenCRWriteData {
         uint8_t led;
         uint16_t rgb_led;
         uint16_t buzzer;
     } __attribute__((packed));
 
-    /// @brief The data to read from the OpenCR device
+    /// @brief  The data to read from the OpenCR device
     struct OpenCRReadData {
         uint8_t led;
         uint16_t rgb_led;
@@ -184,8 +184,8 @@ namespace platform::NUsense {
         int16_t acc[3];
     } __attribute__((packed));
 
-    /// @brief Document addresses used for read/writing to dynamixel devices, especially
-    /// where indirect addressing is used.
+    /// @brief  Document addresses used for read/writing to dynamixel devices, especially where 
+    ///         indirect addressing is used.
     enum class AddressBook : uint16_t {
         SERVO_READ_ADDRESS    = uint16_t(dynamixel::DynamixelServo::Address::INDIRECT_ADDRESS_1_L),
         SERVO_READ            = uint16_t(dynamixel::DynamixelServo::Address::INDIRECT_DATA_1),

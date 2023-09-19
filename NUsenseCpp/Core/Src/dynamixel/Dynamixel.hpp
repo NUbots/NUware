@@ -1,12 +1,8 @@
 #ifndef DYNAMIXEL_DYNAMIXEL_HPP
 #define DYNAMIXEL_DYNAMIXEL_HPP
 
-//#include <cstddef>
-//#include <cstdint>
-
-//STM32 includes:
-#include "stdint.h" 	// needed for explicit type-defines
-#include <vector>
+#include <cstddef>
+#include <cstdint>  
 
 namespace dynamixel {
     // PING          Instruction that checks whether the Packet has arrived to a device with the same ID as Packet

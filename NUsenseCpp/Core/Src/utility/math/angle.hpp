@@ -119,7 +119,7 @@ namespace utility::math::angle {
      */
     inline float solveLinearTrigEquation(float a, float b, float c) {
         float norm = std::sqrt(a * a + b * b);
-    	// TODO: Either fix this or make a better way to handle an exception.
+        // TODO: Either fix this or make a better way to handle an exception.
         /*if (norm == 0) {
             throw std::domain_error(
                 "utility::math::angle::solveLinearTrigEquation - std::sqrt(a*a+b*b) == 0 => Any value for x is "

@@ -4,7 +4,7 @@
  *  Created on: Oct 21, 2022
  *      Author: Clayton
  *      Description:
- *      	A centralised area to enable and disable various functionalities.
+ *          A centralised area to enable and disable various functionalities.
  */
 
 #ifndef INC_SETTINGS_H_

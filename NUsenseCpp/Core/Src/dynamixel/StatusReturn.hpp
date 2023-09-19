@@ -71,29 +71,29 @@ namespace dynamixel {
     } __attribute__((packed));  // Make it so that the compiler reads this struct "as is" (no padding bytes)
 
     template <>
-	struct StatusReturnCommand<0> {
+    struct StatusReturnCommand<0> {
 
-		StatusReturnCommand(uint8_t id, const CommandError& error, uint16_t crc)
-			: magic(0x00FDFFFF)
-			, id(id)
-			, length(4)
-			, instruction(Instruction::STATUS_RETURN)
-			, error(error)
-			, crc(crc) {}
+        StatusReturnCommand(uint8_t id, const CommandError& error, uint16_t crc)
+            : magic(0x00FDFFFF)
+            , id(id)
+            , length(4)
+            , instruction(Instruction::STATUS_RETURN)
+            , error(error)
+            , crc(crc) {}
 
-		/// Magic number that heads up every packet
-		const uint32_t magic;
-		/// The ID of the device that we are communicating with
-		const uint8_t id;
-		/// The total length of the data packet (4 plus the size of data)
-		const uint16_t length;
-		/// Will always be Instruction::STATUS_RETURN
-		const uint8_t instruction;
-		/// Error value
-		const CommandError error;
-		/// Our crc for this command
-		const uint16_t crc;
-	} __attribute__((packed));  // Make it so that the compiler reads this struct "as is" (no padding bytes)
+        /// Magic number that heads up every packet
+        const uint32_t magic;
+        /// The ID of the device that we are communicating with
+        const uint8_t id;
+        /// The total length of the data packet (4 plus the size of data)
+        const uint16_t length;
+        /// Will always be Instruction::STATUS_RETURN
+        const uint8_t instruction;
+        /// Error value
+        const CommandError error;
+        /// Our crc for this command
+        const uint16_t crc;
+    } __attribute__((packed));  // Make it so that the compiler reads this struct "as is" (no padding bytes)
 
 }  // namespace dynamixel
 

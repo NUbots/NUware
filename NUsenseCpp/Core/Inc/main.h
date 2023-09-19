@@ -88,6 +88,7 @@ void Error_Handler(void);
 #define DXL_PWR_EN_GPIO_Port GPIOB
 #define BUZZER_SIG_Pin GPIO_PIN_7
 #define BUZZER_SIG_GPIO_Port GPIOB
+
 /* USER CODE BEGIN Private defines */
 
 /* USER CODE END Private defines */
