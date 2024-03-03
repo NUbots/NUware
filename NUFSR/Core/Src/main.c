@@ -102,7 +102,7 @@ int main(void)
   NUfsr_IMU_Init();
   uint16_t Rx = 0x0000;
   uint16_t* Ptr_Rx = &Rx;
-  uint16_t adc_var;
+  uint16_t adc_var[4];
 //  uint8_t count;
 //  uint8_t set_flag;
   /* USER CODE END 2 */
@@ -110,17 +110,20 @@ int main(void)
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
 //  	count = 0;
-    adc_var = 0;
     HAL_TIM_Base_Start(&htim3);
-  	HAL_ADC_Start_DMA(&hadc1, &adc_var, 1); // DMA Start
+  	HAL_ADC_Start_DMA(&hadc1, &adc_var, 4); // DMA Start
   	while (1)
   	{
-	  if (adc_var > 250) {
-		  HAL_GPIO_WritePin(GPIOB,LED1_Pin,0);
+	  if ((adc_var[0] > 250) || (adc_var[3] > 250)) {
+		  HAL_GPIO_WritePin(GPIOB,LED1_Pin,0);// LED ON
+	  }
+	  else {
+		  HAL_GPIO_WritePin(GPIOB,LED1_Pin,1);// LED OFF
+	  }
+	  if ((adc_var[1] > 250) || (adc_var[2] > 250)) {
 		  HAL_GPIO_WritePin(GPIOB,LED2_Pin,0);// LED ON
 	  }
 	  else {
-		  HAL_GPIO_WritePin(GPIOB,LED1_Pin,1);
 		  HAL_GPIO_WritePin(GPIOB,LED2_Pin,1);// LED OFF
 	  }
 
