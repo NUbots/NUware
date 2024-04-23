@@ -9,6 +9,17 @@
   *           + Peripheral Control functions
   *
   *
+  ******************************************************************************
+  * @attention
+  *
+  * Copyright (c) 2016 STMicroelectronics.
+  * All rights reserved.
+  *
+  * This software is licensed under terms that can be found in the LICENSE file
+  * in the root directory of this software component.
+  * If no LICENSE file comes with this software, it is provided AS-IS.
+  *
+  ******************************************************************************
   @verbatim
   ==============================================================================
                ##### UART peripheral extended features  #####
@@ -20,17 +31,6 @@
         by calling the HAL_RS485Ex_Init() API.
 
   @endverbatim
-  ******************************************************************************
-  * @attention
-  *
-  * <h2><center>&copy; Copyright (c) 2016 STMicroelectronics.
-  * All rights reserved.</center></h2>
-  *
-  * This software component is licensed by ST under BSD 3-Clause license,
-  * the "License"; You may not use this file except in compliance with the
-  * License. You may obtain a copy of the License at:
-  *                        opensource.org/licenses/BSD-3-Clause
-  *
   ******************************************************************************
   */
 
@@ -428,7 +428,7 @@ HAL_StatusTypeDef HAL_UARTEx_EnableStopMode(UART_HandleTypeDef *huart)
   __HAL_LOCK(huart);
 
   /* Set UESM bit */
-  SET_BIT(huart->Instance->CR1, USART_CR1_UESM);
+  ATOMIC_SET_BIT(huart->Instance->CR1, USART_CR1_UESM);
 
   /* Process Unlocked */
   __HAL_UNLOCK(huart);
@@ -447,7 +447,7 @@ HAL_StatusTypeDef HAL_UARTEx_DisableStopMode(UART_HandleTypeDef *huart)
   __HAL_LOCK(huart);
 
   /* Clear UESM bit */
-  CLEAR_BIT(huart->Instance->CR1, USART_CR1_UESM);
+  ATOMIC_CLEAR_BIT(huart->Instance->CR1, USART_CR1_UESM);
 
   /* Process Unlocked */
   __HAL_UNLOCK(huart);
@@ -456,21 +456,24 @@ HAL_StatusTypeDef HAL_UARTEx_DisableStopMode(UART_HandleTypeDef *huart)
 }
 
 /**
-  * @brief Receive an amount of data in blocking mode till either the expected number of data is received or an IDLE event occurs.
-  * @note   HAL_OK is returned if reception is completed (expected number of data has been received)
-  *         or if reception is stopped after IDLE event (less than the expected number of data has been received)
-  *         In this case, RxLen output parameter indicates number of data available in reception buffer.
-  * @note   When UART parity is not enabled (PCE = 0), and Word Length is configured to 9 bits (M1-M0 = 01),
-  *         the received data is handled as a set of uint16_t. In this case, Size must indicate the number
-  *         of uint16_t available through pData.
+  * @brief Receive an amount of data in blocking mode till either the expected number of data
+  *        is received or an IDLE event occurs.
+  * @note  HAL_OK is returned if reception is completed (expected number of data has been received)
+  *        or if reception is stopped after IDLE event (less than the expected number of data has been received)
+  *        In this case, RxLen output parameter indicates number of data available in reception buffer.
+  * @note  When UART parity is not enabled (PCE = 0), and Word Length is configured to 9 bits (M1-M0 = 01),
+  *        the received data is handled as a set of uint16_t. In this case, Size must indicate the number
+  *        of uint16_t available through pData.
   * @param huart   UART handle.
   * @param pData   Pointer to data buffer (uint8_t or uint16_t data elements).
   * @param Size    Amount of data elements (uint8_t or uint16_t) to be received.
-  * @param RxLen   Number of data elements finally received (could be lower than Size, in case reception ends on IDLE event)
+  * @param RxLen   Number of data elements finally received
+  *                (could be lower than Size, in case reception ends on IDLE event)
   * @param Timeout Timeout duration expressed in ms (covers the whole reception sequence).
   * @retval HAL status
   */
-HAL_StatusTypeDef HAL_UARTEx_ReceiveToIdle(UART_HandleTypeDef *huart, uint8_t *pData, uint16_t Size, uint16_t *RxLen, uint32_t Timeout)
+HAL_StatusTypeDef HAL_UARTEx_ReceiveToIdle(UART_HandleTypeDef *huart, uint8_t *pData, uint16_t Size, uint16_t *RxLen,
+                                           uint32_t Timeout)
 {
   uint8_t  *pdata8bits;
   uint16_t *pdata16bits;
@@ -485,11 +488,10 @@ HAL_StatusTypeDef HAL_UARTEx_ReceiveToIdle(UART_HandleTypeDef *huart, uint8_t *p
       return  HAL_ERROR;
     }
 
-    __HAL_LOCK(huart);
-
     huart->ErrorCode = HAL_UART_ERROR_NONE;
     huart->RxState = HAL_UART_STATE_BUSY_RX;
     huart->ReceptionType = HAL_UART_RECEPTION_TOIDLE;
+    huart->RxEventType = HAL_UART_RXEVENT_TC;
 
     /* Init tickstart for timeout management */
     tickstart = HAL_GetTick();
@@ -513,8 +515,6 @@ HAL_StatusTypeDef HAL_UARTEx_ReceiveToIdle(UART_HandleTypeDef *huart, uint8_t *p
       pdata16bits = NULL;
     }
 
-    __HAL_UNLOCK(huart);
-
     /* Initialize output number of received elements */
     *RxLen = 0U;
 
@@ -531,6 +531,7 @@ HAL_StatusTypeDef HAL_UARTEx_ReceiveToIdle(UART_HandleTypeDef *huart, uint8_t *p
         /* If Set, and data has already been received, this means Idle Event is valid : End reception */
         if (*RxLen > 0U)
         {
+          huart->RxEventType = HAL_UART_RXEVENT_IDLE;
           huart->RxState = HAL_UART_STATE_READY;
 
           return HAL_OK;
@@ -581,13 +582,14 @@ HAL_StatusTypeDef HAL_UARTEx_ReceiveToIdle(UART_HandleTypeDef *huart, uint8_t *p
 }
 
 /**
-  * @brief Receive an amount of data in interrupt mode till either the expected number of data is received or an IDLE event occurs.
-  * @note   Reception is initiated by this function call. Further progress of reception is achieved thanks
-  *         to UART interrupts raised by RXNE and IDLE events. Callback is called at end of reception indicating
-  *         number of received data elements.
-  * @note   When UART parity is not enabled (PCE = 0), and Word Length is configured to 9 bits (M1-M0 = 01),
-  *         the received data is handled as a set of uint16_t. In this case, Size must indicate the number
-  *         of uint16_t available through pData.
+  * @brief Receive an amount of data in interrupt mode till either the expected number of data
+  *        is received or an IDLE event occurs.
+  * @note  Reception is initiated by this function call. Further progress of reception is achieved thanks
+  *        to UART interrupts raised by RXNE and IDLE events. Callback is called at end of reception indicating
+  *        number of received data elements.
+  * @note  When UART parity is not enabled (PCE = 0), and Word Length is configured to 9 bits (M1-M0 = 01),
+  *        the received data is handled as a set of uint16_t. In this case, Size must indicate the number
+  *        of uint16_t available through pData.
   * @param huart UART handle.
   * @param pData Pointer to data buffer (uint8_t or uint16_t data elements).
   * @param Size  Amount of data elements (uint8_t or uint16_t) to be received.
@@ -605,10 +607,9 @@ HAL_StatusTypeDef HAL_UARTEx_ReceiveToIdle_IT(UART_HandleTypeDef *huart, uint8_t
       return HAL_ERROR;
     }
 
-    __HAL_LOCK(huart);
-
     /* Set Reception type to reception till IDLE Event*/
     huart->ReceptionType = HAL_UART_RECEPTION_TOIDLE;
+    huart->RxEventType = HAL_UART_RXEVENT_TC;
 
     status =  UART_Start_Receive_IT(huart, pData, Size);
 
@@ -618,7 +619,7 @@ HAL_StatusTypeDef HAL_UARTEx_ReceiveToIdle_IT(UART_HandleTypeDef *huart, uint8_t
       if (huart->ReceptionType == HAL_UART_RECEPTION_TOIDLE)
       {
         __HAL_UART_CLEAR_FLAG(huart, UART_CLEAR_IDLEF);
-        SET_BIT(huart->Instance->CR1, USART_CR1_IDLEIE);
+        ATOMIC_SET_BIT(huart->Instance->CR1, USART_CR1_IDLEIE);
       }
       else
       {
@@ -639,16 +640,17 @@ HAL_StatusTypeDef HAL_UARTEx_ReceiveToIdle_IT(UART_HandleTypeDef *huart, uint8_t
 }
 
 /**
-  * @brief Receive an amount of data in DMA mode till either the expected number of data is received or an IDLE event occurs.
-  * @note   Reception is initiated by this function call. Further progress of reception is achieved thanks
-  *         to DMA services, transferring automatically received data elements in user reception buffer and
-  *         calling registered callbacks at half/end of reception. UART IDLE events are also used to consider
-  *         reception phase as ended. In all cases, callback execution will indicate number of received data elements.
-  * @note   When the UART parity is enabled (PCE = 1), the received data contain
-  *         the parity bit (MSB position).
-  * @note   When UART parity is not enabled (PCE = 0), and Word Length is configured to 9 bits (M1-M0 = 01),
-  *         the received data is handled as a set of uint16_t. In this case, Size must indicate the number
-  *         of uint16_t available through pData.
+  * @brief Receive an amount of data in DMA mode till either the expected number
+  *        of data is received or an IDLE event occurs.
+  * @note  Reception is initiated by this function call. Further progress of reception is achieved thanks
+  *        to DMA services, transferring automatically received data elements in user reception buffer and
+  *        calling registered callbacks at half/end of reception. UART IDLE events are also used to consider
+  *        reception phase as ended. In all cases, callback execution will indicate number of received data elements.
+  * @note  When the UART parity is enabled (PCE = 1), the received data contain
+  *        the parity bit (MSB position).
+  * @note  When UART parity is not enabled (PCE = 0), and Word Length is configured to 9 bits (M1-M0 = 01),
+  *        the received data is handled as a set of uint16_t. In this case, Size must indicate the number
+  *        of uint16_t available through pData.
   * @param huart UART handle.
   * @param pData Pointer to data buffer (uint8_t or uint16_t data elements).
   * @param Size  Amount of data elements (uint8_t or uint16_t) to be received.
@@ -666,10 +668,9 @@ HAL_StatusTypeDef HAL_UARTEx_ReceiveToIdle_DMA(UART_HandleTypeDef *huart, uint8_
       return HAL_ERROR;
     }
 
-    __HAL_LOCK(huart);
-
     /* Set Reception type to reception till IDLE Event*/
     huart->ReceptionType = HAL_UART_RECEPTION_TOIDLE;
+    huart->RxEventType = HAL_UART_RXEVENT_TC;
 
     status =  UART_Start_Receive_DMA(huart, pData, Size);
 
@@ -679,7 +680,7 @@ HAL_StatusTypeDef HAL_UARTEx_ReceiveToIdle_DMA(UART_HandleTypeDef *huart, uint8_
       if (huart->ReceptionType == HAL_UART_RECEPTION_TOIDLE)
       {
         __HAL_UART_CLEAR_FLAG(huart, UART_CLEAR_IDLEF);
-        SET_BIT(huart->Instance->CR1, USART_CR1_IDLEIE);
+        ATOMIC_SET_BIT(huart->Instance->CR1, USART_CR1_IDLEIE);
       }
       else
       {
@@ -697,6 +698,36 @@ HAL_StatusTypeDef HAL_UARTEx_ReceiveToIdle_DMA(UART_HandleTypeDef *huart, uint8_
   {
     return HAL_BUSY;
   }
+}
+
+/**
+  * @brief Provide Rx Event type that has lead to RxEvent callback execution.
+  * @note  When HAL_UARTEx_ReceiveToIdle_IT() or HAL_UARTEx_ReceiveToIdle_DMA() API are called, progress
+  *        of reception process is provided to application through calls of Rx Event callback (either default one
+  *        HAL_UARTEx_RxEventCallback() or user registered one). As several types of events could occur (IDLE event,
+  *        Half Transfer, or Transfer Complete), this function allows to retrieve the Rx Event type that has lead
+  *        to Rx Event callback execution.
+  * @note  This function is expected to be called within the user implementation of Rx Event Callback,
+  *        in order to provide the accurate value :
+  *        In Interrupt Mode :
+  *           - HAL_UART_RXEVENT_TC : when Reception has been completed (expected nb of data has been received)
+  *           - HAL_UART_RXEVENT_IDLE : when Idle event occurred prior reception has been completed (nb of
+  *             received data is lower than expected one)
+  *        In DMA Mode :
+  *           - HAL_UART_RXEVENT_TC : when Reception has been completed (expected nb of data has been received)
+  *           - HAL_UART_RXEVENT_HT : when half of expected nb of data has been received
+  *           - HAL_UART_RXEVENT_IDLE : when Idle event occurred prior reception has been completed (nb of
+  *             received data is lower than expected one).
+  *        In DMA mode, RxEvent callback could be called several times;
+  *        When DMA is configured in Normal Mode, HT event does not stop Reception process;
+  *        When DMA is configured in Circular Mode, HT, TC or IDLE events don't stop Reception process;
+  * @param  huart UART handle.
+  * @retval Rx Event Type (return vale will be a value of @ref UART_RxEvent_Type_Values)
+  */
+HAL_UART_RxEventTypeTypeDef HAL_UARTEx_GetRxEventType(UART_HandleTypeDef *huart)
+{
+  /* Return Rx Event type value, as stored in UART handle */
+  return (huart->RxEventType);
 }
 
 /**
@@ -742,4 +773,3 @@ static void UARTEx_Wakeup_AddressConfig(UART_HandleTypeDef *huart, UART_WakeUpTy
   * @}
   */
 
-/************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

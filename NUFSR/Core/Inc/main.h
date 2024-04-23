@@ -66,14 +66,6 @@ void Error_Handler(void);
 #define XTAL_32MHZ_IN_GPIO_Port GPIOF
 #define XTAL_32MHZ_OUT_Pin GPIO_PIN_1
 #define XTAL_32MHZ_OUT_GPIO_Port GPIOF
-#define FSR1_Pin GPIO_PIN_0
-#define FSR1_GPIO_Port GPIOA
-#define FSR2_Pin GPIO_PIN_1
-#define FSR2_GPIO_Port GPIOA
-#define FSR3_Pin GPIO_PIN_2
-#define FSR3_GPIO_Port GPIOA
-#define FSR4_Pin GPIO_PIN_3
-#define FSR4_GPIO_Port GPIOA
 #define MPU_INT_Pin GPIO_PIN_8
 #define MPU_INT_GPIO_Port GPIOD
 #define MPU_INT_EXTI_IRQn EXTI9_5_IRQn
@@ -105,6 +97,7 @@ void Error_Handler(void);
 #define LED1_GPIO_Port GPIOB
 #define LED2_Pin GPIO_PIN_9
 #define LED2_GPIO_Port GPIOB
+
 /* USER CODE BEGIN Private defines */
 
 /* USER CODE END Private defines */
@@ -114,5 +107,3 @@ void Error_Handler(void);
 #endif
 
 #endif /* __MAIN_H */
-
-/************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

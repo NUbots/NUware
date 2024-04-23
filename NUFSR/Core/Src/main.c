@@ -20,7 +20,9 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "adc.h"
+#include "dma.h"
 #include "spi.h"
+#include "tim.h"
 #include "usart.h"
 #include "usb.h"
 #include "gpio.h"
@@ -55,6 +57,10 @@ static void MX_NVIC_Init(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+//ADC_HandleTypeDef hadc1;
+//DMA_HandleTypeDef hdma_adc1;
+//TIM_HandleTypeDef htim3;
+
 /* USER CODE END 0 */
 
 /**
@@ -82,10 +88,12 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
+  MX_DMA_Init();
   MX_ADC1_Init();
   MX_SPI1_Init();
   MX_USART1_UART_Init();
   MX_USB_PCD_Init();
+  MX_TIM3_Init();
 
   /* Initialize interrupts */
   MX_NVIC_Init();
@@ -94,17 +102,36 @@ int main(void)
   NUfsr_IMU_Init();
   uint16_t Rx = 0x0000;
   uint16_t* Ptr_Rx = &Rx;
-
+  uint16_t adc_var[4];
+//  uint8_t count;
+//  uint8_t set_flag;
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-  while (1)
-  {
-	  NUfsr_IMU_TransmitReceive(ACCEL_XOUT_L | IMU_READ, 0x00, Ptr_Rx, 1);
-	  NUfsr_UART_Transmit(&huart1, (void*)Ptr_Rx, 1);
-	  HAL_Delay(100);
-  }
+//  	count = 0;
+    HAL_TIM_Base_Start(&htim3);
+  	HAL_ADC_Start_DMA(&hadc1, &adc_var, 4); // DMA Start
+  	while (1)
+  	{
+	  if ((adc_var[0] > 250) || (adc_var[3] > 250)) {
+		  HAL_GPIO_WritePin(GPIOB,LED1_Pin,0);// LED ON
+	  }
+	  else {
+		  HAL_GPIO_WritePin(GPIOB,LED1_Pin,1);// LED OFF
+	  }
+	  if ((adc_var[1] > 250) || (adc_var[2] > 250)) {
+		  HAL_GPIO_WritePin(GPIOB,LED2_Pin,0);// LED ON
+	  }
+	  else {
+		  HAL_GPIO_WritePin(GPIOB,LED2_Pin,1);// LED OFF
+	  }
+
+//	NUfsr_IMU_TransmitReceive(ACCEL_XOUT_L | IMU_READ, 0x00, Ptr_Rx, 1); //Previous code
+//	NUfsr_UART_Transmit(&huart1, (void*)Ptr_Rx, 1);
+	HAL_Delay(100);
+
+  	}
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -136,6 +163,7 @@ void SystemClock_Config(void)
   {
     Error_Handler();
   }
+
   /** Initializes the CPU, AHB and APB buses clocks
   */
   RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
@@ -207,5 +235,3 @@ void assert_failed(uint8_t *file, uint32_t line)
   /* USER CODE END 6 */
 }
 #endif /* USE_FULL_ASSERT */
-
-/************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
