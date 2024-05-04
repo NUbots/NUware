@@ -61,9 +61,9 @@ void SystemClock_Config(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-uint32_t adc_var[4];
+uint16_t adc_var[4];
 uart::RS485 rs485(1);
-char buffer[50];
+char buffer[80];
 //uart::RS485::status Status;
 /* USER CODE END 0 */
 
@@ -104,8 +104,6 @@ int main(void)
   MX_TIM3_Init();
   /* USER CODE BEGIN 2 */
   //  NUfsr_IMU_Init();
-    uint16_t Rx = 0x0000;
-    uint16_t* Ptr_Rx = &Rx;
 
   //  uint16_t UART1_RX =
 
@@ -116,31 +114,19 @@ int main(void)
     /* Infinite loop */
     /* USER CODE BEGIN WHILE */
   //  	count = 0;
-      HAL_TIM_Base_Start(&htim3);
-    	HAL_ADC_Start_DMA(&hadc1, (uint32_t*)&adc_var, 4);// DMA Start
+  HAL_TIM_Base_Start(&htim3);
+  HAL_ADC_Start_DMA(&hadc1, (uint32_t*)&adc_var, 4);// DMA Start
 
-    	while (1)
-    	{
-  	  if ((adc_var[0] > 250) || (adc_var[3] > 250)) {
-  		  HAL_GPIO_WritePin(GPIOB,LED1_Pin,(GPIO_PinState) 0);// LED ON
-  	  }
-  	  else {
-  		  HAL_GPIO_WritePin(GPIOB,LED1_Pin,(GPIO_PinState) 1);// LED OFF
-  	  }
-  	  if ((adc_var[1] > 250) || (adc_var[2] > 250)) {
-  		  HAL_GPIO_WritePin(GPIOB,LED2_Pin,(GPIO_PinState) 0);// LED ON
-  	  }
-  	  else {
-  		  HAL_GPIO_WritePin(GPIOB,LED2_Pin,(GPIO_PinState) 1);// LED OFF
-  	  }
-  	  sprintf(buffer, "Something to say");
-  	 rs485.transmit((const uint8_t*)&buffer,(uint16_t)sizeof(buffer));
+  while (1)
+  {
+  sprintf(buffer, "Data FSR 1:{%u}, FSR 2:{%u}, FSR 3:{%u}, FSR 4:{%u}\r\n", adc_var[0], adc_var[1],adc_var[2], adc_var[3]);
+  rs485.transmit((const uint8_t*)&buffer,(uint16_t)sizeof(buffer));
 
   //	NUfsr_IMU_TransmitReceive(ACCEL_XOUT_L | IMU_READ, 0x00, Ptr_Rx, 1); //Previous code
   //	NUfsr_UART_Transmit(&huart1, (void*)Ptr_Rx, 1);
-  	HAL_Delay(100);
+  HAL_Delay(100);
 
-    	}
+  }
       /* USER CODE END WHILE */
 
       /* USER CODE BEGIN 3 */
