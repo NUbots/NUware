@@ -29,6 +29,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "uart/RS485.h"
+#include "uart/Port.hpp"
 #include "stdio.h"
 /* USER CODE END Includes */
 
@@ -64,9 +65,9 @@ void SystemClock_Config(void);
 uint16_t adc_var[4];
 uart::RS485 rs485(1);
 char buffer[80];
-//uart::RS485::status Status;
+uart::RS485::status Status;
 /* USER CODE END 0 */
-
+uart::Port port(1);
 /**
   * @brief  The application entry point.
   * @retval int
@@ -119,8 +120,14 @@ int main(void)
 
   while (1)
   {
-  sprintf(buffer, "Data FSR 1:{%u}, FSR 2:{%u}, FSR 3:{%u}, FSR 4:{%u}\r\n", adc_var[0], adc_var[1],adc_var[2], adc_var[3]);
-  rs485.transmit((const uint8_t*)&buffer,(uint16_t)sizeof(buffer));
+
+//	  sprintf(buffer, "Data FSR 1:{%04x}, FSR 2:{%04x}, FSR 3:{%04x}, FSR 4:{%04x}\r\n", adc_var[0], adc_var[1],adc_var[2], adc_var[3]);
+	  sprintf(buffer, "Data %04d %04d %04d %04d\r\n", adc_var[0], adc_var[1], adc_var[2], adc_var[3]);
+//	sprintf(buffer, "Data {%08x%08x}\r\n", *(uint32_t*)&adc_var[2], *(uint32_t*)&adc_var[0]);
+//  rs485.transmit((const uint8_t*)&buffer,(uint16_t)sizeof(buffer));
+
+//  Port
+	  port.write((const uint8_t*)&buffer,(uint16_t)sizeof(buffer));
 
   //	NUfsr_IMU_TransmitReceive(ACCEL_XOUT_L | IMU_READ, 0x00, Ptr_Rx, 1); //Previous code
   //	NUfsr_UART_Transmit(&huart1, (void*)Ptr_Rx, 1);

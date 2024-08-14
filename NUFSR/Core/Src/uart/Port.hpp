@@ -79,7 +79,7 @@ namespace uart {
         ///         still needed in the middle for the DMA. One can't just give a reference to a
         ///         temporary variable in the port's scope. I found that this made a bug.
     #ifdef SIMPLE_WRITE
-        std::array<uint8_t, UINT16_MAX> tx_buffer{};
+        std::array<uint8_t, UINT8_MAX> tx_buffer{};
     #else
         RingBuffer tx_buffer{};
     #endif
