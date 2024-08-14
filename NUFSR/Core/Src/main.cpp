@@ -31,6 +31,7 @@
 #include "uart/RS485.h"
 #include "uart/Port.hpp"
 #include "stdio.h"
+#include "dynamixel/Packetiser.hpp"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -68,6 +69,7 @@ char buffer[80];
 uart::RS485::status Status;
 /* USER CODE END 0 */
 uart::Port port(1);
+uint8_t byte;
 /**
   * @brief  The application entry point.
   * @retval int
@@ -122,12 +124,16 @@ int main(void)
   {
 
 //	  sprintf(buffer, "Data FSR 1:{%04x}, FSR 2:{%04x}, FSR 3:{%04x}, FSR 4:{%04x}\r\n", adc_var[0], adc_var[1],adc_var[2], adc_var[3]);
-	  sprintf(buffer, "Data %04d %04d %04d %04d\r\n", adc_var[0], adc_var[1], adc_var[2], adc_var[3]);
+//	  sprintf(buffer, "Data %04d %04d %04d %04d\r\n", adc_var[0], adc_var[1], adc_var[2], adc_var[3]);
 //	sprintf(buffer, "Data {%08x%08x}\r\n", *(uint32_t*)&adc_var[2], *(uint32_t*)&adc_var[0]);
 //  rs485.transmit((const uint8_t*)&buffer,(uint16_t)sizeof(buffer));
 
 //  Port
-	  port.write((const uint8_t*)&buffer,(uint16_t)sizeof(buffer));
+//	  port.write((const uint8_t*)&buffer,(uint16_t)sizeof(buffer));
+	  byte = port.read();
+	  sprintf(buffer, "Data = %x",byte);
+	  port.write(buffer);
+
 
   //	NUfsr_IMU_TransmitReceive(ACCEL_XOUT_L | IMU_READ, 0x00, Ptr_Rx, 1); //Previous code
   //	NUfsr_UART_Transmit(&huart1, (void*)Ptr_Rx, 1);
