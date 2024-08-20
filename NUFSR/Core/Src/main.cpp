@@ -31,7 +31,11 @@
 #include "uart/RS485.h"
 #include "uart/Port.hpp"
 #include "stdio.h"
+//#include "packet_handler.hpp"
 #include "dynamixel/Packetiser.hpp"
+//#include "dynamixel/PacketHandler.hpp"
+#include "dynamixel/Dynamixel.hpp"
+
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -65,11 +69,33 @@ void SystemClock_Config(void);
 /* USER CODE BEGIN 0 */
 uint16_t adc_var[4];
 uart::RS485 rs485(1);
-char buffer[80];
+char buffer[100];
+const uint8_t* rx_msg;
+uint8_t tx_msg[100];
 uart::RS485::status Status;
 /* USER CODE END 0 */
 uart::Port port(1);
-uint8_t byte;
+uint16_t byte;
+uint8_t byte8;
+uint8_t count;
+uint8_t header[4] = {0xff,0xff,0xfd,0x00};
+uint8_t device_ID = 21;
+uint8_t Read_Command = 2;
+uint8_t i;
+
+dynamixel::Packetiser packetiser;
+
+//enum Result { NONE = 0x00, SUCCESS, ERROR, CRC_ERROR, TIMEOUT };
+//enum Result result = NONE;
+
+
+
+//uart::Port::RingBuffer ringbuffer;
+
+
+//dynamixel::PacketHandler packethandler;
+//dynamixel::Packetiser packetiser;
+//dynamixel::PacketHandler.Result =  result;
 /**
   * @brief  The application entry point.
   * @retval int
@@ -116,9 +142,18 @@ int main(void)
 
     /* Infinite loop */
     /* USER CODE BEGIN WHILE */
+
+  // CONTROL TABLE
+  struct {
+	  std::array<uint16_t, 4> adcs = {0, 0, 0, 0};
+  } control_table __attribute__((packed));
   //  	count = 0;
   HAL_TIM_Base_Start(&htim3);
-  HAL_ADC_Start_DMA(&hadc1, (uint32_t*)&adc_var, 4);// DMA Start
+//  HAL_TIM_Base_Start(&htim4);
+  HAL_ADC_Start_DMA(&hadc1, (uint32_t*)control_table.adcs.data(), 4);// DMA Start
+
+  port.begin_rx();
+//  port.begin_tx();
 
   while (1)
   {
@@ -130,15 +165,57 @@ int main(void)
 
 //  Port
 //	  port.write((const uint8_t*)&buffer,(uint16_t)sizeof(buffer));
-	  byte = port.read();
-	  sprintf(buffer, "Data = %x",byte);
-	  port.write(buffer);
+//	  byte = port.read();
+//	  sprintf(buffer, "Data = %x",byte);
+//	  port.write(buffer);
+
+// while (port.peek() != 0xFFFF){
+//	 byte = port.read();
+//	 sprintf(buffer, "Data = %x\n",byte);
+//	   port.write(buffer);
+
+	  	  uint16_t num_bytes = port.get_available_rx();
+
+	  	  for (size_t i = 0; i < num_bytes; ++i) {
+	  		  packetiser.decode(port.read());
+			  if (packetiser.is_packet_ready()) {
+				  // Peek to see if there is a byte on the buffer yet.
+				  if (packetiser.get_decoded_packet()[7] == dynamixel::Instruction::READ) {
+					  auto inst = reinterpret_cast<const dynamixel::ReadCommand*>(packetiser.get_decoded_packet());
+					  if (inst->crc == packetiser.get_decoded_crc()) {
+						  dynamixel::StatusReturnCommand<uint16_t, 4> sts(21, dynamixel::CommandError::NO_ERROR, control_table.adcs);
+						  port.write(reinterpret_cast<uint8_t*>(&sts), sizeof(sts));
+					  }
+				  }
+			  }
+	  	  }
+	  	//					 std::vector rxb{packetsier.get_decoded_packet()} OR
+
+//	  if(count > 0){
+////		  Check Header
+//		  if((rx_msg[0] == header[0]) && (rx_msg[1] == header[1]) && (rx_msg[2] == header[2]) && (rx_msg[3] == header[3])){
+//			  // Check Device ID
+//			  if(rx_msg[4] == device_ID){
+////				  Check Instance 2 = Read Command
+//				  if (rx_msg[7] == Read_Command){
+////					  for(i = 0; i < count; i++){
+////						  byte8 = 0;
+////						  byte8 = rx_msg[i];
+////						  sprintf(buffer,"%2x\r\n", byte8);
+////						  port.write(buffer);
+////						  memset(buffer, 0, sizeof buffer);
+////						  memset(rx_msg, 0, sizeof rx_msg);
+////		  		  	  }
+//
+//				  }
+//			  }
+//		  }
+//	  }
+
 
 
   //	NUfsr_IMU_TransmitReceive(ACCEL_XOUT_L | IMU_READ, 0x00, Ptr_Rx, 1); //Previous code
   //	NUfsr_UART_Transmit(&huart1, (void*)Ptr_Rx, 1);
-  HAL_Delay(100);
-
   }
       /* USER CODE END WHILE */
 

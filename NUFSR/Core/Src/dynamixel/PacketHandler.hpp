@@ -1,12 +1,13 @@
-#include "../platform/NUSense/NUgus.hpp"
+//#include "../platform/NUSense/NUgus.hpp"
 #include "../uart/Port.hpp"
-#include "../utility/support/MicrosecondTimer.hpp"
+//#include "../utility/support/MicrosecondTimer.hpp"
 #include "Dynamixel.hpp"
 #include "Packetiser.hpp"
 #include "signal.h"
 
 #ifndef DYNAMIXEL_PACKETHANDLER_HPP
     #define DYNAMIXEL_PACKETHANDLER_HPP
+
 
 namespace dynamixel {
 
@@ -18,6 +19,8 @@ namespace dynamixel {
         /// @brief  the result of whether all the status-packets have been received,
         enum Result { NONE = 0x00, SUCCESS, ERROR, CRC_ERROR, TIMEOUT };
 
+
+        const id = 21;
         /**
          * @brief    Constructs the packet-handler.
          * @param    port the reference to the port to be communicated on,
@@ -41,22 +44,22 @@ namespace dynamixel {
          *            #SUCCESS if all the expected packets have been decoded,
          */
         template <uint16_t N>
-        const Result check_sts(const platform::NUSense::NUgus::ID id) {
+        const Result check_sts(const id) {
 
             if (!packetiser.is_packet_ready()) {
                 // Peek to see if there is a byte on the buffer yet.
                 uint16_t read_result = port.read();
-                if (read_result == uart::NO_BYTE_READ) {
-                    if (timeout_timer.has_timed_out()) {
-                        // If the packet has timed out, then return early.
-                        return TIMEOUT;
-                    }
-                    return NONE;
-                }
-                else {
-                    // If at least one byte has been received, then restart the timer from now on.
-                    timeout_timer.restart(1000);
-                }
+//                if (read_result == uart::NO_BYTE_READ) {
+//                    if (timeout_timer.has_timed_out()) {
+//                        // If the packet has timed out, then return early.
+//                        return TIMEOUT;
+//                    }
+//                    return NONE;
+//                }
+//                else {
+//                    // If at least one byte has been received, then restart the timer from now on.
+//                    timeout_timer.restart(1000);
+//                }
 
                 // If so, then decode it.
                 packetiser.decode(read_result);
@@ -68,7 +71,7 @@ namespace dynamixel {
             }
 
             // Stop the timer since we have a full packet.
-            timeout_timer.stop();
+//            timeout_timer.stop();
 
             // If so, then parse the array as a packet and add it with the rest.
             // Parse it as both a status-packet of expected length and a short status-packet, i.e.
