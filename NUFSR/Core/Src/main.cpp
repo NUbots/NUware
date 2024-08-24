@@ -146,7 +146,14 @@ int main(void)
   // CONTROL TABLE
   struct {
 	  std::array<uint16_t, 4> adcs = {0, 0, 0, 0};
+	  uint16_t id = 21;
+	  uint16_t broadcast_id = 0xFE;
+	  std::array<uint8_t, 3> ping_return = {0, 0, 0};
+
   } control_table __attribute__((packed));
+
+  uint32_t timeout;
+  uint32_t last_value;
   //  	count = 0;
   HAL_TIM_Base_Start(&htim3);
 //  HAL_TIM_Base_Start(&htim4);
@@ -174,44 +181,48 @@ int main(void)
 //	 sprintf(buffer, "Data = %x\n",byte);
 //	   port.write(buffer);
 
-	  	  uint16_t num_bytes = port.get_available_rx();
 
+
+	  	  uint16_t num_bytes = port.get_available_rx();
 	  	  for (size_t i = 0; i < num_bytes; ++i) {
 	  		  packetiser.decode(port.read());
 			  if (packetiser.is_packet_ready()) {
 				  // Peek to see if there is a byte on the buffer yet.
+				  // READ_COMMAND
 				  if (packetiser.get_decoded_packet()[7] == dynamixel::Instruction::READ) {
 					  auto inst = reinterpret_cast<const dynamixel::ReadCommand*>(packetiser.get_decoded_packet());
-					  if (inst->crc == packetiser.get_decoded_crc()) {
-						  dynamixel::StatusReturnCommand<uint16_t, 4> sts(21, dynamixel::CommandError::NO_ERROR, control_table.adcs);
+					  if ((inst->crc == packetiser.get_decoded_crc()) && (inst->id == control_table.id)) {
+						  dynamixel::StatusReturnCommand<uint16_t, 4> sts(control_table.id, dynamixel::CommandError::NO_ERROR, control_table.adcs);
 						  port.write(reinterpret_cast<uint8_t*>(&sts), sizeof(sts));
 					  }
+				  //
 				  }
+				  else if (packetiser.get_decoded_packet()[7] == dynamixel::Instruction::PING){
+					  auto inst = reinterpret_cast<const dynamixel::PingCommand*>(packetiser.get_decoded_packet());
+					  if (inst->crc == packetiser.get_decoded_crc()) {
+						  // if ID == 120
+						  if (inst->id == control_table.id){
+							  dynamixel::StatusReturnCommand<uint8_t, 3> sts(control_table.id, dynamixel::CommandError::NO_ERROR, control_table.ping_return);
+							  port.write(reinterpret_cast<uint8_t*>(&sts), sizeof(sts));
+						  }
+						  // else if ID == 0xFE
+						  if (inst->id == control_table.broadcast_id){
+							  // Start TIMER with of timeout of 2*id;
+							  last_value = HAL_GetTick();
+							  timeout = control_table.id*2;
+
+						  }
+					  }
+				  }
+				  packetiser.reset();
 			  }
 	  	  }
-	  	//					 std::vector rxb{packetsier.get_decoded_packet()} OR
-
-//	  if(count > 0){
-////		  Check Header
-//		  if((rx_msg[0] == header[0]) && (rx_msg[1] == header[1]) && (rx_msg[2] == header[2]) && (rx_msg[3] == header[3])){
-//			  // Check Device ID
-//			  if(rx_msg[4] == device_ID){
-////				  Check Instance 2 = Read Command
-//				  if (rx_msg[7] == Read_Command){
-////					  for(i = 0; i < count; i++){
-////						  byte8 = 0;
-////						  byte8 = rx_msg[i];
-////						  sprintf(buffer,"%2x\r\n", byte8);
-////						  port.write(buffer);
-////						  memset(buffer, 0, sizeof buffer);
-////						  memset(rx_msg, 0, sizeof rx_msg);
-////		  		  	  }
-//
-//				  }
-//			  }
-//		  }
-//	  }
-
+	  	if (HAL_GetTick() - last_value > timeout){
+		  timeout = UINT32_MAX;
+		  dynamixel::StatusReturnCommand<uint8_t, 3> sts(control_table.id, dynamixel::CommandError::NO_ERROR, control_table.ping_return);
+		  port.write(reinterpret_cast<uint8_t*>(&sts), sizeof(sts));
+		  packetiser.reset();
+	  }
 
 
   //	NUfsr_IMU_TransmitReceive(ACCEL_XOUT_L | IMU_READ, 0x00, Ptr_Rx, 1); //Previous code
