@@ -1,0 +1,405 @@
+(kicad_sch
+	(version 20231120)
+	(generator "eeschema")
+	(generator_version "8.0")
+	(uuid "c7c37bf4-2dcb-42f2-a755-bd6f509fc7b2")
+	(paper "A4")
+	(lib_symbols)
+	(wire
+		(pts
+			(xy 127 68.58) (xy 139.7 68.58)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "12ac14e2-de76-4123-853b-b7f40c0a2b02")
+	)
+	(wire
+		(pts
+			(xy 88.9 72.39) (xy 101.6 72.39)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "5cbf077f-8b00-4b6a-9249-10d653b430e3")
+	)
+	(wire
+		(pts
+			(xy 127 71.12) (xy 139.7 71.12)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "938ab45b-835d-479f-a983-f58b96f42219")
+	)
+	(wire
+		(pts
+			(xy 88.9 67.31) (xy 101.6 67.31)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "ab240d27-a5ef-42e8-93e7-bc4c3a1229a2")
+	)
+	(wire
+		(pts
+			(xy 88.9 69.85) (xy 101.6 69.85)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "d9c48faa-1e0e-4d3f-bb31-23f1c26f250d")
+	)
+	(rectangle
+		(start 44.45 31.75)
+		(end 133.35 107.95)
+		(stroke
+			(width 0)
+			(type dash)
+		)
+		(fill
+			(type none)
+		)
+		(uuid 333b22a6-b9fa-431c-8207-6022cacce5a7)
+	)
+	(text_box "Board		IMU			Price*	Stock\n						AU$	\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\nOpenCR		ICM20648	6.81	Ending soon\nNUFSR		ICM20689	~5		Obsolete\nNUSense		\"			\"\nBitbots		MPU6500		9.06	Ending soon\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n			ICM42688P	11.47	Active\n			ICM20948	13.82	Active"
+		(exclude_from_sim no)
+		(at 177.8 76.2 0)
+		(size 63.5 22.86)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(fill
+			(type none)
+		)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left top)
+		)
+		(uuid "21fb9a15-fa4c-4e73-9221-758f4ecefa94")
+	)
+	(text_box "The overall goals of this subcontroller are:\n- to be cheap (<AU$100),\n	- to have four layers,\n- to be small (<2400mm^2),\n- to be maintable,\n	- to have no obscure components,\n	- to be somewhat easily hand-soldered.\n"
+		(exclude_from_sim no)
+		(at 114.3 165.1 0)
+		(size 50.8 19.05)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(fill
+			(type none)
+		)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left top)
+		)
+		(uuid "522a4486-5b94-423e-bfd6-7d396fcd5782")
+	)
+	(sheet
+		(at 101.6 63.5)
+		(size 25.4 12.7)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.1524)
+			(type solid)
+		)
+		(fill
+			(color 0 0 0 0.0000)
+		)
+		(uuid "08de25ca-98b7-4675-bd85-d459b8b2b276")
+		(property "Sheetname" "Dynamixel"
+			(at 101.6 62.7884 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "Dynamixel.kicad_sch"
+			(at 101.6 76.7846 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left top)
+			)
+		)
+		(pin "DIR" input
+			(at 101.6 72.39 180)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+			(uuid "3f7d8e30-7600-4ec8-8297-94f0f326faae")
+		)
+		(pin "RX" output
+			(at 101.6 69.85 180)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+			(uuid "e9e4c96c-0e8d-40f8-817e-c6d91f72a2fd")
+		)
+		(pin "TX" input
+			(at 101.6 67.31 180)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+			(uuid "e2b5b78b-fe52-4a3e-99f8-0dc718d72217")
+		)
+		(pin "DXL+" tri_state
+			(at 127 68.58 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+			(uuid "9acd9a11-eda4-466f-a412-279a20442778")
+		)
+		(pin "DXL-" tri_state
+			(at 127 71.12 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+			(uuid "fcc950a3-4b29-4b2f-afd3-0c1b56fc6ede")
+		)
+		(instances
+			(project "nu740_board"
+				(path "/c7c37bf4-2dcb-42f2-a755-bd6f509fc7b2"
+					(page "5")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 50.8 63.5)
+		(size 38.1 38.1)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.1524)
+			(type solid)
+		)
+		(fill
+			(color 0 0 0 0.0000)
+		)
+		(uuid "1198c06a-0a00-4599-ad36-0db905047e2f")
+		(property "Sheetname" "Processor"
+			(at 50.8 62.7884 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "processor.kicad_sch"
+			(at 50.8 102.1846 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left top)
+			)
+		)
+		(pin "SPI_SCK" output
+			(at 88.9 91.44 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+			(uuid "47007365-7f7b-46e2-8eee-ec9d9307d875")
+		)
+		(pin "SPI_MOSI" output
+			(at 88.9 93.98 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+			(uuid "3f4e44dc-e441-4426-a1e8-53a81d83a062")
+		)
+		(pin "SPI_MISO" output
+			(at 88.9 96.52 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+			(uuid "ed2476e8-8b0d-40c3-b224-7295809f691e")
+		)
+		(pin "UART_TX" output
+			(at 88.9 67.31 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+			(uuid "dbcc22a3-bcb3-4789-a5ef-1f94a56a626d")
+		)
+		(pin "UART_RX" input
+			(at 88.9 69.85 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+			(uuid "de085e91-aafa-4df3-8228-4ebee51d1b05")
+		)
+		(pin "SPI_NSS" output
+			(at 88.9 99.06 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+			(uuid "d7e86e93-56bb-470e-8c5f-ea0e2dc93099")
+		)
+		(pin "RS485_DIR" output
+			(at 88.9 72.39 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+			(uuid "791d6d17-5b4d-4fe3-aff3-f9f347135181")
+		)
+		(instances
+			(project "nu740_board"
+				(path "/c7c37bf4-2dcb-42f2-a755-bd6f509fc7b2"
+					(page "3")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 139.7 63.5)
+		(size 25.4 12.7)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.1524)
+			(type solid)
+		)
+		(fill
+			(color 0 0 0 0.0000)
+		)
+		(uuid "40fcb7e1-b692-47a8-b6b3-8b2ebde8221f")
+		(property "Sheetname" "USB"
+			(at 139.7 62.7884 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "usb.kicad_sch"
+			(at 139.7 76.7846 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left top)
+			)
+		)
+		(pin "DXL-" tri_state
+			(at 139.7 68.58 180)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+			(uuid "888c5ab3-f649-4a4c-a1d1-aec897a924cb")
+		)
+		(pin "DXL+" tri_state
+			(at 139.7 71.12 180)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+			(uuid "85c0b32b-c21a-4ee7-a00b-504443b9d8d7")
+		)
+		(instances
+			(project "nu740_board"
+				(path "/c7c37bf4-2dcb-42f2-a755-bd6f509fc7b2"
+					(page "4")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 50.8 38.1)
+		(size 76.2 12.7)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.1524)
+			(type solid)
+		)
+		(fill
+			(color 0 0 0 0.0000)
+		)
+		(uuid "eb5a3b00-497c-4ead-8ac1-42cf3a921592")
+		(property "Sheetname" "Power"
+			(at 50.8 37.3884 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "power.kicad_sch"
+			(at 50.8 51.3846 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "nu740_board"
+				(path "/c7c37bf4-2dcb-42f2-a755-bd6f509fc7b2"
+					(page "2")
+				)
+			)
+		)
+	)
+	(sheet_instances
+		(path "/"
+			(page "1")
+		)
+	)
+)
