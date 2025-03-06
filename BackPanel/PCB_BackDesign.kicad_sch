@@ -3654,22 +3654,23 @@
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(fields_autoplaced yes)
 		(uuid "164f3e18-f735-4d42-84a8-8e3adff332e9")
 		(property "Reference" "R10"
-			(at 184.15 132.08 90)
+			(at 177.292 136.906 90)
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
+				(justify right)
 			)
 		)
 		(property "Value" "470OHM"
-			(at 184.15 134.62 90)
+			(at 194.818 137.16 90)
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
+				(justify left)
 			)
 		)
 		(property "Footprint" "Resistor_SMD:R_0603_1608Metric"
@@ -4134,10 +4135,9 @@
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(fields_autoplaced yes)
 		(uuid "6024b1a3-37c7-48eb-8ef3-bbec1a6fcdfb")
 		(property "Reference" "R9"
-			(at 184.15 119.38 90)
+			(at 180.086 124.46 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -4145,7 +4145,7 @@
 			)
 		)
 		(property "Value" "470OHM"
-			(at 184.15 121.92 90)
+			(at 190.754 124.46 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -4346,7 +4346,7 @@
 				)
 			)
 		)
-		(property "Value" "Conn_01x02_Pin"
+		(property "Value" "B2B-PH-K-S"
 			(at 70.612 90.17 0)
 			(effects
 				(font
@@ -4363,7 +4363,7 @@
 				(hide yes)
 			)
 		)
-		(property "Datasheet" "~"
+		(property "Datasheet" "https://www.jst-mfg.com/product/pdf/eng/ePH.pdf"
 			(at 69.85 92.71 0)
 			(effects
 				(font
@@ -4404,10 +4404,9 @@
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(fields_autoplaced yes)
 		(uuid "9c7f69e3-f57b-48ba-960d-44c1f15bbd70")
 		(property "Reference" "R11"
-			(at 184.15 142.24 90)
+			(at 179.324 147.32 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -4415,7 +4414,7 @@
 			)
 		)
 		(property "Value" "470OHM"
-			(at 184.15 144.78 90)
+			(at 190.754 147.32 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -4540,7 +4539,6 @@
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(fields_autoplaced yes)
 		(uuid "ad74f767-5af3-4d0d-97e6-e46f059d3139")
 		(property "Reference" "D7"
 			(at 218.44 129.54 0)
@@ -4559,12 +4557,11 @@
 			)
 		)
 		(property "Footprint" "LED_SMD:LED_LiteOn_LTST-C19HE1WT"
-			(at 218.44 144.78 0)
+			(at 241.3 139.192 0)
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
-				(hide yes)
 			)
 		)
 		(property "Datasheet" "~"
@@ -4614,10 +4611,9 @@
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(fields_autoplaced yes)
 		(uuid "b1d2b69a-2acb-4390-a2d5-301895564b2e")
 		(property "Reference" "R7"
-			(at 184.15 137.16 90)
+			(at 179.324 142.24 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -4625,7 +4621,7 @@
 			)
 		)
 		(property "Value" "470OHM"
-			(at 184.15 139.7 90)
+			(at 190.754 142.24 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -4682,10 +4678,9 @@
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(fields_autoplaced yes)
 		(uuid "b8ca65fc-8733-4d7f-bf63-8ff72abef8ca")
 		(property "Reference" "R6"
-			(at 184.15 114.3 90)
+			(at 180.086 119.38 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -4693,7 +4688,7 @@
 			)
 		)
 		(property "Value" "470OHM"
-			(at 184.15 116.84 90)
+			(at 190.754 119.38 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -4886,18 +4881,17 @@
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(fields_autoplaced yes)
 		(uuid "c1f0c043-fea3-4bde-b3f0-28308a59c864")
 		(property "Reference" "J1"
-			(at 128.905 40.64 0)
+			(at 126.746 54.61 0)
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
 			)
 		)
-		(property "Value" "Conn_01x08_Pin"
-			(at 128.905 43.18 0)
+		(property "Value" "Molex Picoblade 0530470810"
+			(at 129.794 43.18 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -4913,7 +4907,7 @@
 				(hide yes)
 			)
 		)
-		(property "Datasheet" "~"
+		(property "Datasheet" "https://www.molex.com/content/dam/molex/molex-dot-com/products/automated/en-us/salesdrawingpdf/530/53047/530470810_sd.pdf?inline"
 			(at 128.27 53.34 0)
 			(effects
 				(font
@@ -5039,7 +5033,6 @@
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(fields_autoplaced yes)
 		(uuid "caf6e9b6-a72f-4a9e-9594-f7d50b52f761")
 		(property "Reference" "D6"
 			(at 218.44 106.68 0)
@@ -5058,12 +5051,11 @@
 			)
 		)
 		(property "Footprint" "LED_SMD:LED_LiteOn_LTST-C19HE1WT"
-			(at 218.44 121.92 0)
+			(at 241.046 116.332 0)
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
-				(hide yes)
 			)
 		)
 		(property "Datasheet" "~"
@@ -5113,10 +5105,9 @@
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(fields_autoplaced yes)
 		(uuid "cbd61d8f-7016-4082-8d7b-dc508651e55c")
 		(property "Reference" "J2"
-			(at 97.79 53.3399 0)
+			(at 97.282 54.61 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -5124,8 +5115,8 @@
 				(justify right)
 			)
 		)
-		(property "Value" "Conn_01x09_Pin"
-			(at 97.79 55.8799 0)
+		(property "Value" "Molex Picoblade 0530470910"
+			(at 80.01 40.64 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -5142,7 +5133,7 @@
 				(hide yes)
 			)
 		)
-		(property "Datasheet" "~"
+		(property "Datasheet" "https://www.molex.com/content/dam/molex/molex-dot-com/products/automated/en-us/salesdrawingpdf/530/53047/530470910_sd.pdf?inline"
 			(at 96.52 54.61 0)
 			(effects
 				(font
@@ -5214,7 +5205,7 @@
 				)
 			)
 		)
-		(property "Value" "Conn_01x02_Pin"
+		(property "Value" "B2B-PH-K-S"
 			(at 70.485 81.28 0)
 			(effects
 				(font
@@ -5231,7 +5222,7 @@
 				(hide yes)
 			)
 		)
-		(property "Datasheet" "~"
+		(property "Datasheet" "https://www.jst-mfg.com/product/pdf/eng/ePH.pdf"
 			(at 69.85 83.82 0)
 			(effects
 				(font
@@ -5408,10 +5399,9 @@
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(fields_autoplaced yes)
 		(uuid "dee69b8c-1cc6-49b4-83e4-c0b1f8192a06")
 		(property "Reference" "R8"
-			(at 184.15 109.22 90)
+			(at 180.086 114.3 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -5419,7 +5409,7 @@
 			)
 		)
 		(property "Value" "470OHM"
-			(at 184.15 111.76 90)
+			(at 190.754 114.3 90)
 			(effects
 				(font
 					(size 1.27 1.27)
