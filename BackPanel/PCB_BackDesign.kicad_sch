@@ -3098,6 +3098,118 @@
 		)
 		(uuid "fc98889e-232e-4eb3-823a-daa8fd9db7ee")
 	)
+	(rectangle
+		(start 78.74 129.54)
+		(end 104.14 134.62)
+		(stroke
+			(width 0)
+			(type default)
+			(color 128 128 128 1)
+		)
+		(fill
+			(type color)
+			(color 191 191 191 1)
+		)
+		(uuid 03e4b3ff-7577-488d-8212-4ad06bca7695)
+	)
+	(rectangle
+		(start 204.47 63.5)
+		(end 229.87 68.58)
+		(stroke
+			(width 0)
+			(type default)
+			(color 192 255 128 1)
+		)
+		(fill
+			(type color)
+			(color 223 255 191 1)
+		)
+		(uuid 336cd119-343d-4537-8f59-74a1434bdecf)
+	)
+	(rectangle
+		(start 204.47 74.93)
+		(end 229.87 80.01)
+		(stroke
+			(width 0)
+			(type default)
+			(color 255 128 128 1)
+		)
+		(fill
+			(type color)
+			(color 255 191 191 1)
+		)
+		(uuid 6574c1db-d8a1-498a-8de8-dc94d6cfc072)
+	)
+	(rectangle
+		(start 78.74 147.32)
+		(end 104.14 152.4)
+		(stroke
+			(width 0)
+			(type default)
+			(color 128 128 255 1)
+		)
+		(fill
+			(type color)
+			(color 191 191 255 1)
+		)
+		(uuid a8d9766e-8b8d-4386-a98a-d2206ad94806)
+	)
+	(rectangle
+		(start 204.47 85.09)
+		(end 229.87 90.17)
+		(stroke
+			(width 0)
+			(type default)
+			(color 128 128 255 1)
+		)
+		(fill
+			(type color)
+			(color 191 191 255 1)
+		)
+		(uuid d47fd328-f76e-4c81-b062-58c586b15b15)
+	)
+	(rectangle
+		(start 204.47 95.25)
+		(end 229.87 100.33)
+		(stroke
+			(width 0)
+			(type default)
+			(color 128 255 128 1)
+		)
+		(fill
+			(type color)
+			(color 191 255 191 1)
+		)
+		(uuid de6ab853-e10c-46b3-81b5-2c6d3783aa5c)
+	)
+	(rectangle
+		(start 204.47 52.07)
+		(end 229.87 57.15)
+		(stroke
+			(width 0)
+			(type default)
+			(color 192 255 128 1)
+		)
+		(fill
+			(type color)
+			(color 223 255 191 1)
+		)
+		(uuid e9438d1f-8982-4c65-ac1b-8ffcc88c2ada)
+	)
+	(rectangle
+		(start 78.74 113.03)
+		(end 104.14 118.11)
+		(stroke
+			(width 0)
+			(type default)
+			(color 255 128 128 1)
+		)
+		(fill
+			(type color)
+			(color 255 191 191 1)
+		)
+		(uuid ee0c8c00-4334-4070-a8a2-99938a6cd40f)
+	)
 	(label "LED6_R"
 		(at 167.64 138.43 0)
 		(effects
@@ -3596,7 +3708,7 @@
 				)
 			)
 		)
-		(property "Value" "LED"
+		(property "Value" "LED (green)"
 			(at 216.8525 99.06 0)
 			(effects
 				(font
@@ -3733,7 +3845,7 @@
 				)
 			)
 		)
-		(property "Value" "KS11R23CQD"
+		(property "Value" "KS11R22CQD (black)"
 			(at 91.44 133.35 0)
 			(effects
 				(font
@@ -3871,7 +3983,7 @@
 				)
 			)
 		)
-		(property "Value" "KS11R23CQD"
+		(property "Value" "KS11R27CQD (blue)"
 			(at 91.44 151.13 0)
 			(effects
 				(font
@@ -3941,7 +4053,7 @@
 				)
 			)
 		)
-		(property "Value" "LED"
+		(property "Value" "LED (yellow-green)"
 			(at 216.8525 55.88 0)
 			(effects
 				(font
@@ -4009,7 +4121,7 @@
 				)
 			)
 		)
-		(property "Value" "LED"
+		(property "Value" "LED (yellow-green)"
 			(at 216.8525 67.31 0)
 			(effects
 				(font
@@ -4077,7 +4189,7 @@
 				)
 			)
 		)
-		(property "Value" "LED"
+		(property "Value" "LED (red)"
 			(at 216.8525 78.74 0)
 			(effects
 				(font
@@ -4212,7 +4324,7 @@
 				)
 			)
 		)
-		(property "Value" "LED"
+		(property "Value" "LED (blue)"
 			(at 216.8525 88.9 0)
 			(effects
 				(font
@@ -5273,7 +5385,7 @@
 				)
 			)
 		)
-		(property "Value" "KS11R23CQD"
+		(property "Value" "KS11R23CQD (red)"
 			(at 91.44 116.84 0)
 			(effects
 				(font
