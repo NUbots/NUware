@@ -1808,7 +1808,7 @@
 				)
 			)
 		)
-		(symbol "KS11R23CQD:KS11R23CQD"
+		(symbol "KS11_CNK:KS11R23CQD"
 			(pin_names
 				(offset 0.254)
 			)
@@ -3828,7 +3828,7 @@
 		)
 	)
 	(symbol
-		(lib_id "KS11R23CQD:KS11R23CQD")
+		(lib_id "KS11_CNK:KS11R23CQD")
 		(at 71.12 140.97 0)
 		(unit 1)
 		(exclude_from_sim no)
@@ -3853,7 +3853,7 @@
 				)
 			)
 		)
-		(property "Footprint" "footprints:KS11_CNK"
+		(property "Footprint" "KS11_CNK"
 			(at 71.12 140.97 0)
 			(effects
 				(font
@@ -3966,7 +3966,7 @@
 		)
 	)
 	(symbol
-		(lib_id "KS11R23CQD:KS11R23CQD")
+		(lib_id "KS11_CNK:KS11R23CQD")
 		(at 71.12 158.75 0)
 		(unit 1)
 		(exclude_from_sim no)
@@ -3991,7 +3991,7 @@
 				)
 			)
 		)
-		(property "Footprint" "footprints:KS11_CNK"
+		(property "Footprint" "KS11_CNK"
 			(at 71.12 158.75 0)
 			(effects
 				(font
@@ -5368,7 +5368,7 @@
 		)
 	)
 	(symbol
-		(lib_id "KS11R23CQD:KS11R23CQD")
+		(lib_id "KS11_CNK:KS11R23CQD")
 		(at 71.12 124.46 0)
 		(unit 1)
 		(exclude_from_sim no)
@@ -5393,7 +5393,7 @@
 				)
 			)
 		)
-		(property "Footprint" "footprints:KS11_CNK"
+		(property "Footprint" "KS11_CNK"
 			(at 71.12 124.46 0)
 			(effects
 				(font
