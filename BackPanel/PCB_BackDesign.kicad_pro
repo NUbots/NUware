@@ -479,7 +479,7 @@
       "gencad": "",
       "idf": "",
       "netlist": "",
-      "plot": "",
+      "plot": "production/2025/march/",
       "pos_files": "",
       "specctra_dsn": "",
       "step": "",
