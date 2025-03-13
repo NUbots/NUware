@@ -163,71 +163,53 @@ int main(void)
   port.begin_rx();
 //  port.begin_tx();
   nufsr::IMU imu{};
+  imu.init();
+  uint8_t rx[14] = {0};
+
+
   while (1)
   {
-
-//	  sprintf(buffer, "Data FSR 1:{%04x}, FSR 2:{%04x}, FSR 3:{%04x}, FSR 4:{%04x}\r\n", adc_var[0], adc_var[1],adc_var[2], adc_var[3]);
-//	  sprintf(buffer, "Data %04d %04d %04d %04d\r\n", adc_var[0], adc_var[1], adc_var[2], adc_var[3]);
-//	sprintf(buffer, "Data {%08x%08x}\r\n", *(uint32_t*)&adc_var[2], *(uint32_t*)&adc_var[0]);
-//  rs485.transmit((const uint8_t*)&buffer,(uint16_t)sizeof(buffer));
-
-//  Port
-//	  port.write((const uint8_t*)&buffer,(uint16_t)sizeof(buffer));
-//	  byte = port.read();
-//	  sprintf(buffer, "Data = %x",byte);
-//	  port.write(buffer);
-
-// while (port.peek() != 0xFFFF){
-//	 byte = port.read();
-//	 sprintf(buffer, "Data = %x\n",byte);
-//	   port.write(buffer);
-
-
-
-	  	  uint16_t num_bytes = port.get_available_rx();
-	  	  for (size_t i = 0; i < num_bytes; ++i) {
-	  		  packetiser.decode(port.read());
-			  if (packetiser.is_packet_ready()) {
-				  // Peek to see if there is a byte on the buffer yet.
-				  // READ_COMMAND
-				  if (packetiser.get_decoded_packet()[7] == dynamixel::Instruction::READ) {
-					  auto inst = reinterpret_cast<const dynamixel::ReadCommand*>(packetiser.get_decoded_packet());
-					  if ((inst->crc == packetiser.get_decoded_crc()) && (inst->id == control_table.id)) {
-						  dynamixel::StatusReturnCommand<uint16_t, 4> sts(control_table.id, dynamixel::CommandError::NO_ERROR, control_table.adcs);
-						  port.write(reinterpret_cast<uint8_t*>(&sts), sizeof(sts));
-					  }
-				  //
-				  }
-				  else if (packetiser.get_decoded_packet()[7] == dynamixel::Instruction::PING){
-					  auto inst = reinterpret_cast<const dynamixel::PingCommand*>(packetiser.get_decoded_packet());
-					  if (inst->crc == packetiser.get_decoded_crc()) {
-						  // if ID == 120
-						  if (inst->id == control_table.id){
-							  dynamixel::StatusReturnCommand<uint8_t, 3> sts(control_table.id, dynamixel::CommandError::NO_ERROR, control_table.ping_return);
-							  port.write(reinterpret_cast<uint8_t*>(&sts), sizeof(sts));
-						  }
-						  // else if ID == 0xFE
-						  if (inst->id == control_table.broadcast_id){
-							  // Start TIMER with of timeout of 2*id;
-							  last_value = HAL_GetTick();
-							  timeout = control_table.id*2;
-
-						  }
-					  }
-				  }
-				  packetiser.reset();
-			  }
-	  	  }
-	  	if (HAL_GetTick() - last_value > timeout){
-		  timeout = UINT32_MAX;
-		  dynamixel::StatusReturnCommand<uint8_t, 3> sts(control_table.id, dynamixel::CommandError::NO_ERROR, control_table.ping_return);
-		  port.write(reinterpret_cast<uint8_t*>(&sts), sizeof(sts));
-		  packetiser.reset();
-	  }
-
-
-  //	NUfsr_IMU_TransmitReceive(ACCEL_XOUT_L | IMU_READ, 0x00, Ptr_Rx, 1); //Previous code
-  //	NUfsr_UART_Transmit(&huart1, (void*)Ptr_Rx, 1);
+	  imu.read_reg(nufsr::IMU::Address::WHO_AM_I, rx);
+//	  	  uint16_t num_bytes = port.get_available_rx();
+//	  	  for (size_t i = 0; i < num_bytes; ++i) {
+//	  		  packetiser.decode(port.read());
+//			  if (packetiser.is_packet_ready()) {
+//				  // Peek to see if there is a byte on the buffer yet.
+//				  // READ_COMMAND
+//				  if (packetiser.get_decoded_packet()[7] == dynamixel::Instruction::READ) {
+//					  auto inst = reinterpret_cast<const dynamixel::ReadCommand*>(packetiser.get_decoded_packet());
+//					  if ((inst->crc == packetiser.get_decoded_crc()) && (inst->id == control_table.id)) {
+//						  dynamixel::StatusReturnCommand<uint16_t, 4> sts(control_table.id, dynamixel::CommandError::NO_ERROR, control_table.adcs);
+//						  port.write(reinterpret_cast<uint8_t*>(&sts), sizeof(sts));
+//					  }
+//				  //
+//				  }
+//				  else if (packetiser.get_decoded_packet()[7] == dynamixel::Instruction::PING){
+//					  auto inst = reinterpret_cast<const dynamixel::PingCommand*>(packetiser.get_decoded_packet());
+//					  if (inst->crc == packetiser.get_decoded_crc()) {
+//						  // if ID == 120
+//						  if (inst->id == control_table.id){
+//							  dynamixel::StatusReturnCommand<uint8_t, 3> sts(control_table.id, dynamixel::CommandError::NO_ERROR, control_table.ping_return);
+//							  port.write(reinterpret_cast<uint8_t*>(&sts), sizeof(sts));
+//						  }
+//						  // else if ID == 0xFE
+//						  if (inst->id == control_table.broadcast_id){
+//							  // Start TIMER with of timeout of 2*id;
+//							  last_value = HAL_GetTick();
+//							  timeout = control_table.id*2;
+//
+//						  }
+//					  }
+//				  }
+//				  packetiser.reset();
+//			  }
+//	  	  }
+//	  	if (HAL_GetTick() - last_value > timeout){
+//		  timeout = UINT32_MAX;
+//		  dynamixel::StatusReturnCommand<uint8_t, 3> sts(control_table.id, dynamixel::CommandError::NO_ERROR, control_table.ping_return);
+//		  port.write(reinterpret_cast<uint8_t*>(&sts), sizeof(sts));
+//		  packetiser.reset();
+//	  }
   }
       /* USER CODE END WHILE */
 
