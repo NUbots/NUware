@@ -35,6 +35,7 @@
 #include "dynamixel/Packetiser.hpp"
 //#include "dynamixel/PacketHandler.hpp"
 #include "dynamixel/Dynamixel.hpp"
+#include "imu.h"
 
 /* USER CODE END Includes */
 
@@ -161,7 +162,7 @@ int main(void)
 
   port.begin_rx();
 //  port.begin_tx();
-
+  nufsr::IMU imu{};
   while (1)
   {
 
